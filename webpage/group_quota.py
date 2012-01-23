@@ -2,19 +2,19 @@
 
 # Desc: This script provides the web frontend to the database (on database) that holds
 #       the Atlas group-quota information in it.  It allows only 'AUTHORIZED_USERS'
-#       to change the group quotas, restricting the total to remain constant.  
+#       to change the group quotas, restricting the total to remain constant.
 #       Users in 'FARM_USERS' are allowed to change anything in a group, as well
 #       as create and delete groups, if they know the password to do so.
-# 
+#
 # By: William Strecker-Kellogg -- willsk@bnl.gov
-# 
+#
 # CHANGELOG:
 #   8/10/10     v1.0 to be put into production
 
 
 # NOTE: This script works in conjuction with condor03:/home/condor/CONFIG/scripts/update_quotas.py
 #       and the farmweb01:/var/www/public/cronjobs/update_db_condor_usage.py, which
-#       write database changes to the condor config files and update the busy 
+#       write database changes to the condor config files and update the busy
 #       slots in each group respectively.
 
 
@@ -73,7 +73,7 @@ class HTMLTable:
         return self.table[key]
 
 
-def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov", user="db_query", p=""):
+def db_execute(command, database="linux_farm", host="localhost", user="willsk", p=""):
 
     try:
         conn = MySQLdb.connect(db=database,host=host,user=user,passwd=p)
@@ -137,17 +137,17 @@ def main_page(data, total, user, auth):
         for obj in row:
             tab.add_td(obj, 'class="body" align="right"')
 
-    
+
 
     print page_head
-    
+
     if auth == 0:
         print 'User <i style="color: blue">%s</i> is not authorized to make changes' % user
     if auth == 1:
         print 'User <i style="color: red">%s</i> is authorized to change quotas' % user
     if auth == 2:
         print '<p style="color: red">Caution: User <i>%s</i> is authorized to add/remove groups!</p>' % user
-    
+
     print page_info
     print tab
     print '<p style="font-size: small">*Busy slot info updated every 5 minutes'
@@ -158,7 +158,7 @@ def main_page(data, total, user, auth):
         print '<input type=submit name="edit" value="Edit Group Quotas"> <br><br>'
     if auth == 2:
         print '<input type="submit" name="alter_groups" value="Add/Remove Groups"> '
-    
+
     print '</form> <br>'
     print '<br><a href="https://webdocs.racf.bnl.gov/Facility/LinuxFarm/%s" style="font-size: small">' % logfile.split('/')[-1]
     print 'Change History</a>'
@@ -174,10 +174,10 @@ def edit_quotas(data, total, auth=0):
     for row in data:
         total += int(row[1])
 
-    
+
     print '<h3>Edit Group Quotas</h3>'
     print '<p style="color: red">Quotas must sum to %d</p><hr>' % total
-    
+
     if auth == 2:
         print '<p style="padding-right: 40%; color: red">Warning: As an authorized user, you can '
         print 'change the quota sum, so be sure to check your numbers.</p>'
@@ -395,8 +395,8 @@ def get_last_update(fmt):
     last_update = db_execute("SELECT last_change FROM atlas_group_quotas")[0][0]
     return time.strftime(fmt, time.localtime(last_update))
 
-    
-        
+
+
 
 
 cgi_data = cgi.FieldStorage()
