@@ -58,6 +58,10 @@ class HTMLTable(object):
         self.header.append(text)
         self.header_alt.append(alt)
 
+    def col_xform(self, idx, func):
+        for row in self.table:
+            row['data'][idx]["text"] = func(row['data'][idx]["text"])
+
     def __str__(self):
         out = '<table %s>\n' % self.alt
 
@@ -142,7 +146,8 @@ def main_page(data, total, user):
     for row in data:
         tab.add_tr()
         for obj in row:
-            tab.add_td(obj, 'class="body" align="right"')
+            tab.add_td(obj, 'class="body"')
+    tab.col_xform(3, lambda x: bool(x))
 
     print page_head
 
@@ -328,6 +333,7 @@ def alter_groups(data):
         for obj in row:
             tab.add_td(obj, 'class="body" align="right"')
         tab.add_td('<input type="checkbox" name="groups_to_remove" value="%s">' % row[0])
+    tab.col_xform(3, lambda x: bool(x))
     print tab, '<br>'
 
     print '<input type="submit" name="remove_groups" value="Remove Selected Groups"><br><br>'
