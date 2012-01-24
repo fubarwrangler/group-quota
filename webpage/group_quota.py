@@ -18,22 +18,26 @@
 #       slots in each group respectively.
 
 
-import cgitb, cgi
+import re
+import sys
+import cgi
+import time
+import cgitb
 import MySQLdb
-import os, sys, time, re
 
-
-FARM_USERS = ['awchan','hollowec','willsk']
-AUTHORIZED_USERS = ['jhover','mernst','psalgado','Xwillsk']
+FARM_USERS = ['awchan', 'hollowec', 'willsk']
+AUTHORIZED_USERS = ['jhover', 'mernst', 'Xwillsk', 'hito']
 
 SCRIPT_NAME = 'group_quota.py'
-logfile = '/var/www/staff/atlas_groupquota.log'
-
+logfile = '/tmp/atlas_groupquota.log'
+auth = 0
 
 cgitb.enable()
+#webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
+webdocs_user = "willsk"
 
 
-class HTMLTable:
+class HTMLTable(object):
     """ A simple HTML table class that lets you index/modify cells """
 
     def __init__(self, alt):
@@ -45,12 +49,12 @@ class HTMLTable:
         self.header_alt = []
 
     def add_td(self, text, alt=''):
-        self.table[-1]['data'].append({'text':text, 'alt':alt})
+        self.table[-1]['data'].append({'text': text, 'alt': alt})
 
-    def add_tr(self, alt = ''):
-        self.table.append({'data':[], 'alt':alt})
+    def add_tr(self, alt=''):
+        self.table.append({'data': [], 'alt': alt})
 
-    def add_hr(self, text, alt = ''):
+    def add_hr(self, text, alt=''):
         self.header.append(text)
         self.header_alt.append(alt)
 
@@ -60,7 +64,7 @@ class HTMLTable:
         if self.header != []:
             out += '  <tr>'
             for h in range(len(self.header)):
-                out += ' <th %s>%s</th>' % (self.header_alt[h],self.header[h])
+                out += ' <th %s>%s</th>' % (self.header_alt[h], self.header[h])
             out += ' </tr>\n'
         for r in self.table:
             out += '  <tr %s>' % r['alt']
@@ -73,33 +77,37 @@ class HTMLTable:
         return self.table[key]
 
 
-def db_execute(command, database="linux_farm", host="localhost", user="willsk", p=""):
+def db_execute(command, database="linux_farm", host="localhost", user="db_query", p=""):
 
     try:
-        conn = MySQLdb.connect(db=database,host=host,user=user,passwd=p)
+        conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
         dbc = conn.cursor()
     except MySQLdb.Error, e:
         print "DB Error %d: %s" % (e.args[0], e.args[1])
+        print '<p><a href="javascript:window.history.go(-1)">Back</a>'
         sys.exit(1)
     try:
-        if (type(command) is list or type(command) is tuple) and len(command) > 0:
-            for item in command:
-                dbc.execute(item)
-        elif type(command) is str:
-            dbc.execute(command)
-        else:
-            raise TypeError
-    except MySQLdb.Error, e:
-        print "DB Error %d: %s" % (e.args[0], e.args[1])
+        try:
+            if (type(command) is list or type(command) is tuple) and len(command) > 0:
+                for item in command:
+                    dbc.execute(item)
+            elif type(command) is str:
+                dbc.execute(command)
+            else:
+                raise TypeError
+        except MySQLdb.Error, e:
+            print "DB Error %d: %s" % (e.args[0], e.args[1])
+            print '<p><a href="javascript:window.history.go(-1)">Back</a>'
+            sys.exit(1)
+        except TypeError:
+            print 'Invalid command type, nothing sent to db sent to db'
+            sys.exit(1)
+        db_data = dbc.fetchall()
+    finally:
         dbc.close()
-        sys.exit(1)
-    except TypeError:
-        print 'Invalid command type, nothing sent to db sent to db'
-        dbc.close()
-        sys.exit(1)
 
-    db_data = dbc.fetchall()
-    dbc.close()
+    conn.commit()
+
     return db_data
 
 
@@ -116,8 +124,7 @@ def log_action(comment):
     fp.close()
 
 
-
-def main_page(data, total, user, auth):
+def main_page(data, total, user):
 
     page_head = '<span class="top"><p><h2>ATLAS Condor Group Quotas:</h2></p><hr />'
     page_info = \
@@ -130,14 +137,12 @@ def main_page(data, total, user, auth):
     """
 
     tab = HTMLTable('class="main" border=1')
-    for i in ('Group Name', 'Quota', 'Priority', 'Auto Regroup', 'Busy*'):
+    for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus', 'Busy*'):
         tab.add_hr(i, 'caption="%s"' % i)
     for row in data:
         tab.add_tr()
         for obj in row:
             tab.add_td(obj, 'class="body" align="right"')
-
-
 
     print page_head
 
@@ -151,7 +156,6 @@ def main_page(data, total, user, auth):
     print page_info
     print tab
     print '<p style="font-size: small">*Busy slot info updated every 5 minutes'
-    print '<br>*Last updated: %s</p>' % get_last_update('%b %d %I:%M:%S %p')
     print '<p>Total Slots=%d' % total
     print '<form enctype="multipart/form-data" method=POST action="%s">' % SCRIPT_NAME
     if auth != 0:
@@ -166,14 +170,13 @@ def main_page(data, total, user, auth):
     title="Documentation" target="__blank">Webdocs Documentation</a>'
     print '<br><p style="font-size: small">Page last refreshed %s</p>' % time.ctime()
 
+
 # Depending on 'auth', show edit fields for quota or all values
-def edit_quotas(data, total, auth=0):
+def edit_quotas(data, total):
 
     # TODO: Javascript box that displays current total at all times?
     total = 0
-    for row in data:
-        total += int(row[1])
-
+    total += sum(int(x[1]) for x in data)
 
     print '<h3>Edit Group Quotas</h3>'
     print '<p style="color: red">Quotas must sum to %d</p><hr>' % total
@@ -185,14 +188,14 @@ def edit_quotas(data, total, auth=0):
     tab = HTMLTable('class="edit"')
     print '<form enctype="multipart/form-data" method=POST action="%s">' % SCRIPT_NAME
     if auth == 2:
-        for i in ('Group Name','Quota (orig)','Priority (orig)','Auto Regroup &nbsp;&nbsp;(orig)'):
+        for i in ('Group Name', 'Quota (orig)', 'Priority (orig)', 'Accept Surplus &nbsp;&nbsp;(orig)'):
             tab.add_hr(i, 'caption="%s"' % i)
     else:
-        for i in ('Group Name','Quota','Priority','Auto Regroup'):
+        for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus'):
             tab.add_hr(i, 'caption="%s"' % i)
     alt = 0
     for row in data:
-        checked = ['','']
+        checked = ['', '']
         if row[3] == 'TRUE':
             checked[0] = 'checked="checked"'
         else:
@@ -206,12 +209,12 @@ def edit_quotas(data, total, auth=0):
         tab.add_td('%s (%s)' % ('<input type="text" value="%d" size="6" name="%s_quota">' % (row[1], row[0]), row[1]))
         if auth == 2:
             tab.add_td('%s (%s)' % ('<input type="text" value="%s" size="4" name="%s_prio">' % (row[2], row[0]), row[2]))
-            tf =  'True:<input type="radio" %s value="True" name="%s_regroup">  ' % (checked[0], row[0])
-            tf += ' False:<input type="radio" value="False" %s name="%s_regroup">' % (checked[1], row[0])
+            tf = 'True:<input type="radio" %s value="1" name="%s_regroup">  ' % (checked[0], row[0])
+            tf += ' False:<input type="radio" value="0" %s name="%s_regroup">' % (checked[1], row[0])
             tab.add_td('%s &nbsp;&nbsp; (%s)' % (tf, row[3].capitalize()))
         else:
             tab.add_td('%s %s' % ('<input type="hidden" value="%s" size="4" name="%s_prio">' % (row[2], row[0]), row[2]))
-            tf =  '<input type="hidden" value="%s" name="%s_regroup"> ' % (row[3], row[0])
+            tf = '<input type="hidden" value="%s" name="%s_regroup"> ' % (row[3], row[0])
             tab.add_td('%s %s' % (tf, row[3].capitalize()))
 
     print tab
@@ -219,16 +222,17 @@ def edit_quotas(data, total, auth=0):
     print '<br><input type="submit" name="change_data" value="Upload Changes"> </form>'
     print '<br><a href="./%s">Back</a></html>' % SCRIPT_NAME
 
+
 # data is from database, formdata is the cgi input, and total is the number the quotas must add up to
-def check_quota_changes(data, formdata, total, auth):
+def check_quota_changes(data, formdata, total):
 
     new_total = 0
     # grp_name contains the titles of the queues in the rows of the database
     # formdata.getfirst(grp_name+"") is the user's new data
-    for grp_name in [x[0] for x in data]:
-        quota = formdata.getfirst(grp_name+'_quota', '')
-        prio = formdata.getfirst(grp_name+'_prio', '')
-        regroup = formdata.getfirst(grp_name+'_regroup', '')
+    for grp_name in (x[0] for x in data):
+        quota = formdata.getfirst(grp_name + '_quota', '')
+        prio = formdata.getfirst(grp_name + '_prio', '')
+        regroup = formdata.getfirst(grp_name + '_regroup', '')
         # sanatize the input
         if not re.match('^\d+$', quota):
             print '<b>ERROR:</b> Please enter a valid whole number in the quota box!'
@@ -259,35 +263,40 @@ def check_quota_changes(data, formdata, total, auth):
     # If we are here the input should all be sanitized and sanity-checked, so we return ok
     return 1
 
+
 # Generate query and update database if values have changed, writing changes to logfile
-def apply_quota_changes(data, formdata, user):
+def apply_quota_changes(data, formdata):
     updates = []
     logstr = ""
 
     for grp_name, old_quota, old_prio, old_regroup, busy in data:
-        new_quota = int(formdata.getfirst(grp_name+'_quota',''))
-        new_prio = float(formdata.getfirst(grp_name+'_prio','1.0'))
-        new_regroup = formdata.getfirst(grp_name+'_regroup','FALSE').upper()
+        new_quota = int(formdata.getfirst(grp_name + '_quota', ''))
+        new_prio = float(formdata.getfirst(grp_name + '_prio', '1.0'))
+        new_regroup = bool(int(formdata.getfirst(grp_name + '_regroup', 0)))
 
         if new_quota != old_quota:
-            updates.append('UPDATE atlas_group_quotas SET quota = %d WHERE group_name = "%s";' % (new_quota, grp_name))
+            updates.append('UPDATE atlas_group_quotas SET quota = %d WHERE group_name = "%s"' % (new_quota, grp_name))
             logstr += "\t'%s' quota changed from %d -> %d\n" % (grp_name, old_quota, new_quota)
 
         if new_prio != old_prio:
-            updates.append('UPDATE atlas_group_quotas SET priority = %f WHERE group_name = "%s";' % (new_prio, grp_name))
+            updates.append('UPDATE atlas_group_quotas SET priority = %f WHERE group_name = "%s"' % (new_prio, grp_name))
             logstr += "\t'%s' priority changed from %f -> %f\n" % (grp_name, old_prio, new_prio)
 
         if new_regroup != old_regroup:
-            updates.append('UPDATE atlas_group_quotas SET auto_regroup = "%s" WHERE group_name = "%s";' % (new_regroup, grp_name))
-            logstr += "\t'%s' regroup changed to %s\n" % (grp_name, new_regroup)
+            updates.append('UPDATE atlas_group_quotas SET accept_surplus = %d WHERE group_name = "%s"' % (new_regroup, grp_name))
+            if new_regroup:
+                regroup_str = "TRUE"
+            else:
+                regroup_str = "FALSE"
+            logstr += "\t'%s' regroup changed to %s\n" % (grp_name, regroup_str)
 
     if len(updates) == 0:
         print '0 fields changed, not updating database<hr>'
         print '<br><a href="./%s">Go Back</a>' % SCRIPT_NAME
     else:
         print '%d fields changed, updating<br>' % len(updates)
-        db_execute(updates, user="condor_update",p="XPASSX")
-        log_action('User %s changed %d fields\n%s' % (user, len(updates), logstr))
+        db_execute(updates, user="atlas_update", p="XPASSX")
+        log_action('User %s changed %d fields\n%s' % (webdocs_user, len(updates), logstr))
 
         print '<br>Database updated successfully<hr>'
         print '<br><a href="./%s">Go Back</a> and refresh the page to see new values' % SCRIPT_NAME
@@ -300,19 +309,19 @@ def alter_groups(data):
     print 'Password to Add/Remove Groups: <input type="password" name="db_pass" size="16"><br>'
     print '<p><i>Add Group</i><hr>'
     tab2 = HTMLTable('class="add_group" border="1"')
-    for i in ('Group Name','Quota','Priority','Auto Regroup'):
+    for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus'):
         tab2.add_hr(i)
     tab2.add_tr()
     tab2.add_td('<input type="text" name="new_name" size="20">')
     tab2.add_td('<input type="text" name="new_quota" size="6">')
     tab2.add_td('<input type="text" name="new_prio" size="5">')
-    tab2.add_td('True: <input type="radio" name="new_regroup" value="TRUE"><br>False:<input checked type="radio" name="new_regroup" value="FALSE">')
+    tab2.add_td('True: <input type="radio" name="new_regroup" value="1"><br>False:<input checked type="radio" name="new_regroup" value="0">')
 
     print tab2
     print '<br><input type="submit" name="add_group" value="Add New Group">'
     print '<p><i>Remove Groups</i></p><hr>'
     tab = HTMLTable('class="main" border=1')
-    for i in ('Group Name','Quota','Priority','Auto Regroup', 'Busy', 'Remove?'):
+    for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus', 'Busy', 'Remove?'):
         tab.add_hr(i, 'caption="%s"' % i)
     for row in data:
         tab.add_tr()
@@ -321,51 +330,74 @@ def alter_groups(data):
         tab.add_td('<input type="checkbox" name="groups_to_remove" value="%s">' % row[0])
     print tab, '<br>'
 
-
     print '<input type="submit" name="remove_groups" value="Remove Selected Groups"><br><br>'
     print '<hr><a href="./%s">Back</a>' % SCRIPT_NAME
-    print '</form><br><br><h3>*WARNING* Changes to this page will take effect in condor within 15 min!</h3>'
+    print '</form><br><br><h3>*WARNING* Changes to this page will take effect in condor within 10 min!</h3>'
 
 
-def add_group(data, formdata, user):
+def add_group(data, formdata):
 
-    name, quota, prio, regroup = (formdata.getfirst('new_name'),formdata.getfirst('new_quota'),\
-                               formdata.getfirst('new_prio'),formdata.getfirst('new_regroup'))
+    name, quota, prio, surplus = (formdata.getfirst('new_name'), formdata.getfirst('new_quota'),
+                                  formdata.getfirst('new_prio'), formdata.getfirst('new_regroup'))
+    if surplus:
+        surplus_str = "True"
+    else:
+        surplus_str = "False"
+
     password = formdata.getfirst('db_pass', '')
+
+    def err_page(title, reason):
+        print '<h4><span style="color: red;">ERROR:</span>' + title + "</h4>"
+        print '<p>' + reason + '</p>'
+        print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
+
     if password == '':
-        print 'No Password Entered, please go back and enter one'
-        print ' <hr> <a href="javascript:window.history.go(-1)">Back</a>'
+        err_page('No Password Entered, please go back and enter one', '')
         return 1
 
-    # Sanitize input
-    if not re.match('^group_[a-zA-Z_0-9]+$', name):
-        print '"%s" is not a valid groupname, letters, numbers, and underscore please' % name
-        print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
-        return 1
-    if not re.match('^\d+$', quota):
-        print '"%s" is not a valid quota, whole numbers only' % quota
-        print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
-        return 1
-    if not re.match('(^\d+\.\d+$)|(^\d+$)', prio):
-        print '"%s" is not a valid priority, floating point numbers please' % prio
-        print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
+    # Sanitize input -- match heirarchical groups
+    if re.match(r"^group_(\w+)(\.\w+)*$", name):
+        tree_groups = [x[0][6:].split(".") for x in data]
+        hg_list = name[6:].split(".")
+        # If a sub-group, check parents exist
+        if len(hg_list) > 1 and hg_list[:-1] not in tree_groups:
+                err_page('"%s" invalid parents' % name, "Parent groups %s need to exist first" % hg_list[:-1])
+                return 1
+        elif name in [x[0] for x in data]:
+            err_page("'%s' already exists" % name, "Group names mus tbe unique")
+            return 1
+    else:
+        err_page('"%s" is not a valid name' % name,
+        """Must be formatted like group_XXX where XXX is one or more groups
+           of letters, numbers, or underscore separated, if more than one,
+           by a period.""")
         return 1
 
-    if name in [x[0] for x in data]:
-        print '<b>ERROR:</b> cannot have a group with the same name as another group'
-        print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
+    try:
+        int(quota)
+    except ValueError:
+        err_page('"%s" is not a valid quota' % quota,
+                 "Quota must be an integer")
+        return 1
+    try:
+        if float(prio) - 1.0 < 0:
+            raise ValueError
+    except ValueError:
+        err_page('"%s" is not a valid priority' % prio,
+                 "Priority must be a floating point number >= 1.0")
         return 1
 
-    query =  "INSERT INTO atlas_group_quotas (group_name,quota,priority,auto_regroup)"
-    query += " VALUES ('%s', %s, %s, '%s')" % (name, quota, prio, regroup)
-    db_execute(query, user="condor_edit", p=password)
-    logstr = "User %s added group '%s'\n" % (user, name)
-    logstr += "\tquota=%s, priority=%s, auto_regroup=%s\n" % (quota, prio, regroup)
+    query = "INSERT INTO atlas_group_quotas (group_name,quota,priority,accept_surplus)"
+    query += " VALUES ('%s', %s, %s, '%s')" % (name, quota, prio, surplus)
+    db_execute(query, user="atlas_edit", p=password)
+    logstr = "User %s added group '%s'\n" % (webdocs_user, name)
+    logstr += "\tquota=%s, priority=%s, surplus=%s\n" % (quota, prio, surplus_str)
     log_action(logstr)
     print 'Added group "<b>%s</b>"' % name
     print '<br><hr><a href="./%s">Go Back</a>' % SCRIPT_NAME
 
-def remove_groups(data, formdata, user):
+
+def remove_groups(data, formdata):
 
     commands = []
     grouplist = formdata.getlist('groups_to_remove')
@@ -381,22 +413,37 @@ def remove_groups(data, formdata, user):
         print 'No Groups Selected, nothing changed'
         print ' <hr> <a href="javascript:window.history.go(-1)">Back</a>'
         return 1
+
+    tree_groups = [x[0].split(".") for x in data]
+    hgq_list = [x.split(".") for x in grouplist]
+
+    conflicts = {}
+
+    for group in hgq_list:
+        bad_groups = [x for x in tree_groups if x[:len(group)] == group \
+                      and len(x) > len(group) and x not in hgq_list]
+        if bad_groups:
+            conflicts[".".join(x for x in group)] = bad_groups
+
+    if conflicts:
+        print "The following groups cannot be removed because they have"
+        print "dependent groups that are not going to be removed: <ul>"
+        for g, c in conflicts.items():
+            print "<li><b>%s</b> is a parent of:<ul>" % g
+            print "<li>%s</li>" % "</li><li>".join([".".join(y) for y in c])
+            print "</ul></li>"
+        print "</ul>"
+        return 1
+
     for group in grouplist:
         commands.append('DELETE FROM atlas_group_quotas WHERE group_name = "%s";' % group)
         logstr += "\tDELETED group '%s'\n" % group
 
-    db_execute(commands, user="condor_edit", p=password)
-    log_action('User %s removed %d groups\n%s' % (user, len(commands),logstr))
+    #db_execute(commands, user="atlas_edit", p=password)
+    #log_action('User %s removed %d groups\n%s' % (webdocs_user, len(commands), logstr))
 
     print 'Removed the following %d group(s): <br><b><ul><li>%s</ul></b>' % (len(commands), "<li>".join(grouplist))
     print '<br><hr><a href="./%s">Go Back</a>' % SCRIPT_NAME
-
-def get_last_update(fmt):
-    last_update = db_execute("SELECT last_change FROM atlas_group_quotas")[0][0]
-    return time.strftime(fmt, time.localtime(last_update))
-
-
-
 
 
 cgi_data = cgi.FieldStorage()
@@ -424,56 +471,57 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 <body>
 """
 
-# ================== Main program statements =======================
-print 'Content-type: text/html\n'
-print header
 
-webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
-query = "SELECT group_name,quota,priority,auto_regroup,busy FROM atlas_group_quotas ORDER BY group_name"
-db_data = db_execute(query)
+def do_main():
+    global auth, webdocs_user, cgi_data
 
-if webdocs_user != None:
+    query = "SELECT group_name,quota,priority,accept_surplus,busy FROM atlas_group_quotas ORDER BY group_name"
+    db_data = db_execute(query)
 
+    if webdocs_user != None:
 
-    if webdocs_user in AUTHORIZED_USERS:
-        auth = 1
-    elif webdocs_user in FARM_USERS:
-        auth = 2
-    else:
-        auth = 0
-
-    # need a running total of the quota sum
-    q_total = 0
-    for row in db_data:
-        q_total += int(row[1])
-
-    # If Edit Group Quotas was clicked
-    if cgi_data.has_key('edit'):
-        edit_quotas(db_data, q_total, auth)
-    #Process changes from above page
-    elif cgi_data.has_key('change_data'):
-        OK = check_quota_changes(db_data, cgi_data, q_total,auth)
-        if OK == 0:
-            pass
+        if webdocs_user in AUTHORIZED_USERS:
+            auth = 1
+        elif webdocs_user in FARM_USERS:
+            auth = 2
         else:
-            apply_quota_changes(db_data, cgi_data, webdocs_user)
+            auth = 0
 
-    # If Add/Remove groups was clicked
-    elif cgi_data.has_key('alter_groups'):
-        alter_groups(db_data)
-    # Preform actions set in alter_groups page
-    elif cgi_data.has_key('add_group'):
-        add_group(db_data, cgi_data, webdocs_user)
-    elif cgi_data.has_key('remove_groups'):
-        remove_groups(db_data, cgi_data, webdocs_user)
+        # need a running total of the quota sum
+        q_total = 0
+        for row in db_data:
+            q_total += int(row[1])
 
-    #Default to show home table
+        # If Edit Group Quotas was clicked
+        if 'edit' in cgi_data:
+            edit_quotas(db_data, q_total)
+        #Process changes from above page
+        elif 'change_data' in cgi_data:
+            if check_quota_changes(db_data, cgi_data, q_total):
+                apply_quota_changes(db_data, cgi_data)
+
+        # If Add/Remove groups was clicked
+        elif 'alter_groups' in cgi_data:
+            alter_groups(db_data)
+        # Preform actions set in alter_groups page
+        elif 'add_group' in cgi_data:
+            add_group(db_data, cgi_data)
+        elif 'remove_groups' in cgi_data:
+            remove_groups(db_data, cgi_data)
+
+        #Default to show home table
+        else:
+            main_page(db_data, q_total, webdocs_user)
     else:
-        main_page(db_data, q_total, webdocs_user, auth)
-else:
-    print "<p>Error: Undefined user, how did you get here?\n"
-    print '</p><hr><a href="javascript:window.history.go(-1)">Back</a></html>'
+        print "<p>Error: Undefined user, how did you get here?\n"
+        print '</p><hr><a href="javascript:window.history.go(-1)">Back</a></html>'
 
+if __name__ == "__main__":
 
-print "</body>\n</html>"
+    print 'Content-type: text/html\n'
+    print header
 
+    try:
+        do_main()
+    finally:
+        print "</body>\n</html>"
