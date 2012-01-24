@@ -335,8 +335,15 @@ def alter_groups(data):
     print '</form><br><br><h3>*WARNING* Changes to this page will take effect in condor within 10 min!</h3>'
 
 
+def err_page(title, reason):
+    print '<h4><span style="color: red;">ERROR:</span>' + title + "</h4>"
+    print '<p>' + reason + '</p>'
+    print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
+
+
 def add_group(data, formdata):
 
+    print "<h2>Adding groups</h2><hr>"
     name, quota, prio, surplus = (formdata.getfirst('new_name'), formdata.getfirst('new_quota'),
                                   formdata.getfirst('new_prio'), formdata.getfirst('new_regroup'))
     if surplus:
@@ -346,22 +353,18 @@ def add_group(data, formdata):
 
     password = formdata.getfirst('db_pass', '')
 
-    def err_page(title, reason):
-        print '<h4><span style="color: red;">ERROR:</span>' + title + "</h4>"
-        print '<p>' + reason + '</p>'
-        print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
-
     if password == '':
         err_page('No Password Entered, please go back and enter one', '')
         return 1
 
     # Sanitize input -- match heirarchical groups
     if re.match(r"^group_(\w+)(\.\w+)*$", name):
-        tree_groups = [x[0][6:].split(".") for x in data]
-        hg_list = name[6:].split(".")
+        tree_groups = [x[0].split(".") for x in data]
+        hg_list = name.split(".")
         # If a sub-group, check parents exist
         if len(hg_list) > 1 and hg_list[:-1] not in tree_groups:
-                err_page('"%s" invalid parents' % name, "Parent groups %s need to exist first" % hg_list[:-1])
+                parent = "<b>" + ".".join(hg_list[:-1]) + "</b>"
+                err_page('"%s" invalid parents' % name, "Parent group %s needs to exist first" % parent)
                 return 1
         elif name in [x[0] for x in data]:
             err_page("'%s' already exists" % name, "Group names mus tbe unique")
@@ -399,6 +402,7 @@ def add_group(data, formdata):
 
 def remove_groups(data, formdata):
 
+    print "<h2>Removing groups</h2><hr>"
     commands = []
     grouplist = formdata.getlist('groups_to_remove')
     password = formdata.getfirst('db_pass', '')
@@ -414,11 +418,12 @@ def remove_groups(data, formdata):
         print ' <hr> <a href="javascript:window.history.go(-1)">Back</a>'
         return 1
 
+    conflicts = {}
+
     tree_groups = [x[0].split(".") for x in data]
     hgq_list = [x.split(".") for x in grouplist]
 
-    conflicts = {}
-
+    # Check you are not removing a parent that has children that aren't marked to be removed too
     for group in hgq_list:
         bad_groups = [x for x in tree_groups if x[:len(group)] == group \
                       and len(x) > len(group) and x not in hgq_list]
@@ -426,21 +431,23 @@ def remove_groups(data, formdata):
             conflicts[".".join(x for x in group)] = bad_groups
 
     if conflicts:
+        print "<span style='color: red; font-weight: bold;'>ERROR:</span> "
         print "The following groups cannot be removed because they have"
-        print "dependent groups that are not going to be removed: <ul>"
+        print "dependent groups that are not going to be removed:\n<ul>"
         for g, c in conflicts.items():
-            print "<li><b>%s</b> is a parent of:<ul>" % g
+            print "<li><b>%s</b> is a parent of:<ol>" % g
             print "<li>%s</li>" % "</li><li>".join([".".join(y) for y in c])
-            print "</ul></li>"
+            print "</ol></li>"
         print "</ul>"
+        print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
         return 1
 
     for group in grouplist:
         commands.append('DELETE FROM atlas_group_quotas WHERE group_name = "%s";' % group)
         logstr += "\tDELETED group '%s'\n" % group
 
-    #db_execute(commands, user="atlas_edit", p=password)
-    #log_action('User %s removed %d groups\n%s' % (webdocs_user, len(commands), logstr))
+    db_execute(commands, user="atlas_edit", p=password)
+    log_action('User %s removed %d groups\n%s' % (webdocs_user, len(commands), logstr))
 
     print 'Removed the following %d group(s): <br><b><ul><li>%s</ul></b>' % (len(commands), "<li>".join(grouplist))
     print '<br><hr><a href="./%s">Go Back</a>' % SCRIPT_NAME
@@ -463,7 +470,6 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
     table.add_group th { background-color: #39e354; padding: 2px 2px; }
     table.edit { empty-cells: show; border-spacing:5px 2px; }
     table.edit th { text-align: left; background-color: #39e354;}
-/*    table.edit td { border-bottom: 2px solid #aa22ff; } */
     table.edit tr.alt { background-color: #b0eeb0; }
     span.top p { padding-right:40%; }
   </style>
@@ -478,7 +484,7 @@ def do_main():
     query = "SELECT group_name,quota,priority,accept_surplus,busy FROM atlas_group_quotas ORDER BY group_name"
     db_data = db_execute(query)
 
-    if webdocs_user != None:
+    if webdocs_user:
 
         if webdocs_user in AUTHORIZED_USERS:
             auth = 1
