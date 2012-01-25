@@ -28,6 +28,7 @@ import MySQLdb
 FARM_USERS = ['awchan', 'hollowec', 'willsk']
 AUTHORIZED_USERS = ['jhover', 'mernst', 'Xwillsk', 'hito']
 
+
 SCRIPT_NAME = 'group_quota.py'
 logfile = '/tmp/atlas_groupquota.log'
 auth = 0
@@ -152,9 +153,9 @@ def main_page(data, total, user):
     print page_head
 
     if auth == 0:
-        print 'User <i style="color: blue">%s</i> is not authorized to make changes' % user
+        print '<p>User <i style="color: blue">%s</i> is not authorized to make changes</p>' % user
     if auth == 1:
-        print 'User <i style="color: red">%s</i> is authorized to change quotas' % user
+        print '<p>Warning: User <i style="color: orangered">%s</i> is authorized to change quotas</p>' % user
     if auth == 2:
         print '<p style="color: red">Caution: User <i>%s</i> is authorized to add/remove groups!</p>' % user
 
@@ -164,12 +165,16 @@ def main_page(data, total, user):
     print '<p>Total Slots=%d' % total
     print '<form enctype="multipart/form-data" method=POST action="%s">' % SCRIPT_NAME
     if auth != 0:
-        print '<input type=submit name="edit" value="Edit Group Quotas"> <br><br>'
-    if auth == 2:
-        print '<input type="submit" name="alter_groups" value="Add/Remove Groups"> '
+        print '<input type=submit name="edit" value="Edit Group Quotas" '
+        print 'style="float: left; margin-right: 10px">'
+        if auth == 2:
+            print '<input type="submit" name="alter_groups" value="Add/Remove Groups"><br>'
+        else:
+            print '<br>'
+        print '<br>'
 
-    print '</form> <br>'
-    print '<br><a href="https://webdocs.racf.bnl.gov/Facility/LinuxFarm/%s" style="font-size: small">' % logfile.split('/')[-1]
+    print '</form>'
+    print '<a href="https://webdocs.racf.bnl.gov/Facility/LinuxFarm/%s" style="font-size: small">' % logfile.split('/')[-1]
     print 'Change History</a>'
     print '<br><br><a href="https://webdocs.racf.bnl.gov/docs/service/condor/atlas-group-quota-editor"\
     title="Documentation" target="__blank">Webdocs Documentation</a>'
@@ -183,8 +188,8 @@ def edit_quotas(data, total):
     total = 0
     total += sum(int(x[1]) for x in data)
 
-    print '<h3>Edit Group Quotas</h3>'
-    print '<p style="color: red">Quotas must sum to %d</p><hr>' % total
+    print '<h2>Edit Group Quotas</h2><hr>'
+    print '<p style="color: blue">Quotas should sum to %d</p>' % total
 
     if auth == 2:
         print '<p style="padding-right: 40%; color: red">Warning: As an authorized user, you can '
@@ -201,7 +206,7 @@ def edit_quotas(data, total):
     alt = 0
     for row in data:
         checked = ['', '']
-        if row[3] == 'TRUE':
+        if bool(row[3]):
             checked[0] = 'checked="checked"'
         else:
             checked[1] = 'checked="checked"'
@@ -214,14 +219,11 @@ def edit_quotas(data, total):
         tab.add_td('%s (%s)' % ('<input type="text" value="%d" size="6" name="%s_quota">' % (row[1], row[0]), row[1]))
         if auth == 2:
             tab.add_td('%s (%s)' % ('<input type="text" value="%s" size="4" name="%s_prio">' % (row[2], row[0]), row[2]))
-            tf = 'True:<input type="radio" %s value="1" name="%s_regroup">  ' % (checked[0], row[0])
-            tf += ' False:<input type="radio" value="0" %s name="%s_regroup">' % (checked[1], row[0])
-            tab.add_td('%s &nbsp;&nbsp; (%s)' % (tf, row[3].capitalize()))
         else:
             tab.add_td('%s %s' % ('<input type="hidden" value="%s" size="4" name="%s_prio">' % (row[2], row[0]), row[2]))
-            tf = '<input type="hidden" value="%s" name="%s_regroup"> ' % (row[3], row[0])
-            tab.add_td('%s %s' % (tf, row[3].capitalize()))
-
+        tf = 'True:<input type="radio" %s value="1" name="%s_regroup">  ' % (checked[0], row[0])
+        tf += ' False:<input type="radio" value="0" %s name="%s_regroup">' % (checked[1], row[0])
+        tab.add_td('%s &nbsp;&nbsp; (%s)' % (tf, bool(row[3])))
     print tab
     print '<br><h3>*WARNING*</h3> This will update the database and is written to condor every 10 minutes<br>'
     print '<br><input type="submit" name="change_data" value="Upload Changes"> </form>'
@@ -237,70 +239,75 @@ def check_quota_changes(data, formdata, total):
     for grp_name in (x[0] for x in data):
         quota = formdata.getfirst(grp_name + '_quota', '')
         prio = formdata.getfirst(grp_name + '_prio', '')
-        regroup = formdata.getfirst(grp_name + '_regroup', '')
         # sanatize the input
-        if not re.match('^\d+$', quota):
-            print '<b>ERROR:</b> Please enter a valid whole number in the quota box!'
-            print '<br><a href="javascript:window.history.go(-1)">Back</a></html>'
-            return 0
-        if not re.match('(^\d+\.\d+$)|(^\d+$)', prio):
-            print '<b>ERROR:</b> Please enter a valid floating point number in the priority box!'
-            print '<br><a href="javascript:window.history.go(-1)">Back</a></html>'
-            return 0
-        # Pedantic, because it comes only from form radio buttons, but why not check it?
-        if not re.match('(^TRUE$)|(^FALSE$)', regroup.upper()):
-            print '<b>ERROR:</b> Somehow you managed not to enter True or False in the True/False buttons--how!?'
-            print '<br><a href="javascript:window.history.go(-1)">Back</a></html>'
-            return 0
-
-        new_total += int(quota)
+        try:
+            new_total += int(quota)
+        except ValueError:
+            err_page('"%s" is not a valid quota' % quota,
+                     "Quota must be an integer")
+            return False
+        try:
+            if float(prio) - 1.0 < 0:
+                raise ValueError
+        except ValueError:
+            err_page('"%s" is not a valid priority' % prio,
+                     "Priority must be a floating point number >= 1.0")
+            return False
 
     # Check if the user's math is right
     if new_total != total:
         if auth != 2:
-            print '<b>ERROR:</b> The new quotas sum up to %d, needs to be %d' % (new_total, total)
-            print '<br><a href="javascript:window.history.go(-1)">Back</a></html>'
-            return 0
+            print '<b style="color: red">ERROR:</b> The new quotas sum up to %d, needs to be %d' % (new_total, total)
+            print '<br><br><a href="javascript:window.history.go(-1)">Back</a></html>'
+            return False
         else:
-            print '<b>WARNING:</b> The new quotas sum up to %d, previous sum was %d' % (new_total, total)
-            print '<br>'
+            print '<b style="color: red">WARNING:</b> The new quotas sum up to %d, previous sum was %d' % (new_total, total)
+            print '<br><br>'
 
     # If we are here the input should all be sanitized and sanity-checked, so we return ok
-    return 1
+    return True
 
 
 # Generate query and update database if values have changed, writing changes to logfile
 def apply_quota_changes(data, formdata):
     updates = []
     logstr = ""
+    msg = "<ul>\n"
 
     for grp_name, old_quota, old_prio, old_regroup, busy in data:
         new_quota = int(formdata.getfirst(grp_name + '_quota', ''))
         new_prio = float(formdata.getfirst(grp_name + '_prio', '1.0'))
         new_regroup = bool(int(formdata.getfirst(grp_name + '_regroup', 0)))
-
         if new_quota != old_quota:
             updates.append('UPDATE atlas_group_quotas SET quota = %d WHERE group_name = "%s"' % (new_quota, grp_name))
-            logstr += "\t'%s' quota changed from %d -> %d\n" % (grp_name, old_quota, new_quota)
+            log = "\t'%s' quota changed from %d -> %d\n" % (grp_name, old_quota, new_quota)
+            msg += "<li>%s</li>\n" % log.strip()
+            logstr += log
 
         if new_prio != old_prio:
             updates.append('UPDATE atlas_group_quotas SET priority = %f WHERE group_name = "%s"' % (new_prio, grp_name))
-            logstr += "\t'%s' priority changed from %f -> %f\n" % (grp_name, old_prio, new_prio)
+            log = "\t'%s' priority changed from %f -> %f\n" % (grp_name, old_prio, new_prio)
+            msg += "<li>%s</li>\n" % log.strip()
+            logstr += log
 
         if new_regroup != old_regroup:
             updates.append('UPDATE atlas_group_quotas SET accept_surplus = %d WHERE group_name = "%s"' % (new_regroup, grp_name))
             if new_regroup:
-                regroup_str = "TRUE"
+                regroup_str = "True"
             else:
-                regroup_str = "FALSE"
-            logstr += "\t'%s' regroup changed to %s\n" % (grp_name, regroup_str)
+                regroup_str = "False"
+            log = "\t'%s' accept_surplus changed to %s\n" % (grp_name, regroup_str)
+            msg += "<li>%s</li>\n" % log.strip()
+            logstr += log
+    msg += "</ul>\n"
 
     if len(updates) == 0:
         print '0 fields changed, not updating database<hr>'
         print '<br><a href="./%s">Go Back</a>' % SCRIPT_NAME
     else:
         print '%d fields changed, updating<br>' % len(updates)
-        db_execute(updates, user="atlas_update", p="XPASSX")
+        db_execute(updates, user="atlas_update", p="xxx")
+        print msg
         log_action('User %s changed %d fields\n%s' % (webdocs_user, len(updates), logstr))
 
         print '<br>Database updated successfully<hr>'
@@ -487,7 +494,8 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 def do_main():
     global auth, webdocs_user, cgi_data
 
-    query = "SELECT group_name,quota,priority,accept_surplus,busy FROM atlas_group_quotas ORDER BY group_name"
+    query = "SELECT group_name,quota,priority,accept_surplus,busy FROM " + \
+            "atlas_group_quotas ORDER BY group_name"
     db_data = db_execute(query)
 
     if webdocs_user:
@@ -509,6 +517,7 @@ def do_main():
             edit_quotas(db_data, q_total)
         #Process changes from above page
         elif 'change_data' in cgi_data:
+            print '<h2>Updating Group Quotas</h2><hr>'
             if check_quota_changes(db_data, cgi_data, q_total):
                 apply_quota_changes(db_data, cgi_data)
 
