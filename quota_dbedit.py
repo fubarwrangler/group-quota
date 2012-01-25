@@ -12,14 +12,15 @@
 # 12/14/10 -- fixed bug where -q 0 wouldn't work (fixed by compare w/ None)
 
 
-import sys, re, time
+import sys
 import getopt
 import MySQLdb
 
+
 # Execute database command, or list of commands, and die if something goes wrong
-def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov", user="condor_update", p="XPASSX"):
+def db_execute(command, database="linux_farm", host="localhost", user="atlas_update", p="xxx"):
     try:
-        conn = MySQLdb.connect(db=database,host=host,user=user,passwd=p)
+        conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
         dbc = conn.cursor()
     except MySQLdb.Error, e:
         print "DB Error %d: %s" % (e.args[0], e.args[1])
@@ -33,16 +34,21 @@ def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov", user
         sys.exit(1)
     db_data = dbc.fetchall()
     dbc.close()
-    conn.close()
+    conn.commit()
     return db_data
+
 
 # Show a table of the quota information
 def print_quotas():
-    groups = db_execute("SELECT group_name,quota,priority,auto_regroup FROM atlas_group_quotas ORDER BY group_name", user="db_query", p="")
+    groups = db_execute("SELECT group_name,quota,priority,accept_surplus FROM atlas_group_quotas ORDER BY group_name", user="db_query", p="")
     print 'There are %d groups' % len(groups)
-    print 'Group:    \t\tQuota\tPriority\tAuto_Regroup'
+    longest = max(len(x[0]) for x in groups)
+    print groups
+    print 'Group:' + ' ' * longest + '\tQuota\tPriority\tAccept_Surplus'
+    print '------' + ' ' * longest + '\t-----\t--------\t--------------'
     for g in groups:
-        print '%s:\t\t%d\t%.1f\t%s' % g
+        print '%s:%s\t%d\t%.1f\t\t%s' % \
+        (g[0], ' ' * (longest - len(g[0])), g[1], g[2], bool(g[3]))
 
 
 def usage():
@@ -53,6 +59,7 @@ def usage():
     print '  -q	Specify new quota (must be positive integer)'
     print '  -i	Specify difference from current value (+/- integer)'
     print '  -h	Shows this help screen'
+
 
 # Write changes to db, asking for the user's approval unless force=True
 def make_changes(quota, group, d, force=False):
@@ -68,7 +75,6 @@ def make_changes(quota, group, d, force=False):
             return False
         else:
             print 'OK, making changes...'
-#    print 'Setting %s from %d --> %d' % (group, d[group], quota)
     db_execute(query)
     return True
 
@@ -84,7 +90,7 @@ group = None
 newquota = None
 diff = None
 force = False
-for o,a in opts:
+for o, a in opts:
     if o == '-l':
         print_quotas()
         sys.exit(0)
@@ -106,7 +112,7 @@ if newquota and diff:
 if EDIT and group and (newquota is not None or diff is not None):
 
     # Gather information on groups and their quotas
-    groups = db_execute("SELECT group_name,quota,priority,auto_regroup FROM atlas_group_quotas ORDER BY group_name", user="db_query", p="")
+    groups = db_execute("SELECT group_name,quota,priority,accept_surplus FROM atlas_group_quotas ORDER BY group_name", user="db_query", p="")
     names = [x[0] for x in groups]
     quotas = [x[1] for x in groups]
     d = dict(zip(names, quotas))

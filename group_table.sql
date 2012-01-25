@@ -9,7 +9,7 @@ CREATE TABLE `atlas_group_quotas` (
       `priority` double DEFAULT 10.0,
       `accept_surplus` boolean DEFAULT False,
       `busy` int(12),
-      `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (`group_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
