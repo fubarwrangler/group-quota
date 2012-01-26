@@ -14,6 +14,7 @@
 #   8/16/10     v1.5 email linux farm when changes are made
 #   4/07/11     v2.0 email is configurable on the command line
 #   6/15/11     v2.5 make reconfig optional, use logging and tempfile
+#   1/25/12     v3.0 rewrite for heirarchical groups -- for 7.6.X upgrade
 
 # NOTE: This script works in conjuction with farmweb01:/var/www/cgi-bin/group_quota.py
 #       and the farmweb01:/var/www/public/cronjobs/update_db_condor_usage.py, which

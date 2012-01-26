@@ -10,6 +10,7 @@
 # 10/18/10 -- first version
 # 12/6/10  -- restructured the code and add an incremental option '-i'
 # 12/14/10 -- fixed bug where -q 0 wouldn't work (fixed by compare w/ None)
+# 1/24/12  -- Minor aesthetic fixes and fix for heirarchical group database
 
 
 import sys

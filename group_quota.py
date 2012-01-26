@@ -34,8 +34,7 @@ logfile = '/tmp/atlas_groupquota.log'
 auth = 0
 
 cgitb.enable()
-#webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
-webdocs_user = "willsk"
+webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
 
 
 class HTMLTable(object):
