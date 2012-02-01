@@ -17,7 +17,7 @@
 #       write database changes to the condor config files and update the busy
 #       slots in each group respectively.
 
-
+import os
 import re
 import sys
 import cgi

@@ -189,6 +189,7 @@ class FileGroups(Groups):
                   }
 
         grps = {}
+        group_names = []
         for line in (x.strip() for x in fp if x and not re.match('^\s*#', x)):
 
             for kind, regex in regexes.items():
