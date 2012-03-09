@@ -19,7 +19,8 @@ import MySQLdb
 
 
 # Execute database command, or list of commands, and die if something goes wrong
-def db_execute(command, database="linux_farm", host="localhost", user="atlas_update", p="xxx"):
+def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov",
+                        user="atlas_update", p="xxx"):
     try:
         conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
         dbc = conn.cursor()
@@ -44,9 +45,8 @@ def print_quotas():
     groups = db_execute("SELECT group_name,quota,priority,accept_surplus FROM atlas_group_quotas ORDER BY group_name", user="db_query", p="")
     print 'There are %d groups' % len(groups)
     longest = max(len(x[0]) for x in groups)
-    print groups
-    print 'Group:' + ' ' * longest + '\tQuota\tPriority\tAccept_Surplus'
-    print '------' + ' ' * longest + '\t-----\t--------\t--------------'
+    print 'Group:' + ' ' * (longest - 6) + '\tQuota\tPriority\tAccept_Surplus'
+    print '------' + ' ' * (longest - 6) + '\t-----\t--------\t--------------'
     for g in groups:
         print '%s:%s\t%d\t%.1f\t\t%s' % \
         (g[0], ' ' * (longest - len(g[0])), g[1], g[2], bool(g[3]))

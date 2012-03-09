@@ -15,7 +15,6 @@
 #       This script works in conjunction with /var/www/cgi-bin/group_quota.py on
 #       farmweb01, which serves as a web interface to edit this database.
 
-import re
 import sys
 import MySQLdb
 import datetime
@@ -40,11 +39,10 @@ proc = subprocess.Popen(["condor_status",  "-pool",  "condor03.usatlas.bnl.gov:9
                          "-constraint",  "TARGET.AccountingGroup =!= UNDEFINED",
                          "-format",  "%s\\n",  "AccountingGroup"], stdout=subprocess.PIPE)
 
-raw_data = proc.communicate()[0].split("\n")
-group_re = re.compile(r"(.*)\..*@.*")
-data = [group_re.sub(r"\1", x) for x in raw_data if len(x) > 0]
+# Last item before "@" is user, strip it off and rest is group name
+f = lambda x: len(x) > 0 and ".".join(x.split("@")[0].split(".")[:-1])
+data = map(f, proc.communicate()[0].split("\n"))
 
-# Populate "active" dict with histogram of each grp
 active = {}
 for grp in db_groups:
     active[grp] = data.count(grp)
