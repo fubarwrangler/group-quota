@@ -30,7 +30,7 @@ AUTHORIZED_USERS = ['jhover', 'mernst', 'Xwillsk', 'hito']
 
 
 SCRIPT_NAME = 'group_quota.py'
-logfile = '/tmp/atlas_groupquota.log'
+logfile = '/var/www/staff/atlas_groupquota.log'
 auth = 0
 
 cgitb.enable()
@@ -81,7 +81,7 @@ class HTMLTable(object):
         return self.table[key]
 
 
-def db_execute(command, database="linux_farm", host="localhost", user="db_query", p=""):
+def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov", user="db_query", p=""):
 
     try:
         conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
@@ -161,6 +161,7 @@ def main_page(data, total, user):
     print page_info
     print tab
     print '<p style="font-size: small">*Busy slot info updated every 5 minutes'
+    print '<br>*Last updated: %s</p>' % get_last_update()
     print '<p>Total Slots=%d' % total
     print '<form enctype="multipart/form-data" method=POST action="%s">' % SCRIPT_NAME
     if auth != 0:
@@ -179,6 +180,10 @@ def main_page(data, total, user):
     title="Documentation" target="__blank">Webdocs Documentation</a>'
     print '<br><p style="font-size: small">Page last refreshed %s</p>' % time.ctime()
 
+
+def get_last_update():
+    d = db_execute("SELECT last_update FROM atlas_group_quotas LIMIT 1")
+    return d[0][0].strftime("%b %d %I:%M:%S %p")
 
 # Depending on 'auth', show edit fields for quota or all values
 def edit_quotas(data, total):
@@ -351,7 +356,6 @@ def err_page(title, reason):
     print '<h4><span style="color: red;">ERROR:</span>' + title + "</h4>"
     print '<p>' + reason + '</p>'
     print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
-
 
 def add_group(data, formdata):
 
