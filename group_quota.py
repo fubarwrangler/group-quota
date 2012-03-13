@@ -30,11 +30,13 @@ AUTHORIZED_USERS = ['jhover', 'mernst', 'Xwillsk', 'hito']
 
 
 SCRIPT_NAME = 'group_quota.py'
-logfile = '/var/www/staff/atlas_groupquota.log'
+logfile = '/tmp/atlas_groupquota.log'
 auth = 0
 
 cgitb.enable()
-webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
+#webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
+webdocs_user = "willsk"
+
 
 
 class HTMLTable(object):
@@ -81,7 +83,7 @@ class HTMLTable(object):
         return self.table[key]
 
 
-def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov", user="db_query", p=""):
+def db_execute(command, database="linux_farm", host="localhost", user="db_query", p=""):
 
     try:
         conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
