@@ -129,6 +129,31 @@ def log_action(comment):
     fp.write(output)
     fp.close()
 
+def get_children_quotas(data):
+    tree_groups = sorted([x[0].split(".") for x in data])
+    groups_with_children = {}
+
+    for grp in tree_groups:
+        children = [x for x in tree_groups if x[:len(grp)] == grp and len(x) > len(grp)]
+        child_sum = 0
+        for child in (".".join(y) for y in children):
+            quotas = [x[1] for x in data if x[0] == child][0]
+            child_sum += quotas
+        groups_with_children[".".join(grp)] = child_sum
+
+    return groups_with_children
+
+def get_top_level_groups(data):
+    return [row for row in data if row[0].count(".") == 0]
+
+def get_parents(data, name):
+    arr = name.split(".")[:-1]
+    parents = list()
+    while arr:
+        parents.append([x for x in data if x[0] == ".".join(arr)][0])
+        arr.pop()
+    return parents
+
 
 def main_page(data, total, user):
 
@@ -142,12 +167,18 @@ def main_page(data, total, user):
     sure that this sum remains constant, or the change will not take effect.</b>
     """
 
+    child_quota = get_children_quotas(data)
+
     tab = HTMLTable('class="main" border=1')
-    for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus', 'Busy*'):
+    for i in ('Group Name', 'Quota (real)', 'Priority', 'Accept Surplus', 'Busy*'):
         tab.add_hr(i, 'caption="%s"' % i)
     for row in data:
         tab.add_tr()
-        for obj in row:
+        new_row = [x for x in row]
+        if child_quota[row[0]] > 0:
+            new_row[1] = '%d (%d)' % (row[1] - child_quota[row[0]], row[1])
+
+        for obj in new_row:
             tab.add_td(obj, 'class="body"')
     tab.col_xform(3, lambda x: bool(x))
 
@@ -204,12 +235,14 @@ def edit_quotas(data, total):
     tab = HTMLTable('class="edit"')
     print '<form enctype="multipart/form-data" method=POST action="%s">' % SCRIPT_NAME
     if auth == 2:
-        for i in ('Group Name', 'Quota (orig)', 'Priority (orig)', 'Accept Surplus &nbsp;&nbsp;(orig)'):
+        for i in ('Group Name', 'Quota (orig) (real)', 'Priority (orig)', 'Accept Surplus &nbsp;&nbsp;(orig)'):
             tab.add_hr(i, 'caption="%s"' % i)
     else:
         for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus'):
             tab.add_hr(i, 'caption="%s"' % i)
     alt = 0
+
+    children = get_children_quotas(data)
     for row in data:
         checked = ['', '']
         if bool(row[3]):
@@ -222,7 +255,8 @@ def edit_quotas(data, total):
             tab.add_tr()
         alt ^= 1
         tab.add_td(row[0])
-        tab.add_td('%s (%s)' % ('<input type="text" value="%d" size="6" name="%s_quota">' % (row[1], row[0]), row[1]))
+        myquota = row[1] - children[row[0]]
+        tab.add_td('%s (%d) (%d)' % ('<input type="text" value="%d" size="6" name="%s_quota">' % (myquota, row[0]), myquota, row[1]))
         if auth == 2:
             tab.add_td('%s (%s)' % ('<input type="text" value="%s" size="4" name="%s_prio">' % (row[2], row[0]), row[2]))
         else:
@@ -279,15 +313,29 @@ def apply_quota_changes(data, formdata):
     updates = []
     logstr = ""
     msg = "<ul>\n"
+    children = get_children_quotas(data)
+
 
     for grp_name, old_quota, old_prio, old_regroup, busy in data:
-        new_quota = int(formdata.getfirst(grp_name + '_quota', ''))
+        new_abs_quota = int(formdata.getfirst(grp_name + '_quota', ''))
+
+        new_quota = new_abs_quota + children[grp_name]
         new_prio = float(formdata.getfirst(grp_name + '_prio', '1.0'))
         new_regroup = bool(int(formdata.getfirst(grp_name + '_regroup', 0)))
+        quota_diff = new_quota - old_quota
+
+        parents = get_parents(data, grp_name)
+
         if new_quota != old_quota:
             updates.append('UPDATE atlas_group_quotas SET quota = %d WHERE group_name = "%s"' % (new_quota, grp_name))
             log = "\t'%s' quota changed from %d -> %d\n" % (grp_name, old_quota, new_quota)
             msg += "<li>%s</li>\n" % log.strip()
+            for x in parents:
+                updates.append('UPDATE atlas_group_quotas SET quota = quota + %d WHERE group_name = "%s"' % (quota_diff, x[0]))
+                logmsg = "\t(parent update)'%s' quota adjusted by %d\n" % (x[0], quota_diff)
+                msg += "<li><i>%s</i></li>\n" % logmsg.strip()
+                log += logmsg
+
             logstr += log
 
         if new_prio != old_prio:
@@ -313,8 +361,9 @@ def apply_quota_changes(data, formdata):
     else:
         print '%d fields changed, updating<br>' % len(updates)
         db_execute(updates, user="atlas_update", p="xxx")
+        #print updates
         print msg
-        log_action('User %s changed %d fields\n%s' % (webdocs_user, len(updates), logstr))
+        #log_action('User %s changed %d fields\n%s' % (webdocs_user, len(updates), logstr))
 
         print '<br>Database updated successfully<hr>'
         print '<br><a href="./%s">Go Back</a> and refresh the page to see new values' % SCRIPT_NAME
@@ -385,7 +434,7 @@ def add_group(data, formdata):
                 err_page('"%s" invalid parents' % name, "Parent group %s needs to exist first" % parent)
                 return 1
         elif name in [x[0] for x in data]:
-            err_page("'%s' already exists" % name, "Group names mus tbe unique")
+            err_page("'%s' already exists" % name, "Group names must be unique")
             return 1
     else:
         err_page('"%s" is not a valid name' % name,
@@ -478,7 +527,7 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="cache-control" content="no-cache" />
-  <meta http-equiv="refresh" content="150">
+
   <title>ATLAS Group Quotas</title>
   <style type="text/css">
     body { background-color: #9cdede; }
@@ -494,7 +543,7 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 </head>
 <body>
 """
-
+# <meta http-equiv="refresh" content="150">
 
 def do_main():
     global auth, webdocs_user, cgi_data
@@ -502,6 +551,7 @@ def do_main():
     query = "SELECT group_name,quota,priority,accept_surplus,busy FROM " + \
             "atlas_group_quotas ORDER BY group_name"
     db_data = db_execute(query)
+    q_total = sum(x[1] for x in get_top_level_groups(db_data))
 
     if webdocs_user:
 
@@ -511,11 +561,6 @@ def do_main():
             auth = 2
         else:
             auth = 0
-
-        # need a running total of the quota sum
-        q_total = 0
-        for row in db_data:
-            q_total += int(row[1])
 
         # If Edit Group Quotas was clicked
         if 'edit' in cgi_data:
