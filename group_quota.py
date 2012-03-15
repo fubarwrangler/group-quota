@@ -17,7 +17,6 @@
 #       write database changes to the condor config files and update the busy
 #       slots in each group respectively.
 
-import os
 import re
 import sys
 import cgi
@@ -36,7 +35,6 @@ auth = 0
 cgitb.enable()
 #webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
 webdocs_user = "willsk"
-
 
 
 class HTMLTable(object):
@@ -104,15 +102,17 @@ def db_execute(command, database="linux_farm", host="localhost", user="db_query"
         except MySQLdb.Error, e:
             print "DB Error %d: %s" % (e.args[0], e.args[1])
             print '<p><a href="javascript:window.history.go(-1)">Back</a>'
+            conn.rollback()
             sys.exit(1)
         except TypeError:
             print 'Invalid command type, nothing sent to db sent to db'
             sys.exit(1)
+        else:
+            conn.commit()
         db_data = dbc.fetchall()
     finally:
         dbc.close()
-
-    conn.commit()
+        conn.close()
 
     return db_data
 
@@ -129,22 +129,26 @@ def log_action(comment):
     fp.write(output)
     fp.close()
 
-def get_children_quotas(data):
+
+def get_children_quota_sum(data):
+    # Maps name --> sum(quotas of all children one level down)
+    child_quotas = {}
     tree_groups = sorted([x[0].split(".") for x in data])
-    groups_with_children = {}
 
     for grp in tree_groups:
-        children = [x for x in tree_groups if x[:len(grp)] == grp and len(x) > len(grp)]
+        children = [x for x in tree_groups if x[:len(grp)] == grp and len(x) == len(grp) + 1]
         child_sum = 0
         for child in (".".join(y) for y in children):
             quotas = [x[1] for x in data if x[0] == child][0]
             child_sum += quotas
-        groups_with_children[".".join(grp)] = child_sum
+        child_quotas[".".join(grp)] = child_sum
 
-    return groups_with_children
+    return child_quotas
+
 
 def get_top_level_groups(data):
     return [row for row in data if row[0].count(".") == 0]
+
 
 def get_parents(data, name):
     arr = name.split(".")[:-1]
@@ -167,7 +171,7 @@ def main_page(data, total, user):
     sure that this sum remains constant, or the change will not take effect.</b>
     """
 
-    child_quota = get_children_quotas(data)
+    child_quota = get_children_quota_sum(data)
 
     tab = HTMLTable('class="main" border=1')
     for i in ('Group Name', 'Quota (real)', 'Priority', 'Accept Surplus', 'Busy*'):
@@ -221,10 +225,6 @@ def get_last_update():
 # Depending on 'auth', show edit fields for quota or all values
 def edit_quotas(data, total):
 
-    # TODO: Javascript box that displays current total at all times?
-    total = 0
-    total += sum(int(x[1]) for x in data)
-
     print '<h2>Edit Group Quotas</h2><hr>'
     print '<p style="color: blue">Quotas should sum to %d</p>' % total
 
@@ -242,7 +242,7 @@ def edit_quotas(data, total):
             tab.add_hr(i, 'caption="%s"' % i)
     alt = 0
 
-    children = get_children_quotas(data)
+    children = get_children_quota_sum(data)
     for row in data:
         checked = ['', '']
         if bool(row[3]):
@@ -269,13 +269,12 @@ def edit_quotas(data, total):
     print '<br><input type="submit" name="change_data" value="Upload Changes"> </form>'
     print '<br><a href="./%s">Back</a></html>' % SCRIPT_NAME
 
-
 # data is from database, formdata is the cgi input, and total is the number the quotas must add up to
 def check_quota_changes(data, formdata, total):
 
     new_total = 0
-    # grp_name contains the titles of the queues in the rows of the database
-    # formdata.getfirst(grp_name+"") is the user's new data
+
+    children = get_children_quota_sum(data)
     for grp_name in (x[0] for x in data):
         quota = formdata.getfirst(grp_name + '_quota', '')
         prio = formdata.getfirst(grp_name + '_prio', '')
@@ -310,18 +309,20 @@ def check_quota_changes(data, formdata, total):
 
 # Generate query and update database if values have changed, writing changes to logfile
 def apply_quota_changes(data, formdata):
+
     updates = []
     logstr = ""
     msg = "<ul>\n"
-    children = get_children_quotas(data)
 
+    children = get_children_quota_sum(data)
+    adjustments = {}
 
     for grp_name, old_quota, old_prio, old_regroup, busy in data:
-        new_abs_quota = int(formdata.getfirst(grp_name + '_quota', ''))
 
-        new_quota = new_abs_quota + children[grp_name]
+        new_quota = int(formdata.getfirst(grp_name + '_quota', '')) + children[grp_name]
         new_prio = float(formdata.getfirst(grp_name + '_prio', '1.0'))
         new_regroup = bool(int(formdata.getfirst(grp_name + '_regroup', 0)))
+
         quota_diff = new_quota - old_quota
 
         parents = get_parents(data, grp_name)
@@ -330,9 +331,12 @@ def apply_quota_changes(data, formdata):
             updates.append('UPDATE atlas_group_quotas SET quota = %d WHERE group_name = "%s"' % (new_quota, grp_name))
             log = "\t'%s' quota changed from %d -> %d\n" % (grp_name, old_quota, new_quota)
             msg += "<li>%s</li>\n" % log.strip()
-            for x in parents:
-                updates.append('UPDATE atlas_group_quotas SET quota = quota + %d WHERE group_name = "%s"' % (quota_diff, x[0]))
-                logmsg = "\t(parent update)'%s' quota adjusted by %d\n" % (x[0], quota_diff)
+            for parent_name in (x[0] for x in parents):
+                if parent_name in adjustments:
+                    adjustments[parent_name] += quota_diff
+                else:
+                    adjustments[parent_name] = quota_diff
+                logmsg = "\t(parent update) '%s' quota adjusted by %d\n" % (parent_name, quota_diff)
                 msg += "<li><i>%s</i></li>\n" % logmsg.strip()
                 log += logmsg
 
@@ -359,10 +363,16 @@ def apply_quota_changes(data, formdata):
         print '0 fields changed, not updating database<hr>'
         print '<br><a href="./%s">Go Back</a>' % SCRIPT_NAME
     else:
-        print '%d fields changed, updating<br>' % len(updates)
-        db_execute(updates, user="atlas_update", p="xxx")
-        #print updates
+        print '%d fields changing, updating<br>' % len(updates)
         print msg
+        for name in adjustments:
+            if adjustments[name]:
+                qry = 'UPDATE atlas_group_quotas SET quota = quota + %d ' % adjustments[name] + \
+                      'WHERE group_name = "%s"' % name
+                updates.append(qry)
+
+        #db_execute(updates, user="atlas_update", p="xxx")
+        print updates
         #log_action('User %s changed %d fields\n%s' % (webdocs_user, len(updates), logstr))
 
         print '<br>Database updated successfully<hr>'
@@ -407,6 +417,7 @@ def err_page(title, reason):
     print '<h4><span style="color: red;">ERROR:</span>' + title + "</h4>"
     print '<p>' + reason + '</p>'
     print ' <br> <a href="javascript:window.history.go(-1)">Back</a>'
+
 
 def add_group(data, formdata):
 
@@ -545,6 +556,7 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 """
 # <meta http-equiv="refresh" content="150">
 
+
 def do_main():
     global auth, webdocs_user, cgi_data
 
@@ -570,7 +582,6 @@ def do_main():
             print '<h2>Updating Group Quotas</h2><hr>'
             if check_quota_changes(db_data, cgi_data, q_total):
                 apply_quota_changes(db_data, cgi_data)
-
         # If Add/Remove groups was clicked
         elif 'alter_groups' in cgi_data:
             alter_groups(db_data)
