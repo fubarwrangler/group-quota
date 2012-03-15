@@ -152,9 +152,9 @@ def apply_quota_changes(data, formdata):
                       'WHERE group_name = "%s"' % name
                 updates.append(qry)
 
-        #db_execute(updates, user="atlas_update", p="xxx")
-        print "<br>".join(updates)
-        #log_action('User %s changed %d fields\n%s' % (webdocs_user, len(updates), logstr))
+        db_execute(updates, user=db_config["update_user"], p=db_config["update_pass"])
+        #print "<br>".join(updates)
+        log_action('User %s changed %d fields\n%s' % (webdocs_user, len(updates), logstr))
 
         print '<br>Database updated successfully<hr>'
         print '<br><a href="./%s">Go Back</a> and refresh the page to see new values' % SCRIPT_NAME

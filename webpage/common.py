@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
-
-import sys, os
+import os
+import sys
+import time
 import MySQLdb
 import ConfigParser
 
-#webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
-webdocs_user = "willsk"
+webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
+#webdocs_user = "willsk"
 
 AUTH_NONE = 0
 AUTH_EDIT = 1
@@ -14,20 +15,26 @@ AUTH_FULL = 2
 
 SCRIPT_NAME = os.environ['SCRIPT_NAME']
 
-FARM_USERS = ''
-AUTHORIZED_USERS = ''
+FARM_USERS = []
+AUTHORIZED_USERS = []
 logfile = ''
+db_config = {}
+
 
 def read_config(filename):
 
-    global FARM_USERS, AUTHORIZED_USERS, logfile
+    global FARM_USERS, AUTHORIZED_USERS, logfile, db_config
 
     cp = ConfigParser.ConfigParser()
     cp.read(filename)
 
-    AUTHORIZED_USERS = [x.strip() for x in cp.get('main', 'make_edits').split(",")]
-    FARM_USERS = [x.strip() for x in cp.get('main', 'full_access').split(",")]
-    logfile = cp.get('main', 'logfile')
+    AUTHORIZED_USERS.extend([x.strip() for x in cp.get('user_access', 'update_access').split(",")])
+    FARM_USERS.extend([x.strip() for x in cp.get('user_access', 'full_access').split(",")])
+
+    logfile += cp.get('main', 'logfile')
+    for k, v in cp.items("db"):
+        db_config[k] = v
+
 
 
 class HTMLTable(object):
@@ -74,10 +81,10 @@ class HTMLTable(object):
         return self.table[key]
 
 
-def db_execute(command, database="linux_farm", host="hobbes.racf.bnl.gov", user="db_query", p=""):
+def db_execute(command, user="db_query", p=""):
 
     try:
-        conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
+        conn = MySQLdb.connect(db=db_config["database"], host=db_config["host"], user=user, passwd=p)
         dbc = conn.cursor()
     except MySQLdb.Error, e:
         print "DB Error %d: %s" % (e.args[0], e.args[1])
