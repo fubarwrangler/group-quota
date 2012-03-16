@@ -94,7 +94,7 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="cache-control" content="no-cache" />
-
+  <meta http-equiv="refresh" content="180">
   <title>ATLAS Group Quotas</title>
   <style type="text/css">
     body { background-color: #9cdede; }
@@ -110,7 +110,7 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 </head>
 <body>
 """
-# <meta http-equiv="refresh" content="150">
+
 
 
 def render_page():

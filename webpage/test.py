@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
 
-import os.path, sys
+import os.path
+import os, sys
 import cgitb
 
 cgitb.enable()
 os.environ['SCRIPT_NAME'] = os.path.basename(sys.argv[0])
-os.environ['CFGFILE'] = "groupquota/atlas.cfg"
+os.environ['CFGFILE'] = "groupquota/test.cfg"
 
 if __name__ == "__main__":
 
