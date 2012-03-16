@@ -113,16 +113,15 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 # <meta http-equiv="refresh" content="150">
 
 
-def do_main(cfgfile):
-    global auth, webdocs_user, cgi_data
+def render_page():
+    global auth, webdocs_user, cgi_data, TABLE
 
     print 'Content-type: text/html\n'
     print header
 
-    read_config(cfgfile)
-
     query = "SELECT group_name,quota,priority,accept_surplus,busy FROM " + \
-            "atlas_group_quotas ORDER BY group_name"
+            "%s ORDER BY group_name" % TABLE
+
     db_data = db_execute(query)
     q_total = sum(x[1] for x in get_top_level_groups(db_data))
 

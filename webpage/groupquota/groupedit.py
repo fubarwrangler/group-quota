@@ -88,14 +88,24 @@ def add_group(data, formdata):
                  "Priority must be a floating point number >= 1.0")
         return 1
 
-    query = "INSERT INTO atlas_group_quotas (group_name,quota,priority,accept_surplus)"
-    query += " VALUES ('%s', %s, %s, '%s')" % (name, quota, prio, surplus)
-    db_execute(query, user="atlas_edit", p=password)
     logstr = "User %s added group '%s'\n" % (webdocs_user, name)
     logstr += "\tquota=%s, priority=%s, surplus=%s\n" % (quota, prio, surplus_str)
+
+    db_queries = [ """ INSERT INTO %s (group_name,quota,priority,accept_surplus)
+                       VALUES ('%s', %s, %s, '%s')""" % (TABLE, name, quota, prio, surplus) ]
+
+    parentlist = [x[0] for x in get_parents(data, name)]
+
+    if parentlist:
+        db_queries.append("UPDATE %s SET quota = quota + %s WHERE group_name IN (\"%s\")" % \
+                          (TABLE, quota, '","'.join(parentlist)))
+
+    #db_execute(db_queries, user=db_config["edit_user"], p=password)
     log_action(logstr)
-    print 'Added group "<b>%s</b>"' % name
-    print '<br><hr><a href="./%s">Go Back</a>' % SCRIPT_NAME
+    print 'Added group "<b>%s</b>" with new quota of %s\n<ul>' % (name, quota)
+    for grp in parentlist:
+        print '<li>Adjusted quotas of <b>%s</b> by <i>%s</i></li>' % (grp, quota)
+    print '</ul><br><hr><a href="./%s">Go Back</a>' % SCRIPT_NAME
 
 
 def remove_groups(data, formdata):
@@ -141,10 +151,10 @@ def remove_groups(data, formdata):
         return 1
 
     for group in grouplist:
-        commands.append('DELETE FROM atlas_group_quotas WHERE group_name = "%s";' % group)
+        commands.append('DELETE FROM %s WHERE group_name = "%s"' % (TABLE, group))
         logstr += "\tDELETED group '%s'\n" % group
 
-    db_execute(commands, user="atlas_edit", p=password)
+    #db_execute(commands, user=db_config["edit_user"], p=password)
     log_action('User %s removed %d groups\n%s' % (webdocs_user, len(commands), logstr))
 
     print 'Removed the following %d group(s): <br><b><ul><li>%s</ul></b>' % (len(commands), "<li>".join(grouplist))

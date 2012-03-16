@@ -109,7 +109,7 @@ def apply_quota_changes(data, formdata):
         parents = get_parents(data, grp_name)
 
         if new_quota != old_quota:
-            updates.append('UPDATE atlas_group_quotas SET quota = %d WHERE group_name = "%s"' % (new_quota, grp_name))
+            updates.append('UPDATE %s SET quota = %d WHERE group_name = "%s"' % (TABLE, new_quota, grp_name))
             log = "\t'%s' quota changed from %d -> %d\n" % (grp_name, old_quota, new_quota)
             msg += "<li>%s</li>\n" % log.strip()
             for parent_name in (x[0] for x in parents):
@@ -124,13 +124,13 @@ def apply_quota_changes(data, formdata):
             logstr += log
 
         if new_prio != old_prio:
-            updates.append('UPDATE atlas_group_quotas SET priority = %f WHERE group_name = "%s"' % (new_prio, grp_name))
+            updates.append('UPDATE %s SET priority = %f WHERE group_name = "%s"' % (TABLE, new_prio, grp_name))
             log = "\t'%s' priority changed from %f -> %f\n" % (grp_name, old_prio, new_prio)
             msg += "<li>%s</li>\n" % log.strip()
             logstr += log
 
         if new_regroup != old_regroup:
-            updates.append('UPDATE atlas_group_quotas SET accept_surplus = %d WHERE group_name = "%s"' % (new_regroup, grp_name))
+            updates.append('UPDATE %s SET accept_surplus = %d WHERE group_name = "%s"' % (TABLE, new_regroup, grp_name))
             if new_regroup:
                 regroup_str = "True"
             else:
@@ -148,7 +148,7 @@ def apply_quota_changes(data, formdata):
         print msg
         for name in adjustments:
             if adjustments[name]:
-                qry = 'UPDATE atlas_group_quotas SET quota = quota + %d ' % adjustments[name] + \
+                qry = 'UPDATE %s SET quota = quota + %d ' % (TABLE, adjustments[name]) + \
                       'WHERE group_name = "%s"' % name
                 updates.append(qry)
 

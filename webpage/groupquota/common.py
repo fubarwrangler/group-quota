@@ -4,38 +4,17 @@ import os
 import sys
 import time
 import MySQLdb
-import ConfigParser
 
-webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
-#webdocs_user = "willsk"
+from cfg import *
+
+#webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
+webdocs_user = "willsk"
 
 AUTH_NONE = 0
 AUTH_EDIT = 1
 AUTH_FULL = 2
 
 SCRIPT_NAME = os.environ['SCRIPT_NAME']
-
-FARM_USERS = []
-AUTHORIZED_USERS = []
-logfile = ''
-db_config = {}
-
-
-def read_config(filename):
-
-    global FARM_USERS, AUTHORIZED_USERS, logfile, db_config
-
-    cp = ConfigParser.ConfigParser()
-    cp.read(filename)
-
-    AUTHORIZED_USERS.extend([x.strip() for x in cp.get('user_access', 'update_access').split(",")])
-    FARM_USERS.extend([x.strip() for x in cp.get('user_access', 'full_access').split(",")])
-
-    logfile += cp.get('main', 'logfile')
-    for k, v in cp.items("db"):
-        db_config[k] = v
-
-
 
 class HTMLTable(object):
     """ A simple HTML table class that lets you index/modify cells """
