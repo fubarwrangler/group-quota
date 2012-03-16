@@ -100,7 +100,7 @@ def add_group(data, formdata):
         db_queries.append("UPDATE %s SET quota = quota + %s WHERE group_name IN (\"%s\")" % \
                           (TABLE, quota, '","'.join(parentlist)))
 
-    #db_execute(db_queries, user=db_config["edit_user"], p=password)
+    db_execute(db_queries, user=db_config["edit_user"], p=password)
     log_action(logstr)
     print 'Added group "<b>%s</b>" with new quota of %s\n<ul>' % (name, quota)
     for grp in parentlist:
@@ -154,7 +154,7 @@ def remove_groups(data, formdata):
         commands.append('DELETE FROM %s WHERE group_name = "%s"' % (TABLE, group))
         logstr += "\tDELETED group '%s'\n" % group
 
-    #db_execute(commands, user=db_config["edit_user"], p=password)
+    db_execute(commands, user=db_config["edit_user"], p=password)
     log_action('User %s removed %d groups\n%s' % (webdocs_user, len(commands), logstr))
 
     print 'Removed the following %d group(s): <br><b><ul><li>%s</ul></b>' % (len(commands), "<li>".join(grouplist))

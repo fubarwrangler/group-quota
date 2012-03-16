@@ -97,7 +97,7 @@ def apply_quota_changes(data, formdata):
 
     children = get_children_quota_sum(data)
     adjustments = {}
-
+    n_updates = 0
     for grp_name, old_quota, old_prio, old_regroup, busy in data:
 
         new_quota = int(formdata.getfirst(grp_name + '_quota', '')) + children[grp_name]
@@ -122,12 +122,14 @@ def apply_quota_changes(data, formdata):
                 log += logmsg
 
             logstr += log
+            n_updates += 1
 
         if new_prio != old_prio:
             updates.append('UPDATE %s SET priority = %f WHERE group_name = "%s"' % (TABLE, new_prio, grp_name))
             log = "\t'%s' priority changed from %f -> %f\n" % (grp_name, old_prio, new_prio)
             msg += "<li>%s</li>\n" % log.strip()
             logstr += log
+            n_updates += 1
 
         if new_regroup != old_regroup:
             updates.append('UPDATE %s SET accept_surplus = %d WHERE group_name = "%s"' % (TABLE, new_regroup, grp_name))
@@ -138,6 +140,7 @@ def apply_quota_changes(data, formdata):
             log = "\t'%s' accept_surplus changed to %s\n" % (grp_name, regroup_str)
             msg += "<li>%s</li>\n" % log.strip()
             logstr += log
+            n_updates += 1
     msg += "</ul>\n"
 
     if len(updates) == 0:
@@ -154,7 +157,7 @@ def apply_quota_changes(data, formdata):
 
         db_execute(updates, user=db_config["update_user"], p=db_config["update_pass"])
         #print "<br>".join(updates)
-        log_action('User %s changed %d fields\n%s' % (webdocs_user, len(updates), logstr))
+        log_action('User %s changed %d fields\n%s' % (webdocs_user, n_updates, logstr))
 
         print '<br>Database updated successfully<hr>'
         print '<br><a href="./%s">Go Back</a> and refresh the page to see new values' % SCRIPT_NAME
