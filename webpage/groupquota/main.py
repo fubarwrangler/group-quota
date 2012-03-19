@@ -29,10 +29,17 @@ def main_page(data, total, user, auth):
     page_info = \
     """<p>With this page, you can edit the number of slots in each group.  The number
     of slots is called that group's "Quota" and determines the maximum amount of
-    resources that condor allocates to that group.  As the sum of all the quotas
-    must add up to the total number of slots available, this sum cannot change.
+    resources that condor allocates to that group.  Groups are arranged in a tree,
+    with child-groups follwing a dot (.) in the parent's name (a.b -- b is a child 
+    of a).  The sum of a group's children will be subtracted from the quota here
+    ('real' quota includes this), any extra nodes alloted to a non-leaf node will
+    apply to that group, i.e. if a = 1 (11 real) and a.b = 10, 1 slot will be
+    for jobs with group_a and 10 for jobs with group_a.b
+    <p> As the sum of all the quotas must add up to the total number of slots 
+    available, this sum cannot change.
     <b>If you reallocate resources from one quota to another, make
-    sure that this sum remains constant, or the change will not take effect.</b>
+    sure that this sum remains constant, or the change will not take effect
+    unless you are authorized to make those changes.</b>
     """
 
     def get_last_update():
