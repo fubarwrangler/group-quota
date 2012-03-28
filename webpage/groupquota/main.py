@@ -30,12 +30,12 @@ def main_page(data, total, user, auth):
     """<p>With this page, you can edit the number of slots in each group.  The number
     of slots is called that group's "Quota" and determines the maximum amount of
     resources that condor allocates to that group.  Groups are arranged in a tree,
-    with child-groups follwing a dot (.) in the parent's name (a.b -- b is a child 
+    with child-groups follwing a dot (.) in the parent's name (a.b -- b is a child
     of a).  The sum of a group's children will be subtracted from the quota here
     ('real' quota includes this), any extra nodes alloted to a non-leaf node will
     apply to that group, i.e. if a = 1 (11 real) and a.b = 10, 1 slot will be
     for jobs with group_a and 10 for jobs with group_a.b
-    <p> As the sum of all the quotas must add up to the total number of slots 
+    <p> As the sum of all the quotas must add up to the total number of slots
     available, this sum cannot change.
     <b>If you reallocate resources from one quota to another, make
     sure that this sum remains constant, or the change will not take effect
@@ -49,13 +49,15 @@ def main_page(data, total, user, auth):
     child_quota = get_children_quota_sum(data)
 
     tab = HTMLTable('class="main" border=1')
-    for i in ('Group Name', 'Quota (real)', 'Priority', 'Accept Surplus', 'Busy*'):
+    for i in ('Group Name', 'Quota (real)', 'Priority', 'Accept Surplus', 'Busy (sub)*'):
         tab.add_hr(i, 'caption="%s"' % i)
     for row in data:
         tab.add_tr()
         new_row = [x for x in row]
         if child_quota[row[0]] > 0:
+            busy_children = sum(int(x[4]) for x in get_all_children(data, row[0]))
             new_row[1] = '%d (%d)' % (row[1] - child_quota[row[0]], row[1])
+            new_row[4] = '%d (%d)' % (row[4], busy_children)
 
         for obj in new_row:
             tab.add_td(obj, 'class="body"')
@@ -93,7 +95,6 @@ def main_page(data, total, user, auth):
     print '<br><p style="font-size: small">Page last refreshed %s</p>' % time.ctime()
 
 
-
 cgi_data = cgi.FieldStorage()
 
 header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
@@ -117,7 +118,6 @@ header = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org
 </head>
 <body>
 """
-
 
 
 def render_page():

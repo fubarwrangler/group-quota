@@ -142,3 +142,8 @@ def get_parents(data, name):
         parents.append([x for x in data if x[0] == ".".join(arr)][0])
         arr.pop()
     return parents
+
+
+def get_all_children(data, name):
+    me = name.split(".")
+    return [x for x in data if x[0].split(".")[:len(me)] == me and len(x[0].split(".")) > len(me)]
