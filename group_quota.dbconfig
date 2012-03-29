@@ -2,3 +2,4 @@ host = localhost
 db = linux_farm
 user = willsk
 password =
+test
