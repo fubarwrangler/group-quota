@@ -37,15 +37,19 @@ if not db_groups:
 # get info from condor
 proc = subprocess.Popen(["condor_status",  "-pool",  "condor03.usatlas.bnl.gov:9660",
                          "-constraint",  "TARGET.AccountingGroup =!= UNDEFINED",
-                         "-format",  "%s\\n",  "AccountingGroup"], stdout=subprocess.PIPE)
-
-# Last item before "@" is user, strip it off and rest is group name
-f = lambda x: len(x) > 0 and ".".join(x.split("@")[0].split(".")[:-1])
-data = map(f, proc.communicate()[0].split("\n"))
+                         "-format",  "%s ",  "AccountingGroup", "-format",
+                         "%s\\n", "Cpus"], stdout=subprocess.PIPE)
 
 active = {}
-for grp in db_groups:
-    active[grp] = data.count(grp)
+
+for group,count in ((y.split()) for y in proc.communicate()[0].split("\n") if y):
+    group = ".".join(group.split("@")[0].split(".")[:-1])
+    if group in active:
+        active[group] += int(count)
+    elif group in db_groups:
+        active[group] = int(count)
+    else:
+        print "Unknown group %s" % group
 
 try:
     dbc = conn.cursor()

@@ -8,7 +8,7 @@ CREATE TABLE `atlas_group_quotas` (
       `quota` int(12) NOT NULL DEFAULT 0,
       `priority` double DEFAULT 10.0,
       `accept_surplus` boolean DEFAULT False,
-      `busy` int(12),
+      `busy` int(12) NOT NULL DEFAULT 0,
       `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (`group_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
