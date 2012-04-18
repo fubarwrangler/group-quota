@@ -21,7 +21,7 @@ import datetime
 import subprocess
 
 try:
-    conn = MySQLdb.connect(db="linux_farm", host="localhost", user="atlas_update", passwd="xxx")
+    conn = MySQLdb.connect(db="linux_farm", host="database.rcf.bnl.gov", user="atlas_update", passwd="XPASSX")
     dbc = conn.cursor()
 except MySQLdb.Error, e:
     print "DB Error %d: %s" % (e.args[0], e.args[1])
@@ -50,6 +50,9 @@ for group,count in ((y.split()) for y in proc.communicate()[0].split("\n") if y)
         active[group] = int(count)
     else:
         print "Unknown group %s" % group
+
+for group in (x for x in db_groups if x not in active):
+    active[group] = 0
 
 try:
     dbc = conn.cursor()
