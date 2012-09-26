@@ -235,7 +235,7 @@ database; see the following links for a detailed description of the changes
 made and who made them:
 
 https://webdocs.racf.bnl.gov/Facility/LinuxFarm/cgi-bin/group_quota.py
-https://webdocs.racf.bnl.gov/Facility/LinuxFarm/atlas_groupquota.log
+https://webdocs.racf.bnl.gov/Facility/LinuxFarm/atlas_groupquota_hgq.log
 
 Receipt of this message indicates that condor has been successfully
 reconfigured to use the new quotas indicated on the page above.
