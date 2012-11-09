@@ -15,10 +15,10 @@ def edit_quotas(data, total, auth):
     tab = HTMLTable('class="edit"')
     print '<form enctype="multipart/form-data" method=POST action="%s">' % SCRIPT_NAME
     if auth == AUTH_FULL:
-        for i in ('Group Name', 'Quota (orig) (real)', 'Priority (orig)', 'Accept Surplus &nbsp;&nbsp;(orig)'):
+        for i in ('Group Name', 'Quota (orig) (real)', 'Priority (orig)', 'Auto Regroup &nbsp;&nbsp;(orig)'):
             tab.add_hr(i, 'caption="%s"' % i)
     else:
-        for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus'):
+        for i in ('Group Name', 'Quota', 'Priority', 'Auto Regroup'):
             tab.add_hr(i, 'caption="%s"' % i)
     alt = 0
 

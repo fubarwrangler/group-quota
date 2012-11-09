@@ -49,7 +49,7 @@ def main_page(data, total, user, auth):
     child_quota = get_children_quota_sum(data)
 
     tab = HTMLTable('class="main" border=1')
-    for i in ('Group Name', 'Quota (real)', 'Priority', 'Accept Surplus', 'Busy (sub)*'):
+    for i in ('Group Name', 'Quota (real)', 'Priority', 'Auto Regroup', 'Busy (sub)*'):
         tab.add_hr(i, 'caption="%s"' % i)
     for row in data:
         tab.add_tr()
