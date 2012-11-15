@@ -59,7 +59,7 @@ class Group(object):
         msg = '\n'
         msg += 'GROUP_QUOTA_%s = %d\n' % (self.name, self.quota)
         msg += 'GROUP_PRIO_FACTOR_%s = %.1f\n' % (self.name, self.prio)
-        msg += 'GROUP_AUTO_REGROUP_%s = %s\n' % (self.name, self.regroup)
+        msg += 'GROUP_AUTOREGROUP_%s = %s\n' % (self.name, self.regroup)
         return msg
 
     def __cmp__(self, other):
@@ -186,7 +186,7 @@ class FileGroups(Groups):
         regexes = { "names": re.compile('^GROUP_NAMES\s*=\s*(.*)$'),
                     "quota": re.compile('^GROUP_QUOTA_([\w\.]+)\s*=\s*(\d+)$'),
                     "prio": re.compile('^GROUP_PRIO_FACTOR_([\w\.]+)\s*=\s*([\d\.]+)$'),
-                    "regroup": re.compile('^GROUP_AUTO_REGROUP_([\w\.]+)\s*=\s*(\w+)$'),
+                    "regroup": re.compile('^GROUP_AUTOREGROUP_([\w\.]+)\s*=\s*(\w+)$'),
                   }
 
         grps = {}
