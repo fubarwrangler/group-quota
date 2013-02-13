@@ -12,7 +12,7 @@ def alter_groups(data):
     print 'Password to Add/Remove Groups: <input type="password" name="db_pass" size="16"><br>'
     print '<p><i>Add Group</i><hr>'
     tab2 = HTMLTable('class="add_group" border="1"')
-    for i in ('Group Name', 'Quota', 'Priority', 'Auto Regroup'):
+    for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus'):
         tab2.add_hr(i)
     tab2.add_tr()
     tab2.add_td('<input type="text" name="new_name" size="20">')
@@ -24,7 +24,7 @@ def alter_groups(data):
     print '<br><input type="submit" name="add_group" value="Add New Group">'
     print '<p><i>Remove Groups</i></p><hr>'
     tab = HTMLTable('class="main" border=1')
-    for i in ('Group Name', 'Quota', 'Priority', 'Auto Regroup', 'Busy', 'Remove?'):
+    for i in ('Group Name', 'Quota', 'Priority', 'Accept Surplus', 'Busy', 'Remove?'):
         tab.add_hr(i, 'caption="%s"' % i)
     for row in data:
         tab.add_tr()
@@ -42,12 +42,12 @@ def alter_groups(data):
 def add_group(data, formdata):
 
     print "<h2>Adding groups</h2><hr>"
-    name, quota, prio, regroup = (formdata.getfirst('new_name'), formdata.getfirst('new_quota'),
+    name, quota, prio, surplus = (formdata.getfirst('new_name'), formdata.getfirst('new_quota'),
                                   formdata.getfirst('new_prio'), formdata.getfirst('new_regroup'))
-    if regroup:
-        regroup_str = "True"
+    if surplus:
+        surplus_str = "True"
     else:
-        regroup_str = "False"
+        surplus_str = "False"
 
     password = formdata.getfirst('db_pass', '')
 
@@ -89,10 +89,10 @@ def add_group(data, formdata):
         return 1
 
     logstr = "User %s added group '%s'\n" % (webdocs_user, name)
-    logstr += "\tquota=%s, priority=%s, surplus=%s\n" % (quota, prio, regroup_str)
+    logstr += "\tquota=%s, priority=%s, surplus=%s\n" % (quota, prio, surplus_str)
 
     db_queries = [ """ INSERT INTO %s (group_name,quota,priority,accept_surplus)
-                       VALUES ('%s', %s, %s, '%s')""" % (TABLE, name, quota, prio, regroup) ]
+                       VALUES ('%s', %s, %s, '%s')""" % (TABLE, name, quota, prio, surplus) ]
 
     parentlist = [x[0] for x in get_parents(data, name)]
 

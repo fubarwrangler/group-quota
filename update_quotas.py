@@ -45,7 +45,7 @@ os.environ['CONDOR_CONFIG'] = '/etc/condor/condor_config.atlas'
 
 class Group(object):
 
-    def __init__(self, name, quota=0, prio=10.0, regroup=False):
+    def __init__(self, name, quota=0, prio=10.0, surplus=False):
         if len(name) > 6 and name[:6] == "group_":
             self.name = name
         else:
@@ -53,19 +53,19 @@ class Group(object):
 
         self.quota = int(quota)
         self.prio = float(prio)
-        self.regroup = str(bool(regroup)).upper()
+        self.surplus = str(bool(surplus)).upper()
 
     def __str__(self):
         msg = '\n'
         msg += 'GROUP_QUOTA_%s = %d\n' % (self.name, self.quota)
         msg += 'GROUP_PRIO_FACTOR_%s = %.1f\n' % (self.name, self.prio)
-        msg += 'GROUP_AUTOREGROUP_%s = %s\n' % (self.name, self.regroup)
+        msg += 'GROUP_ACCEPT_SURPLUS_%s = %s\n' % (self.name, self.surplus)
         return msg
 
     def __cmp__(self, other):
 
         same = True
-        for x in ("name", "quota", "prio", "regroup"):
+        for x in ("name", "quota", "prio", "surplus"):
             if getattr(self, x) != getattr(other, x):
                 same = False
                 break
@@ -82,11 +82,11 @@ class Groups(object):
     def __init__(self):
         self._groups = {}
 
-    def add_group(self, name, quota, prio, regroup):
+    def add_group(self, name, quota, prio, surplus):
         if name in self._groups:
             raise ValueError("Cannot have groups with duplicated name: %s" % name)
         else:
-            self._groups[name] = Group(name, quota, prio, regroup)
+            self._groups[name] = Group(name, quota, prio, surplus)
 
     def check_tree(self):
 
@@ -186,7 +186,7 @@ class FileGroups(Groups):
         regexes = { "names": re.compile('^GROUP_NAMES\s*=\s*(.*)$'),
                     "quota": re.compile('^GROUP_QUOTA_([\w\.]+)\s*=\s*(\d+)$'),
                     "prio": re.compile('^GROUP_PRIO_FACTOR_([\w\.]+)\s*=\s*([\d\.]+)$'),
-                    "regroup": re.compile('^GROUP_AUTOREGROUP_([\w\.]+)\s*=\s*(\w+)$'),
+                    "surplus": re.compile('^GROUP_ACCEPT_SURPLUS_([\w\.]+)\s*=\s*(\w+)$'),
                   }
 
         grps = {}
@@ -202,7 +202,7 @@ class FileGroups(Groups):
                     grp, val = regex.match(line).groups()
                     if not grps.get(grp):
                         grps[grp] = {}
-                    if kind == "regroup":
+                    if kind == "surplus":
                         if val.upper() == "TRUE":
                             val = True
                         elif val.upper() == "FALSE":
@@ -214,10 +214,10 @@ class FileGroups(Groups):
         fp.close()
         for grp in group_names:
             p = grps.get(grp, None)
-            if p is None or not ("quota" in p and "prio" in p and "regroup" in p):
+            if p is None or not ("quota" in p and "prio" in p and "surplus" in p):
                 log.warning("Invalid incomplete group found: %s", grp)
                 continue
-            self.add_group(grp, p["quota"], p["prio"], p["regroup"])
+            self.add_group(grp, p["quota"], p["prio"], p["surplus"])
 
         bad = self.check_tree()
         if bad:
