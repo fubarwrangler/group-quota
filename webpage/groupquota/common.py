@@ -7,8 +7,8 @@ import MySQLdb
 
 from cfg import *
 
-#webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
-webdocs_user = "willsk"
+webdocs_user = os.environ.get('HTTP_X_MYREMOTE_USER')
+#webdocs_user = "willsk"
 
 AUTH_NONE = 0
 AUTH_EDIT = 1
