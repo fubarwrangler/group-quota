@@ -18,9 +18,16 @@ import getopt
 import MySQLdb
 
 
+# Get all parent groups of a group (separator is ".")
+def get_parents(x):
+    if noparent:
+        return []
+    return [".".join(x.split(".")[:-i]) for i in range(1, x.count(".") + 1)]
+
 # Execute database command, or list of commands, and die if something goes wrong
-def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov",
-                        user="atlas_update", p="xxx"):
+def db_execute(command, database="linux_farm", host="localhost",
+                        user="willsk", p=""):
+# p = XPASSX
     try:
         conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
         dbc = conn.cursor()
@@ -28,7 +35,13 @@ def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov",
         print "DB Error %d: %s" % (e.args[0], e.args[1])
         sys.exit(1)
     try:
-        dbc.execute(command)
+        if hasattr(command, '__iter__'):
+            dbc.execute("START TRANSACTION")
+            for c in command:
+                dbc.execute(c)
+            dbc.execute("COMMIT")
+        else:
+            dbc.execute(command)
     except MySQLdb.Error, e:
         print "DB Error %d: %s" % (e.args[0], e.args[1])
         dbc.close()
@@ -42,14 +55,15 @@ def db_execute(command, database="linux_farm", host="database.rcf.bnl.gov",
 
 # Show a table of the quota information
 def print_quotas():
-    groups = db_execute("SELECT group_name,quota,priority,accept_surplus FROM atlas_group_quotas ORDER BY group_name", user="db_query", p="")
+    groups = db_execute("SELECT group_name,quota,priority,accept_surplus FROM "
+                        "atlas_group_quotas ORDER BY group_name", user="db_query")
     print 'There are %d groups' % len(groups)
     longest = max(len(x[0]) for x in groups)
-    print 'Group:' + ' ' * (longest - 6) + '\tQuota\tPriority\tAccept_Surplus'
+    print 'Group ' + ' ' * (longest - 6) + '\tQuota\tPriority\tAccept_Surplus'
     print '------' + ' ' * (longest - 6) + '\t-----\t--------\t--------------'
     for g in groups:
-        print '%s:%s\t%d\t%.1f\t\t%s' % \
-        (g[0], ' ' * (longest - len(g[0])), g[1], g[2], bool(g[3]))
+        print '%s %s\t%d\t%.1f\t\t%s' % \
+            (g[0], ' ' * (longest - len(g[0])), g[1], g[2], bool(g[3]))
 
 
 def usage():
@@ -58,29 +72,38 @@ def usage():
     print '  -e	Edit quotas (needed by -g/-q options)'
     print '  -f	Forces changes to be made, no output (for scripting)'
     print '  -q	Specify new quota (must be positive integer)'
+    print '  -p	Parent disable, do not add/subtract from parent groups'
     print '  -i	Specify difference from current value (+/- integer)'
     print '  -h	Shows this help screen'
 
 
 # Write changes to db, asking for the user's approval unless force=True
-def make_changes(quota, group, d, force=False):
+def make_changes(oldquota, quota, group, d, force=False):
 
     query = 'UPDATE atlas_group_quotas SET '
-    query += 'quota=%d WHERE group_name="%s"' % (quota, group)
+    query += 'quota=%d WHERE group_name="%s"'
 
     if not force:
-        print 'You will be setting %s from %d --> %d' % (group, d[group], quota)
+        print 'You will be setting %s from %d --> %d (%d)' % \
+            (group, d[group], quota, quota - d[group])
+        for x in get_parents(group):
+              print ' * (parent update)  %s from %d --> %d (%d)' % \
+                    (x, d[x], d[x] + (quota - oldquota), (quota - oldquota))
         proceed = raw_input('Is this OK? [y/N]: ')
         if proceed.upper() != 'Y':
             print 'OK, bailing...'
             return False
         else:
             print 'OK, making changes...'
-    db_execute(query)
+
+    dbcommands = [query % (quota, group)]
+    for x in get_parents(group):
+        dbcommands.append(query % (d[x] + (quota - oldquota), x))
+    db_execute(dbcommands)
     return True
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'lhfe:q:i:')
+    opts, args = getopt.getopt(sys.argv[1:], 'lhpfe:q:i:')
 except getopt.GetoptError, err:
     print str(err)
     usage()
@@ -91,6 +114,7 @@ group = None
 newquota = None
 diff = None
 force = False
+noparent = False
 for o, a in opts:
     if o == '-l':
         print_quotas()
@@ -104,11 +128,13 @@ for o, a in opts:
         diff = int(a)
     if o == '-f':
         force = True
+    if o == '-p':
+        noparent = True
+
 
 if newquota and diff:
     print 'Please specify only a new quota or a difference, not both'
     EDIT = False
-
 
 if EDIT and group and (newquota is not None or diff is not None):
 
@@ -123,14 +149,16 @@ if EDIT and group and (newquota is not None or diff is not None):
     else:
         # Get new quota from newquota or diff
         if newquota is not None:
+            oldquota = d[group]
             quota = newquota
         else:
             if d[group] + diff < 0:
                 print 'Error, quotas must remain positive'
                 sys.exit(1)
+            oldquota = d[group]
             quota = d[group] + diff
 
         # Write the changes to the database
-        make_changes(quota, group, d, force)
+        make_changes(oldquota, quota, group, d, force)
 else:
     usage()
