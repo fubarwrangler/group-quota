@@ -43,7 +43,7 @@ def main_page(data, total, user, auth):
     """
 
     def get_last_update():
-        d = db_execute("SELECT last_update FROM atlas_group_quotas LIMIT 1")
+        d = db_execute("SELECT last_update FROM %s LIMIT 1" % TABLE)
         return d[0][0].strftime("%b %d %I:%M:%S %p")
 
     child_quota = get_children_quota_sum(data)
