@@ -12,6 +12,7 @@
 import sys
 import MySQLdb
 import urllib2
+import logging
 import cPickle as pickle
 
 # **************** Configuration variables and information *****************
@@ -27,6 +28,8 @@ mcore_q = {
     #'ANALY_BNL_SHORT': 'group_atlas.analysis.short',
 }
 
+logfile = "/tmp/panda_watcher.log"
+
 # When number of mcore jobs < threshold, consider it insufficient demand
 threshold = 20
 
@@ -39,12 +42,14 @@ dbpass = 'XPASSX'
 
 q_skel = 'UPDATE %s SET accept_surplus=%d WHERE group_name="%s"'
 
+logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
+                    filename=logfile, level=logging.DEBUG)
+log = getLogger()
 
 # **************************************************************************
 
-def get_num_activated(qname):
-    global webdata
-    return webdata[qname]['managed']['activated']
+def get_num_activated(data):
+    return data['managed']['activated']
 
 
 def set_acceptsurplus(queue, state):
@@ -67,14 +72,20 @@ def set_acceptsurplus(queue, state):
 webservice = urllib2.urlopen("https://%s/%s" % (server, path))
 webdata = pickle.load(webservice)
 
-for panda, queue, group in ((x, mcore_q[x], webdata.get(x)) for x in mcore_q):
-    if not group:
-        print "Warning: queue %s does not have any data for it!" % panda
+n_multicore_activated = 0
+
+for panda, queue, data in ((x, mcore_q[x], webdata.get(x)) for x in mcore_q):
+    if not data:
+        log.warning("queue %s not found on PANDA server!", panda)
         continue
 
-    get_num_activated(panda)
+    n = get_num_activated(data)
+    log.debug("%s:%s has %d activated", panda, queue, n)
+    n_multicore_activated += n
 
-    set_acceptsurplus(group, True)
 
+log.info("%d total activated multicore jobs", n_multicore_activated)
+
+#set_acceptsurplus(group, True)
 
 
