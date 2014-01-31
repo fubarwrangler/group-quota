@@ -20,7 +20,7 @@ import logging
 import cPickle
 
 # **************** Configuration variables and information *****************
-panda_server = "pandaserver.cern.ch:25443"
+panda_server = "https://pandaserver.cern.ch:25443"
 web_path = "/server/panda/getJobStatisticsWithLabel"
 
 single_core_prod = set(['BNL_PROD'])
@@ -38,7 +38,7 @@ queues = {
 logfile = "/tmp/panda_watcher.log"
 
 # Database parameters
-dbtable = 'localt3_group_quotas'
+dbtable = 'atlas_group_quotas'
 dbhost = 'database.rcf.bnl.gov'
 database = 'linux_farm'
 dbuser = 'condor_update'
@@ -81,11 +81,15 @@ def set_acceptsurplus(queue, state):
 
 def do_main():
 
-    url = "https://%s/%s" % (panda_server, web_path)
-    webservice = urllib2.urlopen(url, timeout=30)
+    log.info("Accessing panda at %s", panda_server)
+    try:
+        webservice = urllib2.urlopen(panda_server + web_path, timeout=30)
 
-    # This is so horribly insecure, I can't believe it!
-    webdata = cPickle.load(webservice)
+        # This is so horribly insecure, I can't believe it!
+        webdata = cPickle.load(webservice)
+    except urllib2.URLError:
+        log.error("Timeout accessing PANDA webservice, exit...")
+        return 1
 
     activated = {}
 
