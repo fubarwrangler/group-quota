@@ -33,14 +33,9 @@ queues = {
     'BNL_PROD': 'group_atlas.prod.production',
     'ANALY_BNL_SHORT': 'group_atlas.analysis.short',
     'ANALY_BNL_LONG': 'group_atlas.analysis.short',
-    'FOO_Q': 'group_atlas.analysis.hot',
 }
 
-
 logfile = "/tmp/panda_watcher.log"
-
-# When number of mcore jobs < threshold, consider it insufficient demand
-threshold = 20
 
 # Database parameters
 dbtable = 'localt3_group_quotas'
@@ -52,6 +47,7 @@ dbpass = 'XPASSX'
 q_skel = 'UPDATE %s SET accept_surplus=%d WHERE group_name="%s"'
 
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
+                    filename=None if '-d' in sys.argv else logfile,
                     level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
 log = logging.getLogger()
 # **************************************************************************
@@ -61,7 +57,8 @@ is_analysis = lambda q: q.startswith("ANALY")
 
 
 def get_num_activated(qname, data):
-    # Just the way it is in PANDA, go figure!?
+    # Production queues are under 'managed', analysis under 'user', just the
+    # way it is in PANDA, go figure!?
     return data['user' if is_analysis(qname) else 'managed']['activated']
 
 
@@ -84,7 +81,10 @@ def set_acceptsurplus(queue, state):
 
 def do_main():
 
-    webservice = urllib2.urlopen("https://%s/%s" % (panda_server, web_path))
+    url = "https://%s/%s" % (panda_server, web_path)
+    webservice = urllib2.urlopen(url, timeout=30)
+
+    # This is so horribly insecure, I can't believe it!
     webdata = cPickle.load(webservice)
 
     activated = {}
@@ -113,6 +113,7 @@ def do_main():
     log.info("%d total activated singlecore production jobs", prod_activated)
 
     surplus = prod_activated > 1 and mcore_activated < 1
+    changed = False
 
     log.debug("Production queue accept_surplus should be %s", surplus)
     for group_name in (queues[x] for x in queues if x in single_core_prod):
@@ -120,17 +121,19 @@ def do_main():
         if r is None:
             return 1
         elif r > 0:
+            changed = True
             log.info("%s accept_surplus changed -> %s", group_name, surplus)
         else:
             log.debug("%s: no change", group_name)
+
+    if not changed:
+        log.info("Surplus is %s, nothing was changed", surplus)
 
     return 0
 
 if __name__ == '__main__':
     try:
         sys.exit(do_main())
-    except RuntimeError:
-        log.error("Timeout accessing ")
     except Exception:
         log.exception("Uncaught exception")
         sys.exit(1)
