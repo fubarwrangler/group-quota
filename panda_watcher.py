@@ -117,11 +117,8 @@ def do_main():
 
         log.debug("%s:%s has %d activated", panda_q, queues[panda_q], n)
 
-    prod_activated = sum(activated[x] for x in queues if x in single_core_prod)
-    log.info("%d total activated singlecore production jobs", prod_activated)
-
     no_mcore_demand = [x for x in mcore_queues if activated[x] <= threshold]
-    if no_mcore_demand and prod_activated > threshold:
+    if no_mcore_demand:
         log.info("Mcore queues '%s': no activated jobs", ",".join(no_mcore_demand))
         surplus = True
     else:
