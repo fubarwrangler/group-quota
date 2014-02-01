@@ -59,7 +59,12 @@ is_analysis = lambda q: q.startswith("ANALY")
 def get_num_activated(qname, data):
     # Production queues are under 'managed', analysis under 'user', just the
     # way it is in PANDA, go figure!?
-    return data['user' if is_analysis(qname) else 'managed']['activated']
+
+    key = 'user' if is_analysis(qname) else 'managed'
+    if 'activated' in data.get(key, {}):
+        return data[key]['activated']
+    else:
+        return 0
 
 
 def set_acceptsurplus(queue, state):
