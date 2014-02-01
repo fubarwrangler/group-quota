@@ -32,9 +32,10 @@ queues = {
     'BNL_ATLAS_2': 'group_atlas.prod.test',
     'BNL_PROD': 'group_atlas.prod.production',
     'ANALY_BNL_SHORT': 'group_atlas.analysis.short',
-    'ANALY_BNL_LONG': 'group_atlas.analysis.short',
+    'ANALY_BNL_LONG': 'group_atlas.analysis.long',
 }
 
+threshold = 4
 logfile = "/tmp/panda_watcher.log"
 
 # Database parameters
@@ -79,6 +80,7 @@ def set_acceptsurplus(queue, state):
     cur = con.cursor()
     cur.execute(q_skel % (dbtable, state, queue))
     n = cur.rowcount
+    con.commit()
     cur.close()
     con.close()
     return n
@@ -118,14 +120,13 @@ def do_main():
     prod_activated = sum(activated[x] for x in queues if x in single_core_prod)
     log.info("%d total activated singlecore production jobs", prod_activated)
 
-    no_mcore_demand = [x for x in mcore_queues if activated[x] == 0]
-    if no_mcore_demand:
+    no_mcore_demand = [x for x in mcore_queues if activated[x] <= threshold]
+    if no_mcore_demand and prod_activated > threshold:
         log.info("Mcore queues '%s': no activated jobs", ",".join(no_mcore_demand))
         surplus = True
     else:
         surplus = False
 
-    #surplus = prod_activated > 1 and mcore_activated < 1
     changed = False
 
     log.debug("Production queue accept_surplus should be %s", surplus)
