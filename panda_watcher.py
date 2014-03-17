@@ -40,7 +40,7 @@ logfile = "/tmp/panda_watcher.log"
 # Database parameters
 dbtable = 'atlas_group_quotas'
 dbhost = 'database.rcf.bnl.gov'
-database = 'linux_farm'
+database = 'group_quotas'
 dbuser = 'condor_update'
 dbpass = 'XPASSX'
 

@@ -25,9 +25,8 @@ def get_parents(x):
     return [".".join(x.split(".")[:-i]) for i in range(1, x.count(".") + 1)]
 
 # Execute database command, or list of commands, and die if something goes wrong
-def db_execute(command, database="linux_farm", host="localhost",
-                        user="willsk", p=""):
-# p = XPASSX
+def db_execute(command, database="group_quotas", host="localhost",
+                        user="atlas_update", p="XPASSX"):
     try:
         conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
         dbc = conn.cursor()

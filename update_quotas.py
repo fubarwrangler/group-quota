@@ -148,7 +148,7 @@ class Groups(object):
 class DBGroups(Groups):
 
     def __init__(self, table, host="database.rcf.bnl.gov", user="db_query",
-                              database="linux_farm"):
+                              database="group_quotas"):
 
         super(DBGroups, self).__init__()
 

@@ -21,7 +21,7 @@ import datetime
 import subprocess
 
 try:
-    conn = MySQLdb.connect(db="linux_farm", host="database.rcf.bnl.gov", user="atlas_update", passwd="XPASSX")
+    conn = MySQLdb.connect(db="group_quotas", host="database.rcf.bnl.gov", user="atlas_update", passwd="XPASSX")
     dbc = conn.cursor()
 except MySQLdb.Error, e:
     print "DB Error %d: %s" % (e.args[0], e.args[1])
