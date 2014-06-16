@@ -17,6 +17,7 @@
 import sys
 import MySQLdb
 import logging
+from group import Group
 
 ############################ VARIABLES ############################
 # List of group names to eventually populate from Database
@@ -42,77 +43,6 @@ get_MySQL_groups = 'SELECT ' + group_name + ' FROM '+ dbtable
 get_Mysql_Val = 'SELECT %s FROM '+ dbtable + ' WHERE %s="%s"'
 
 ###################################################################
-
-# Group Object for group creation and tree formulation
-class Group(object): 
-      def __init__(self, name):
-	
-	  self.name = name
-	  self.quota = None
-	  self.accept_surplus = None
-	  
-	  #### FOR TREE ####
-	  self.parent = None
-	  self.children = {}
-	  ###################	  
-	  
-	  if name != '<root>': # IF ROOT, NO VALUES
-	    try:
-		con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass,
-				      db=database)
-	    except MySQLdb.Error as E:
-		log.error("Error connecting to database: %s" % E)
-		return None
-	    cur = con.cursor()
-	    # OBTAIN QUOTA
-	    cur.execute(get_Mysql_Val % (quota, group_name, name))
-	    self.quota = cur.fetchone()[0]
-	    # OBTAIN SURPLUS
-	    cur.execute(get_Mysql_Val % (accept_surplus, group_name, name))
-	    self.accept_surplus = cur.fetchone()[0]
-	    
-	    cur.close()
-	    con.close()	
-	
-      def add_child(self, name):
-	      # Add a child node to this one, setting it's parent pointer
-	      child = Group(name)
-	      child.parent = self
-	      self.children[name] = child
-	      return child # Return child node for tree creation node pointer
-	    
-      def walk(self):
-	      # Recursively iterate through all lower nodes in the tree
-	      if not self.children:
-		  return
-	      for x in self.children.values():
-		  yield x
-		  for y in x.walk():
-		      yield y
-		    
-      def get_by_name(self, name):
-	      if self.name == name:
-		  return self
-	      for x in self.walk():
-		  if name == x.name:
-		      return x
-	      raise Exception("No group %s found" % name)
-	
-      # NOT CODED, TODO	  
-      #def check_parent_surplus(self, name):
-      #      return name
-      #  
-      
-      def __iter__(self):
-	      return iter(self.walk())
-	  
-      def __str__(self):
-	      if self.name != '<root>': # Root has no values in table
-		return '%s: quota %d, surplus %s' % \
-		      (self.name, self.quota, self.accept_surplus)
-	      else:
-		return '%s' % \
-		      (self.name)
 
 # Populates the group_list with the groups in the database
 def aquire_groups():
@@ -167,6 +97,10 @@ if __name__ == '__main__':
     print ''
     print_tree(tree)
     print ''
-    #test = tree.get_by_name(group_list[4])
-    #print test
-
+    print group_list
+    print ''
+    test = tree.get_by_name(group_list[4])
+    print 'test: ' + str(test)
+    check = test.check_parent_surplus()
+    print 'Parent: ' + str(test.parent.name) + ' has surplus = ' + str(check)
+    print ''
