@@ -33,7 +33,7 @@ spike_multiplier = 2
 # Rapid reduction modifier, to determine if the amount has decreased the necessary percentage
 reduce_mod = .875 # Checks if the spike has dropped by 1/4
 
-#logfile = "/home/mvjensen/dynamicgroups/testlog.log"
+logfile = "/home/mvjensen/dynamicgroups/surplusLog.log"
 
 # Database parameters
 dbtable = 'atlas_group_quotas'
@@ -62,12 +62,12 @@ get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()
 get_Mysql_sorted_priority_list = 'SELECT %s FROM %s WHERE %s>0 ORDER BY %s DESC;'
 set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
 
-#logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
-                    #filename=None if '-d' in sys.argv else logfile,
-                    #level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
+logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
+                    filename=None if '-d' in sys.argv else logfile,
+                    level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-                    format="(%(levelname)5s) %(message)s")
+#logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+                    #format="(%(levelname)5s) %(message)s")
 
 log = logging.getLogger()
 
@@ -89,7 +89,7 @@ def aquire_groups():
 
 # Populates the priority_list with the names of the tree leaves
 def order_by_priority():
-  # OBTAIN LIST OF GROUPS WITH PRIORITY > 0
+  # OBTAIN LIST OF GROUPS WITH PRIORITY > 0spike_flag
   cur.execute(get_Mysql_sorted_priority_list % (group_name, dbtable, priority, priority))
   results = [i[0] for i in cur.fetchall()]
   for x in results:
@@ -136,25 +136,21 @@ def get_past_hour_queue_amounts(name):
 # without any necessary changes, only check the difference between the 
 # first 8 of 12 entries in the last hour to ensure that a last minute spike 
 # is not detected without the ability to decipher whether it is an issue or not.
-def check_for_spike(name):
-  
+def check_for_spike(name, avg, threshold, multi_flag):
   
   #amounts = [5,40,0,180,14,178,88,188,0,166,999,160]		# For Debug
   #avg = reduce(lambda x, y: x + y, amounts) / len(amounts) 	# For Debug
   
-  
   amounts = get_past_hour_queue_amounts(name)
-  avg = get_average_hour_queue(name)	# Eventually passed variable
   spike_flag = False			# Initialize to False
   surplus_flag = False
   length = len(amounts)
-  threshold = get_threshold(name) 	# Eventually passed variable
   
   
   ## For Debug purposes ##
   print ""
-  print 'Checking spike for ' + name
-  print 'AVERAGE: ' + str(avg) + ', THRESHOLD * 10: ' + str(threshold*10)
+  log.info("Checking spike for  %s.", name)
+  log.info("AVERAGE: %d, THRESHOLD: %d * 10 = %d", avg, threshold, threshold*10)
   #########################
   
   if avg < threshold*10: # Queue limit for spike check
@@ -174,120 +170,170 @@ def check_for_spike(name):
     # Index used for testing
     index = test.index(max(test[0:7]))
     
-    print 'MAX DIFFERENCE IN FIRST 8 VALUES: ' + str(max(test[0:7])) + ', at Amount time: ' + str(index+1)
-    print 'Spike Threshold = ' + str(limitCheck)
-    print ""
+    log.info("MAX DIFFERENCE IN FIRST 8 VALUES: %d, at Amount time: %d", max(test[0:7]), index+1)
+    log.info("Spike Threshold = %d",limitCheck)
+    
     
     # Check all values for a spike in order to allow a late spike to be checked before reacting to soon
     if max(test) < limitCheck: # if all values are too low, no need to do any extra work
-      print 'NO POSSIBLE SPIKES FOUND'
-      
+      log.info('NO POSSIBLE SPIKES FOUND')
+      log.info("")
     else:
-      print  'POSSIBLE SPIKE IN LAST HOUR'
-      spike_flag = True
+      log.info('POSSIBLE SPIKE IN LAST HOUR')
+      log.info("")
       i = 0
-      
-      while i < 7:
+      # Search the entire hour for a Spike, only check sor surplus if spike whithin first 8 values
+      while i < length-1:
 	diff = amounts[i+1] - amounts[i]
 	
 	# Update max index and value
 	if diff > max_difference:
-	    max_index = i+1
-	    max_difference = diff
+	  max_index = i+1
+	  max_difference = diff
 	    
 	# Percent increase can only be determined when not starting at zero
 	if amounts[i] != 0: 
 	  percent = round(float(diff)/float(amounts[i]), 4)
 	  percent = percent * 100
-	  print 'Difference between ' + str(i) + ' and ' + str(i+1) + ' = ' + str(diff) + ', a ' + str(percent) + '% change.'
+	  #log.info("Difference between %d and %d = %d, a  %d  change.", i, i+1, diff, percent)
+	  log.info("Difference between %d and %d = %d, a %d%% change.", i, i+1, diff, percent)
 	  
 	  if percent < 0:
-	    print 'DECREASE DETECTED'
+	    log.info('DECREASE DETECTED')
 	    
 	  elif percent >= 500:
 	    if amounts[i+1] >= limitCheck:
-	      print 'SPIKE DETECTED, DETERMINING RAPID REDUCTION'
-	      print 'spike = ' + str(amounts[max_index]) + ', .875 * spike = ' + str(amounts[max_index]*reduce_mod) + ', most recent value = ' + str(amounts[length-1]) 
-	      if amounts[max_index]*reduce_mod > amounts[length-1]:
-		print 'SPIKE DECREASING NORMALLY, NO CHANGE NEEDED'
-		surplus_flag = False
-	      else:
-		print 'SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE'
-		surplus_flag = True
+	      spike_flag = True
+	      
+	      # Only check first 8 for surplus
+	      if i < 7:
+		log.info('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
+		log.info("Spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1]) 
+		
+		if amounts[max_index]*reduce_mod > amounts[length-1]:
+		  log.info('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
+		  surplus_flag = False
+		else:
+		  log.info('SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
+		  surplus_flag = True
+		  
 	    else:
-	      print 'HIGH PERCENTAGE, LOW VALUE. NOT A SPIKE'
+	      log.info('HIGH PERCENTAGE, LOW VALUE. NOT A SPIKE')
 	  
 	  else:
-	    print 'NOT A SPIKE'
+	    log.info('NOT A SPIKE')
 	 
 	## STARTING AT ZERO DIFFERENCE MUST BE GREATER THAN SPIKE THRESHOLD
 	else: 
-	  print 'Since previous value 0, Difference between ' + str(i) + ' and ' + str(i+1) + ' = ' + str(diff)
+	  log.info("Since previous value 0, Difference between %d and %d = %d", i, i+1, diff)
 	  if diff > limitCheck:
-	    print 'SPIKE DETECTED, DETERMINING RAPID REDUCTION'
-	    print 'spike = ' + str(amounts[max_index]) + ', .875 * spike = ' + str(amounts[max_index]*reduce_mod) + ', most recent value = ' + str(amounts[length-1]) 
-	    if amounts[max_index]*reduce_mod > amounts[length-1]:
-	      print 'SPIKE DECREASING NORMALLY, NO CHANGE NEEDED'
-	      surplus_flag = False
-	    else:
-	      print 'SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE'
-	      surplus_flag = True
+	    spike_flag = True
+	    
+	    # Only check first 8 for surplus
+	    if i < 7:
+	      log.info('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
+	      log.info("spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1]) 
+	      if amounts[max_index]*reduce_mod > amounts[length-1]:
+		log.info('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
+		surplus_flag = False
+	      else:
+		log.info('SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
+		surplus_flag = True
 	  else:
-	    print 'NOT A SPIKE'
+	    log.info('NOT A SPIKE')
 	i += 1
 	
-      print 'Max diff = ' + str(max_difference)
+      log.info("Max diff = %d", max_difference)
       
   else:
-    print 'Queue amount exceeds spike check threshold, enable flag if possible'
+    log.info("Queue amount exceeds spike check threshold, spike check unnecessary.")
     
   # if SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE
   if surplus_flag:
-    print ("Switching on accept surplus for %s", name)
-    #set_surplus(name,1)
+    log.info("Switching on accept surplus for %s", name)
+    set_surplus(name,1)
+    
+    # If it's a multi-core group, i.e. prod.mp, or prod.test
+    #if multi_flag:
+      # TODO make sure Analysis Parent is set to 0 surplus
     
   return spike_flag
 
 
 def surplus_check():
   mp_surp_flag = False
+  test_surp_flag = False
   order_by_priority()
   for x in priority_list:
+    
     avg = get_average_hour_queue(x)
-    thresh = get_threshold(x)
-    log.info("Name: %s, Past hour Avg: %d, Thresh: %d", x, avg, thresh)
+    print 'Avg: ' + str(avg)
+    threshold = get_threshold(x)
+    log.info("")
+    log.info("Name: %s, Past hour Avg: %f, Thresh: %d", x, avg, threshold)
+    
     # PYTHON SWITCH STATEMENT
     
-    
-    if get_priority_value(x) == 3.0:	# IF MULTICORE:
-      # if TODO CHECK FOR SPIKE FIRST:
-      #if check_for_spike(x):
-	#mp_surp_flag = True
-	#log.info("Multi-core queue spike detected in past hour.")
-      if avg < thresh:
+    if get_priority_value(x) == 8.0:	# IF MULTICORE:
+      # CHECK FOR SPIKE FIRST:
+      if check_for_spike(x, avg, threshold, True):
+	surplus = get_surplus(x)
+	if surplus == 1:
+	  mp_surp_flag = True	  
+	log.info("Multi-core queue spike detected in past hour.")
+      elif avg < threshold:
 	mp_surp_flag = False
 	log.info("Past hour average of %s < threshold.", x)
+	log.info("Ensure accept_surplus is turned off.")
 	set_surplus(x,0)
       else:
 	mp_surp_flag = True
 	log.info("Past hour average of %s > threshold. accept_surplus set to true", x)
 	set_surplus(x,1)
+	# TODO make sure Analysis Parent is set to 0 surplus
 	
-    elif get_priority_value(x) == 2.0:	# IF PRODUCTION LEAF
+    elif get_priority_value(x) == 2.0:	# IF DUALCORE
       if mp_surp_flag:
 	log.info("Multi-core accept_surplus is True, ensure accept_surplus is turned off.")
 	set_surplus(x,0)
       else:
-	# if TODO CHECK FOR SPIKE FIRST:
-	#if check_for_spike(x):
-	  #log.info("Multi-core accept_surplus is False, and spike found for %s in past hour", x)
-	if avg < thresh:
-	  log.info("Multi-core accept_surplus is False, and past hr. avg. of %s < threshold.", x)
+	# CHECK FOR SPIKE FIRST:
+	if check_for_spike(x, avg, threshold, True):
+	  surplus = get_surplus(x)
+	  if surplus == 1:
+	    test_surp_flag = True
+	  log.info("8-core accept_surplus is False, and spike found for %s in past hour", x)
+	elif avg < threshold:
+	  test_surp_flag = False
+	  log.info("8-core accept_surplus is False, and avg. of %s < threshold.", x)
+	  log.info("Ensure accept_surplus is turned off.")
 	  set_surplus(x,0)
 	else:
-	  log.info("Multi-core accept_surplus is False, and past hr. avg. of %s > threshold.", x)
+	  test_surp_flag = True
+	  log.info("8-core accept_surplus is False, and avg. of %s > threshold.", x)
 	  set_surplus(x,1)
-      
+	  # TODO make sure Analysis Parent is set to 0 surplus
+	  
+    elif get_priority_value(x) == 1.0:	# IF PRODUCTION
+      if mp_surp_flag:
+	log.info("8-core accept_surplus is True, ensure accept_surplus is turned off.")
+	set_surplus(x,0)
+      elif test_surp_flag:
+	log.info("Dual-core accept_surplus is True, ensure accept_surplus is turned off.")
+	set_surplus(x,0)
+      else:
+	# CHECK FOR SPIKE FIRST:
+	if check_for_spike(x, avg, threshold, False):
+	  log.info("Both Multi-core accept_surplus are False, and spike found for %s in past hour", x)
+	elif avg < threshold:
+	  log.info("Both Multi-core accept_surplus are False, and avg. of %s < threshold.", x)
+	  log.info("Ensure accept_surplus is turned off.")
+	  set_surplus(x,0)
+	else:
+	  log.info("Both Multi-core accept_surplus are False, and avg. of %s > threshold.", x)
+	  log.info("Set production accept_surplus")
+	  set_surplus(x,1)
+	  # TODO make sure Analysis Parent is set to 0 surplus
 
 # Creates Group tree, Returns root node
 def tree_creation(root):
@@ -330,20 +376,21 @@ def print_tree(tree):
 
 
 def do_main():
-  #log.info("!!atlas_group_quotas table surplus changes possible!!")
-  #surplus_check()
-  #log.info("")
-  #log.info("accept_surplus Summary")
-  #surplus_summary = ''
-  #for x in priority_list:
-    #log.info(x + ': ' + str(get_surplus(x)))
-
   log.info("")
-  order_by_priority()
+  log.info("!!atlas_group_quotas table surplus changes possible!!")
+  surplus_check()
+  log.info("")
+  log.info("accept_surplus Summary")
+  surplus_summary = ''
   for x in priority_list:
-    flag = check_for_spike(x)
-    print 'Spike Flag: ' + str(flag)
-    log.info("")
+    log.info(x + ': ' + str(get_surplus(x)))
+
+  #log.info("")
+  #order_by_priority()
+  #for x in priority_list:
+    #flag = check_for_spike(x)
+    #print 'Spike Flag: ' + str(flag)
+    #log.info("")
   #name = 'group_atlas.prod.production'
   ##name = 'group_atlas.prod.mp'
   #flag = check_for_spike(name)
