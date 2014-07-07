@@ -26,6 +26,7 @@ quota = 'quota'
 priority = 'priority'
 accept_surplus = 'accept_surplus'
 busy = 'busy'
+threshold = 'surplus_threshold'
 last_update = 'last_update'
 
 # MySQL variable getter
@@ -37,32 +38,40 @@ get_Mysql_Val = 'SELECT %s FROM '+ dbtable + ' WHERE %s="%s"'
 class Group(object): 
       def __init__(self, name):
 	
-	  self.name = name
-	  self.quota = None
-	  self.accept_surplus = None
+	self.name = name
+	self.quota = None
+	self.priority = None
+	self.accept_surplus = None
+	self.threshold = None
+	
+	#### FOR TREE ####
+	self.parent = None
+	self.children = {}
+	###################	  
+	
+	if name != '<root>': # IF ROOT, NO VALUES
+	  try:
+	    con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass, db=database)
+	  except MySQLdb.Error as E:
+	    log.error("Error connecting to database: %s" % E)
+	    return None
 	  
-	  #### FOR TREE ####
-	  self.parent = None
-	  self.children = {}
-	  ###################	  
+	  cur = con.cursor()
+	  # OBTAIN QUOTA
+	  cur.execute(get_Mysql_Val % (quota, group_name, name))
+	  self.quota = cur.fetchone()[0]
+	  # OBTAIN Priority
+	  cur.execute(get_Mysql_Val % (priority, group_name, name))
+	  self.priority = cur.fetchone()[0]
+	  # OBTAIN ACCEPT_SURPLUS
+	  cur.execute(get_Mysql_Val % (accept_surplus, group_name, name))
+	  self.accept_surplus = cur.fetchone()[0]
+	  # OBTAIN THRESHOLD
+	  cur.execute(get_Mysql_Val % (threshold, group_name, name))
+	  self.threshold = cur.fetchone()[0]
 	  
-	  if name != '<root>': # IF ROOT, NO VALUES
-	    try:
-		con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass,
-				      db=database)
-	    except MySQLdb.Error as E:
-		log.error("Error connecting to database: %s" % E)
-		return None
-	    cur = con.cursor()
-	    # OBTAIN QUOTA
-	    cur.execute(get_Mysql_Val % (quota, group_name, name))
-	    self.quota = cur.fetchone()[0]
-	    # OBTAIN SURPLUS
-	    cur.execute(get_Mysql_Val % (accept_surplus, group_name, name))
-	    self.accept_surplus = cur.fetchone()[0]
-	    
-	    cur.close()
-	    con.close()	
+	  cur.close()
+	  con.close()	
 	
       def add_child(self, name):
 	      # Add a child node to this one, setting it's parent pointer
@@ -88,6 +97,8 @@ class Group(object):
 		  if name == x.name:
 		      return x
 	      raise Exception("No group %s found" % name)
+      
+      def get_sibling_surplus(self, priority_value)
 	
       # Check if parent has surplus flag, for future use  
       def check_parent_surplus(self):
@@ -101,8 +112,8 @@ class Group(object):
 	  
       def __str__(self):
 	      if self.name != '<root>': # Root has no values in table
-		return '%s: quota %d, surplus %s' % \
-		      (self.name, self.quota, self.accept_surplus)
+		return '%s: quota: %d, priority: %d, surplus: %s, threshold: %d' % \
+		      (self.name, self.quota, self.priority, self.accept_surplus, self.threshold)
 	      else:
 		return '%s' % \
 		      (self.name)
