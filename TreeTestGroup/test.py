@@ -17,6 +17,11 @@
 # 5. Once the surplus values are finalized, update the data table with the 
 #    new values, if changed
 #
+#
+#    STILL TODO:
+#		Analysis and Production inter-branch surplus recognition.
+#
+#
 # By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 7/8/14
 #
 # *****************************************************************************

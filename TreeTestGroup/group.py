@@ -22,6 +22,7 @@
 # Added Group Functions:
 #		tree_creation(self, cur, con):  creates the tree, for analysis
 #		enable_surplus_changes(self, cur, con): updates the data table
+#		(Helper methods) -- aquire_groups, get_surplus, set_surplus
 #
 # By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 6/13/14 *updated 7/8/14
 #
@@ -54,6 +55,8 @@ last_update = 'last_update'
 get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
 get_Mysql_groups = 'SELECT %s FROM %s;'
 set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
+
+########################## HELPER METHODS ##########################
 
 # Populates the group_list with the groups in the database
 def aquire_groups(cur, con):
