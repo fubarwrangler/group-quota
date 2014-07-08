@@ -1,16 +1,23 @@
 #!/usr/bin/python
 
 # *****************************************************************************
-# Script to query the MySQL database for the group_names and populate
-# the necessary fields accordingly. The tree is created using the current '.'
-# divider to separate parent from child in the group_name field. 
-# Those without a '.', a children of the root node.
+# Script which initializes the group tree, and analyzes the current work group's 
+# queue amounts in order to dynamically determine surplus flag modifications.
+# This allows the script to automate work load balancing in a timely and reactive  
+# way, which should reduce job wait times and minimize group queue amounts, 
+# especially for muti-core jobs.
 #
-# 1. Query MySQL database and populate the group_list
-# 2. Sort the list and begin with the first entry
-# 3. Populate the tree with a backtrack algorithm
+# 1. Initialize the root group node
+# 2. Create the group tree
+# 3. Traverse the tree and analyze weighted leaf surplus requirements Based upon 
+#    recent queue amount analysis. Also returns a list of leaf parental nodes.
+# 4. Using the returned parental list, compare each parent's children in order 
+#    to adjust accept_surplus flags based upon prioritized sibling availability 
+#    and needs.
+# 5. Once the surplus values are finalized, update the data table with the 
+#    new values, if changed
 #
-# By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 6/13/14
+# By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 7/8/14
 #
 # *****************************************************************************
 
@@ -21,10 +28,7 @@ import datetime
 from group import Group
 
 ############################ VARIABLES ############################
-# List of group names to eventually populate from Database
-group_list = []
-
-# List of leaf group names sorted by priority
+# List of leaf group names sorted by priority for debugging
 priority_list = []
 
 # Spike multiplier used to multiply threshold and determine if queue spike is present
@@ -60,8 +64,6 @@ get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
 get_Mysql_queue_avg = 'SELECT AVG(%s) FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
 get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
 get_Mysql_sorted_priority_list = 'SELECT %s FROM %s WHERE %s>0 ORDER BY %s DESC;'
-set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
-
 
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
                     filename=None if '-d' in sys.argv else logfile,
@@ -80,25 +82,8 @@ except MySQLdb.Error as E:
   log.error("Error connecting to database: %s" % E)
 cur = con.cursor()
 ###################################################################
-
-#def get_threshold(name):
-  #cur.execute(get_Mysql_Val % (surplus_threshold, dbtable, group_name, name))
-  #value = cur.fetchone()[0]
-  #return value
   
-#def get_priority_value(name):
-  #cur.execute(get_Mysql_Val % (priority, dbtable, group_name, name))
-  #value = cur.fetchone()[0]
-  #return value
-  
-# Populates the group_list with the groups in the database
-def aquire_groups():
-  cur.execute(get_Mysql_groups % (group_name, dbtable))
-  results = [i[0] for i in cur.fetchall()]
-  for x in results:
-    group_list.append(x)
-
-# Populates the priority_list with the names of the tree leaves
+# Populates the priority_list with the names of the tree leaves for debugging
 def order_by_priority():
   # OBTAIN LIST OF GROUPS WITH PRIORITY > 0
   cur.execute(get_Mysql_sorted_priority_list % (group_name, dbtable, priority, priority))
@@ -111,20 +96,6 @@ def get_average_hour_queue(name):
   cur.execute(get_Mysql_queue_avg % (amount_in_queue, queue_log_table, query_time, group_name, name))
   average = cur.fetchone()[0]
   return average
-
-def get_surplus(name):
-  cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))
-  value = cur.fetchone()[0]
-  return value
-
-def set_surplus(name, value):
-  check = get_surplus(name)
-  if check != value:
-    log.info("###########################################################################")
-    log.info("######### Changing surplus of %s from %d to %d #########", name, check, value)
-    log.info("###########################################################################")
-    cur.execute(set_Mysql_surplus % (dbtable, accept_surplus, value, group_name, name))
-    con.commit()
 
 # Returns a list of the queue amounts for the specified group over the past hour to analyze
 def get_past_hour_queue_amounts(name):
@@ -271,30 +242,6 @@ def surplus_check(group):
       log.info("No spike but avg. above threshold, set accept_surplus to 1, if possible.")
       group.accept_surplus = 1
     log.info("Name: %s, accept_surplus: %d", group.name, group.accept_surplus) 
-    
-
-# Creates Group tree, Returns root node. Generated generically based on "." placement
-def tree_creation(root):
-  aquire_groups()		# Populate group_list
-  group_list.sort()		# Sort list
-  current_node = root		# Set node to use as pointer to root
-  prefix = None			# prefix  for parent/child identification
-  for x in group_list:
-    if '.' not in x: 		# No '.' denotes tier 1 group
-      current_node = root	# Set current current_node to root current_node
-      current_node = current_node.add_child(x)	# add child and adjust pointer
-      prefix = x		# Set new prefix
-    elif x.startswith(prefix):
-      prefix = x		# Update prefix
-      current_node = current_node.add_child(prefix) # add and adjust	
-    else:
-      # Used to backtrack if prefix not recognized
-      while not x.startswith(prefix) & (prefix != '<root>'):
-	current_node = current_node.parent 	# Backtrack
-	prefix = current_node.name 		# Update prefix
-      current_node = current_node.add_child(x)	# add and adjust
-      prefix = x				# Update prefix
-  return root
 
 def get_surplus_parents(self):
   parents = set()
@@ -365,35 +312,9 @@ def compare_surplus(parent):
 	x.accept_surplus = 0
   return
 
-
 # TODO make sure Analysis Parent is set to 0 surplus
-
-
-# Traverse all children and update the accept_surplus values in the table, if necessary 
-def enable_surplus_changes(self):
-  def child_walk(node):
-    if node is not None:
-      if not node.children and node.priority > 0:
-	set_surplus(node.name, node.accept_surplus)
-      for n in node.children.values():
-	child_walk(n)
-  child_walk(self)
   
 
-def print_tree(tree):
-  # Iterate and Print a tab indented tree to test 
-  if not tree.children:
-      print 'Parent: ' + str(tree.parent.name) + ', Group: ' + str(tree) + ' !NO CHILDREN!'
-  else:
-    for x in tree.children.values():
-      print 'Parent: ' + str(x.parent.name) + ', Group: ' + str(x) + ' LEVEL1'
-      print ''
-      for y in x.children.values():
-	print '\tParent: ' + str(y.parent.name) + ', Group: ' + str(y) + ' LEVEL2'
-	for z in y.children.values():
-	  print '\t\tParent: ' + str(z.parent.name) + ', Group: ' + str(z) + ' LEVEL3'
-	print ''
-		
 # To test
 if __name__ == '__main__':
   
@@ -402,12 +323,14 @@ if __name__ == '__main__':
   # Set root
   root = Group('<root>') 
   # Create Group Tree Structure from Table
-  tree = tree_creation(root)
+  tree = root.tree_creation(cur, con)
   
-  order_by_priority()
-  for x in priority_list:
-    avg = get_average_hour_queue(x)
-    log.info(x + ' AVG.: ' + str(avg))
+  ############## FOR DEBUG ##############
+  order_by_priority()			#
+  for x in priority_list:		#
+    avg = get_average_hour_queue(x)	#
+    log.info(x + ' AVG.: ' + str(avg))	#
+  #######################################
     
   # Find and return the parents of the priority leaves
   # Also sets the temporary accept_surplus for each leaf based on current data
@@ -418,18 +341,24 @@ if __name__ == '__main__':
     compare_surplus(p)
   log.info("")
   
-  log.info("Surplus before Check:")
-  for x in priority_list:
-    log.info(x + ': ' + str(get_surplus(x)))
+  ################## FOR DEBUG ##################
+  log.info("Surplus before Check:")		#
+  for x in priority_list:			#
+    log.info(x + ': ' + str(get_surplus(x)))	#
+  ###############################################
+  
    
   # Updates all the values currently in the leaves to the table
-  enable_surplus_changes(tree) 
+  tree.enable_surplus_changes(cur, con) 
   
-  log.info("")  
-  log.info("Surplus After Check")
-  for x in priority_list:
-    log.info(x + ': ' + str(get_surplus(x)))
-  log.info("")
+  
+  ################## FOR DEBUG ##################
+  log.info("")  				#
+  log.info("Surplus After Check")		#
+  for x in priority_list:			#
+    log.info(x + ': ' + str(get_surplus(x)))	#
+  log.info("")					#
+  ###############################################
   
   cur.close()
   con.close()
