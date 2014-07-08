@@ -397,6 +397,13 @@ def do_main():
   #print 'Production Spike Reduction Flag: ' + str(flag)
   #log.info("")
   
+  #root = Group('<root>')
+  #tree = tree_creation(root)
+  #print ''
+  #print 'Time: ' + str(datetime.datetime.now())
+  #print ''
+  #print_tree(tree)
+  
   #name = 'group_atlas.prod.mp'
   ##name = 'group_atlas.prod.mp'
   #flag = check_for_spike(name)

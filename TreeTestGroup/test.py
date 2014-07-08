@@ -333,32 +333,36 @@ def compare_surplus(parent):
   log.info("8-core: %s, 2-core: %s, 1-core: %s", eight_core_flag, dual_core_flag, single_core_flag)
   # Adjust accept_surplus based on sibling needs
   for x in parent.children.values():
-    if x.priority == 8.0 and x.accept_surplus == 1: #Check 8 Core Comparisons
-      if dual_core_flag and single_core_flag:
+    if x.priority == 8.0: #Check 8 Core Comparisons
+      if not dual_core_flag or not single_core_flag:
+	if x.accept_surplus == 1:
+	  log.info("Surplus allowed for 8 core group: %s, and set to 1", x.name)
+	else:
+	  log.info("Surplus allowed for 8 core group: %s, but not needed", x.name)
+      else:
 	log.info("Surplus for %s not allowed", x.name)
 	x.accept_surplus = 0
-      elif x.accept_surplus == 1:
-	log.info("Surplus allowed for 8 core group: %s, and set to 1", x.name)
-      else:
-	log.info("Surplus allowed for 8 core group: %s, but not needed", x.name)
 	
-    elif x.priority == 2.0 and x.accept_surplus == 1: #Check 2 Core Comparisons
-      if eight_core_flag or single_core_flag:
+	
+    elif x.priority == 2.0: #Check 2 Core Comparisons
+      if not eight_core_flag or not single_core_flag:
+	if x.accept_surplus == 1:
+	  log.info("Surplus allowed for dual core group: %s, and set to 1", x.name)
+	else:
+	  log.info("Surplus allowed for dual core group: %s, but not needed", x.name)
+      else:
 	log.info("Surplus for %s not allowed", x.name)
 	x.accept_surplus = 0
-      elif x.accept_surplus == 1:
-	log.info("Surplus allowed for dual core group: %s, and set to 1", x.name)
-      else:
-	log.info("Surplus allowed for dual core group: %s, but not needed", x.name)
 	
     else:
-      if eight_core_flag or dual_core_flag: #Check Single Core Comparisons
+      if not eight_core_flag and not dual_core_flag: #Check Single Core Comparisons
+	if x.accept_surplus == 1:
+	  log.info("Surplus allowed for single core group: %s, and set to 1", x.name)
+	else:
+	  log.info("Surplus allowed for single core group: %s, but not needed", x.name)
+      else:
 	log.info("Surplus for %s not allowed", x.name)
 	x.accept_surplus = 0
-      elif x.accept_surplus == 1:
-	log.info("Surplus allowed for single core group: %s, and set to 1", x.name)
-      else:
-	log.info("Surplus allowed for single core group: %s, but not needed", x.name)
   return
 
 
