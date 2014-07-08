@@ -108,16 +108,16 @@ class Group(object):
       
       cur = con.cursor()
       # OBTAIN QUOTA
-      cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))
+      cur.execute(get_Mysql_Val % (quota, dbtable, group_name, name))
       self.quota = cur.fetchone()[0]
       # OBTAIN Priority
-      cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))
+      cur.execute(get_Mysql_Val % (priority, dbtable, group_name, name))
       self.priority = cur.fetchone()[0]
       # OBTAIN ACCEPT_SURPLUS
       cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))
       self.accept_surplus = cur.fetchone()[0]
       # OBTAIN THRESHOLD
-      cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))
+      cur.execute(get_Mysql_Val % (threshold, dbtable, group_name, name))
       self.threshold = cur.fetchone()[0]
       
       cur.close()

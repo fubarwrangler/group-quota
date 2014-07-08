@@ -88,13 +88,21 @@ except MySQLdb.Error as E:
 cur = con.cursor()
 ###################################################################
   
-# Populates the priority_list with the names of the tree leaves for debugging
-def order_by_priority():
-  # OBTAIN LIST OF GROUPS WITH PRIORITY > 0
-  cur.execute(get_Mysql_sorted_priority_list % (group_name, dbtable, priority, priority))
-  results = [i[0] for i in cur.fetchall()]
-  for x in results:
-    priority_list.append(x)
+##################################### FOR DEBUGGING ######################################
+# Populates the priority_list with the names of the tree leaves for debugging		 #
+def order_by_priority():								 #
+  # OBTAIN LIST OF GROUPS WITH PRIORITY > 0						 #
+  cur.execute(get_Mysql_sorted_priority_list % (group_name, dbtable, priority, priority))#
+  results = [i[0] for i in cur.fetchall()]						 #
+  for x in results:									 #
+    priority_list.append(x)								 #
+											 #
+# Used for info and debugging								 #
+def get_surplus(name):									 #
+  cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))		 #
+  value = cur.fetchone()[0]								 #
+  return value										 #
+##########################################################################################
 
 # Gets the average queue amount for the group over the past hour
 def get_average_hour_queue(name):
@@ -230,7 +238,7 @@ def surplus_check(group):
     
     # Reduce work to do by recognizing no queue
     if avg == 0: 
-      log.info("Average is 0, set accept_surplus to 0, if possible and skip processing.")
+      log.info("Average is 0, set accept_surplus to 0, if possible, and skip processing.")
       group.accept_surplus = 0
       
     # Spike surplus evaluations handled in method
@@ -285,6 +293,7 @@ def compare_surplus(parent):
   log.info("8-core: %s, 2-core: %s, 1-core: %s", eight_core_flag, dual_core_flag, single_core_flag)
   # Adjust accept_surplus based on sibling needs
   for x in parent.children.values():
+    
     if x.priority == 8.0: #Check 8 Core Comparisons
       if not dual_core_flag or not single_core_flag:
 	if x.accept_surplus == 1:
