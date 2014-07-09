@@ -42,7 +42,7 @@ spike_multiplier = 2
 # Rapid reduction modifier, to determine if the amount has decreased the necessary percentage
 reduce_mod = .875 # Checks if the spike has dropped by 1/4
 
-logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/surplusLog.log"
+logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/surplusCheckLog.log"
 
 # Database parameters
 dbtable = 'atlas_group_quotas'
@@ -125,7 +125,7 @@ def get_past_hour_queue_amounts(name):
 # is not detected without the ability to decipher whether it is an issue or not.
 def check_for_spike(group, avg, threshold):
   
-  #amounts = [5,40,0,180,14,178,88,188,0,166,999,160]		# For Debug
+  #amounts = [0,0,0,20,0,68,9,0,223,522,800]		# For Debug
   #avg = reduce(lambda x, y: x + y, amounts) / len(amounts) 	# For Debug
   
   amounts = get_past_hour_queue_amounts(group.name)
@@ -227,7 +227,7 @@ def check_for_spike(group, avg, threshold):
   # if SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE
   if surplus_flag:
     group.accept_surplus = 1
-    log.info("Switching on accept surplus for %s", name)
+    log.info("Switching on accept surplus for %s", group.name)
 
   return spike_flag
 

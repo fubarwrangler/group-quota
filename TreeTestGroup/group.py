@@ -56,6 +56,16 @@ get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
 get_Mysql_groups = 'SELECT %s FROM %s;'
 set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
 
+########################### LOGGING INFO ###########################
+
+logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/surplusCheckLog.log"
+
+logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
+                    filename=None if '-d' in sys.argv else logfile,
+                    level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
+
+log = logging.getLogger()
+
 ########################## HELPER METHODS ##########################
 
 # Populates the group_list with the groups in the database
