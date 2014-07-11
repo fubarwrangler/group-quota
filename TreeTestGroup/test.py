@@ -19,7 +19,9 @@
 #
 #
 #    STILL TODO:
-#		Analysis and Production inter-branch surplus recognition.
+#		1. last_surplus_change TIMESTAMP field in atlas_group_quotas
+#		   table to prevent surplus flapping
+#		2. Analysis and Production inter-branch surplus recognition.
 #
 #
 # By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 7/8/14
@@ -125,7 +127,7 @@ def get_past_hour_queue_amounts(name):
 # is not detected without the ability to decipher whether it is an issue or not.
 def check_for_spike(group, avg, threshold):
   
-  #amounts = [0,0,0,20,0,68,9,0,223,522,800]		# For Debug
+  #amounts = [0,0,0,20,0,68,9,0,223,522,800]			# For Debug
   #avg = reduce(lambda x, y: x + y, amounts) / len(amounts) 	# For Debug
   
   amounts = get_past_hour_queue_amounts(group.name)
@@ -181,7 +183,7 @@ def check_for_spike(group, avg, threshold):
 	    if amounts[i+1] >= limitCheck:
 	      spike_flag = True
 	      
-	      # Only check first 8 for surplus
+	      # Only check first 8 for surplus flag
 	      if i < 7:
 		log.info('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
 		log.info("Spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1]) 
@@ -268,69 +270,73 @@ def get_surplus_parents(self):
   child_search(self)
   return parents
 
+def lower_priority_surplus_available(group, siblings):
+  lesser_priority_list = (x for x in siblings if x.priority<group.priority)
+  for x in lesser_priority_list:
+    if x.accept_surplus == 0:
+      log.info("#Surplus available in lower priority,"),
+      return True
+  if sum(1 for _ in lesser_priority_list)  == 0:
+    log.info("#Its the lowest priority group,")
+    return True
+  log.info("#Surplus not available in lower priority,")
+  return False
+
+def higher_priority_surplus_available(group, siblings):
+  greater_priority_list = (x for x in siblings if x.priority>group.priority)
+  for x in greater_priority_list:
+    if x.accept_surplus == 1:
+      log.info("#Surplus flag found in higher priority group,")
+      return False
+  if sum(1 for _ in greater_priority_list)  == 0:
+    log.info("#Its the highest priority group,"),
+    return False
+  return True
+
 def compare_surplus(parent):
   
   log.info("")
-  log.info("Comparing Surplus For Children of Parent %s", parent.name)
-  # Initialize flags for parent's children by core
-  eight_core_flag = False
-  dual_core_flag = False
-  single_core_flag = False
-  
-  # Set flag values based on needed surplus
+  log.info("### Initial Values for %s ###", parent.name)
   for x in parent.children.values():
-    if x.priority == 8.0:
-      if x.accept_surplus == 1:
-	eight_core_flag = True
-    elif x.priority == 2.0:
-      if x.accept_surplus == 1:
-	dual_core_flag = True
-    else:
-      if x.accept_surplus == 1:
-	single_core_flag = True
-
-  log.info("Surplus flags set as:")
-  log.info("8-core: %s, 2-core: %s, 1-core: %s", eight_core_flag, dual_core_flag, single_core_flag)
-  # Adjust accept_surplus based on sibling needs
-  for x in parent.children.values():
+    log.info("#Name: " + x.name + ", accept_surplus: " + str(x.accept_surplus))
+  log.info("#")
+  log.info("#Comparing Surplus For Children of Parent %s", parent.name)
+  for group in sorted(parent.children.values(), key=lambda x: x.priority, reverse = True):
+    log.info("#Checking: " + group.name + ","),
     
-    if x.priority == 8.0: #Check 8 Core Comparisons
-      if not dual_core_flag or not single_core_flag:
-	if x.accept_surplus == 1:
-	  log.info("Surplus allowed for 8 core group: %s, and set to 1", x.name)
-	else:
-	  log.info("Surplus allowed for 8 core group: %s, but not needed", x.name)
-      else:
-	log.info("Surplus for %s not allowed", x.name)
+    if group.accept_surplus == 0:
+      log.info("#Flag remains 0. [DONE]")
+      continue
+    
+    if higher_priority_surplus_available(group, parent.children.values()):
+      priority_list = (x for x in parent.children.values() if x.priority<group.priority)
+      for x in priority_list:
 	x.accept_surplus = 0
-	
-	
-    elif x.priority == 2.0: #Check 2 Core Comparisons
-      if not eight_core_flag or not single_core_flag:
-	if x.accept_surplus == 1:
-	  log.info("Surplus allowed for dual core group: %s, and set to 1", x.name)
-	else:
-	  log.info("Surplus allowed for dual core group: %s, but not needed", x.name)
-      else:
-	log.info("Surplus for %s not allowed", x.name)
+      log.info("#Flag remains 1. Setting all lower priority to 0.[DONE]")
+      break
+    
+    elif lower_priority_surplus_available(group, parent.children.values()):
+      priority_list = (x for x in parent.children.values() if x.priority<group.priority)
+      for x in priority_list:
 	x.accept_surplus = 0
-	
+      log.info("#Flag remains 1. Setting all lower priority to 0.[DONE]")
+      break
+    
     else:
-      if not eight_core_flag and not dual_core_flag: #Check Single Core Comparisons
-	if x.accept_surplus == 1:
-	  log.info("Surplus allowed for single core group: %s, and set to 1", x.name)
-	else:
-	  log.info("Surplus allowed for single core group: %s, but not needed", x.name)
-      else:
-	log.info("Surplus for %s not allowed", x.name)
+      for x in parent.children.values():
+	log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
 	x.accept_surplus = 0
+	break 
+      
+  log.info("#")
+  log.info("### Post-Compare Values ###")
+  for x in parent.children.values():
+    log.info("#Name: " + x.name + ", accept_surplus: " + str(x.accept_surplus))
+  log.info("##############################")
   return
-
-# TODO make sure Analysis Parent is set to 0 surplus
   
 
-# To test
-if __name__ == '__main__':
+def do_main():
   
   log.info("############################## SURPLUS QUERY ##############################")
 
@@ -376,3 +382,11 @@ if __name__ == '__main__':
   
   cur.close()
   con.close()
+  
+
+if __name__ == '__main__':
+  try:
+    sys.exit(do_main())
+  except Exception:
+    log.exception("Uncaught exception")
+    sys.exit(1)
