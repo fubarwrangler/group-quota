@@ -30,6 +30,7 @@
 import sys
 import MySQLdb
 import logging
+import datetime
 
 ############################ VARIABLES ############################
 # List of group names to eventually populate from Database
@@ -50,11 +51,13 @@ accept_surplus = 'accept_surplus'
 busy = 'busy'
 threshold = 'surplus_threshold'
 last_update = 'last_update'
+last_surplus_update = 'last_surplus_update'
 
 # MySQL variable getter
 get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
 get_Mysql_groups = 'SELECT %s FROM %s;'
 set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
+set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s";'
 
 ########################### LOGGING INFO ###########################
 
@@ -82,15 +85,39 @@ def get_surplus(name, cur):
   value = cur.fetchone()[0]
   return value
 
+# USED FOR CHECKING WHETHER THE SURPLUS FLAG HAS BEEN FLIPPED IN THE LAST HOUR
+# PREVENTS FLAPPING
+def no_recent_surplus_change(name, cur):
+  cur.execute(get_Mysql_Val % (last_surplus_update, dbtable, group_name, name))
+  recent_surplus_time = cur.fetchone()[0]
+  current_time = datetime.datetime.now()
+  
+  diff = current_time - recent_surplus_time
+  hours,rest = divmod(diff.days*86400+diff.seconds, 3600)
+  # HOURS NOW = TIME DIFFERENCE IN HOURS ROUNDED DOWN
+  if hours >= 1:
+    return True 	#NO RECENT SURPLUS CHANGES, ABLE TO CHANGE
+  else:
+    return False	#RECENT CHANGES, WAIT UNTIL ONE HOUR PASSES TO CHANGE
+
 
 def set_surplus(name, value, cur, con):
   check = get_surplus(name, cur)
-  if check != value:
+  no_recent_switch = no_recent_surplus_change(name, cur)
+  if (check != value) and (no_recent_switch):
+    log.info("")
+    log.info("Group: %s, Last switch greater than one hour ago, switch allowed", name)
     log.info("###########################################################################")
     log.info("######### Changing surplus of %s from %d to %d #########", name, check, value)
     log.info("###########################################################################")
     cur.execute(set_Mysql_surplus % (dbtable, accept_surplus, value, group_name, name))
     con.commit()
+    cur.execute(set_Mysql_last_surplus_update % (dbtable, last_surplus_update, group_name, name))
+    con.commit()
+  elif (check != value) and (not no_recent_switch):
+    log.info("")
+    log.info("######### Group: %s, surplus change is allowed, however, last change #########", name)
+    log.info("######### less than one hour ago. Switch cancelled to prevent flapping #########")
 
 ###################################################################
 
