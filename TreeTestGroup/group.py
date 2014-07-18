@@ -231,8 +231,9 @@ class Group(object):
   # Traverse the constructed group tree and update the accept_surplus values in the table, if necessary 
   def enable_surplus_changes(self, cur, con):
     def child_walk(node):
+      print node.name
       if node is not None:
-	if not node.children and node.priority > 0:
+	if node.parent is not None:
 	  set_surplus(node.name, node.accept_surplus, cur, con)
 	for n in node.children.values():
 	  child_walk(n)

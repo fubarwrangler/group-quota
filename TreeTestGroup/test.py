@@ -271,14 +271,19 @@ def get_surplus_parents(self):
   return parents
 
 def lower_priority_surplus_available(group, siblings):
+  print 'LESSER TEST HEAD ' + group.name
+  for x in siblings:
+    print 'Sib: ' + x.name
+  lesser_priority_list = (x for x in siblings if x.priority<group.priority)
+  if sum(1 for _ in lesser_priority_list) == 0:
+    log.info("#Its the lowest priority group,")
+    return True
   lesser_priority_list = (x for x in siblings if x.priority<group.priority)
   for x in lesser_priority_list:
     if x.accept_surplus == 0:
-      log.info("#Surplus available in lower priority,"),
-      return True
-  if sum(1 for _ in lesser_priority_list)  == 0:
-    log.info("#Its the lowest priority group,")
-    return True
+      if not x.priority == 0: 
+	log.info("#Surplus available in lower priority,"),
+	return True
   log.info("#Surplus not available in lower priority,")
   return False
 
@@ -298,7 +303,7 @@ def compare_surplus(parent):
   log.info("")
   log.info("### Initial Values for %s ###", parent.name)
   for x in parent.children.values():
-    log.info("#Name: " + x.name + ", accept_surplus: " + str(x.accept_surplus))
+    log.info("#Name: %s, accept_surplus: %d, priority: %d", x.name, x.accept_surplus, x.priority)
   log.info("#")
   log.info("#Comparing Surplus For Children of Parent %s", parent.name)
   for group in sorted(parent.children.values(), key=lambda x: x.priority, reverse = True):
@@ -323,10 +328,10 @@ def compare_surplus(parent):
       break
     
     else:
+      log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
       for x in parent.children.values():
-	log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
 	x.accept_surplus = 0
-	break 
+      break
       
   log.info("#")
   log.info("### Post-Compare Values ###")
@@ -334,7 +339,48 @@ def compare_surplus(parent):
     log.info("#Name: " + x.name + ", accept_surplus: " + str(x.accept_surplus))
   log.info("##############################")
   return
-  
+
+def check_for_siblings(parent, check_List):
+  check_flag = False
+  for x in parent.children.values():
+    if x.priority == 0:
+      continue
+    print 'X: ' + x.name
+    for y in check_List:
+      print 'Y: ' + y.name
+      if x == y:
+	print 'X == Y'
+	check_flag = True
+	break
+      else:
+	print 'X != Y'
+	check_flag = False
+  return check_flag
+
+def parent_surplus_compare(parents):
+  parent_list = set()
+  for p in parents:
+    if p.parent not in parent_list:
+      flag = check_for_siblings(p.parent, parents)
+      print 'Flag = ' + str(flag)
+      if flag:
+	print 'True, adding parent if possible'
+	parent_list.add(p.parent)
+  return parent_list
+
+
+def dfsvisit(root):
+  def visit_recursion(node, visited):
+    children = node.children.values()
+    visited.append(node)
+    for node in children:
+      if node not in visited:
+	visit_recur(node, visited)
+	if node.children:
+	  print "checking children of " + node.name + ", priority: " + str(node.priority)
+	  compare_surplus(node)
+  visit_recursion(root, [])     
+                
 
 def do_main():
   
@@ -361,6 +407,16 @@ def do_main():
     compare_surplus(p)
   log.info("")
   
+  parent_list = parent_surplus_compare(parents)
+  
+  for p in parent_list:
+    print 'CHECK CHECK CHECK: ' + p.name
+    compare_surplus(p)
+  log.info("")
+     
+  
+    
+  
   ################## FOR DEBUG ##################
   log.info("Surplus before Check:")		#
   for x in priority_list:			#
@@ -379,6 +435,10 @@ def do_main():
     log.info(x + ': ' + str(get_surplus(x)))	#
   log.info("")					#
   ###############################################
+
+  dfsvisit(tree)  
+  compare_surplus(tree)
+  
   
   cur.close()
   con.close()
