@@ -22,6 +22,7 @@
 # Added Group Functions:
 #		tree_creation(self, cur, con):  creates the tree, for analysis
 #		enable_surplus_changes(self, cur, con): updates the data table
+#		no_recent_surplus_change(name, cur): checks for recent surplus switch
 #		(Helper methods) -- aquire_groups, get_surplus, set_surplus
 #
 # By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 6/13/14 *updated 7/8/14
@@ -184,15 +185,6 @@ class Group(object):
 	      if name == x.name:
 		  return x
 	  raise Exception("No group %s found" % name)
-  
-  #def get_sibling_surplus(self, priority_value)
-    
-  # Check if parent has surplus flag, for future use  
-  def check_parent_surplus(self):
-	if self.parent.accept_surplus == 1:
-	  return True
-	else:
-	  return False
     
   def __iter__(self):
 	  return iter(self.walk())
@@ -231,7 +223,7 @@ class Group(object):
   # Traverse the constructed group tree and update the accept_surplus values in the table, if necessary 
   def enable_surplus_changes(self, cur, con):
     def child_walk(node):
-      print node.name
+      print node.name + ', surplus: ' + str(node.accept_surplus)
       if node is not None:
 	if node.parent is not None:
 	  set_surplus(node.name, node.accept_surplus, cur, con)

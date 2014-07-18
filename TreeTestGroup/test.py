@@ -4,27 +4,26 @@
 # Script which initializes the group tree, and analyzes the current work group's 
 # queue amounts in order to dynamically determine surplus flag modifications.
 # This allows the script to automate work load balancing in a timely and reactive  
-# way, which should reduce job wait times and minimize group queue amounts, 
-# especially for muti-core jobs.
+# way, which should limit idle CPUs, reduce job wait times and minimize group 
+# queue amounts, especially for muti-core jobs.
 #
 # 1. Initialize the root group node
 # 2. Create the group tree
-# 3. Traverse the tree and analyze weighted leaf surplus requirements Based upon 
-#    recent queue amount analysis. Also returns a list of leaf parental nodes.
-# 4. Using the returned parental list, compare each parent's children in order 
-#    to adjust accept_surplus flags based upon prioritized sibling availability 
-#    and needs.
-# 5. Once the surplus values are finalized, update the data table with the 
-#    new values, if changed
+# 3. Traverse the tree using DFS. As it traverses, the function identifies nodes
+#    without children and sets thier surplus flags, if possible(some have a 
+#    priority = 0, such as group_atlas.software). If the node has children, it 
+#    will determine it's surplus flag based upon the availability 
+#    of surplus among its children.
+# 4. Once the surplus values are finalized, update the data table with the 
+#    new values, if changed#
+#
+# Simplified Order:
+#	1. Create tree
+#	2. DFS tree: decide surplus flags based on current need
+#	3. Set new flag values, if possible(no flag flapping)
 #
 #
-#    STILL TODO:
-#		1. last_surplus_change TIMESTAMP field in atlas_group_quotas
-#		   table to prevent surplus flapping
-#		2. Analysis and Production inter-branch surplus recognition.
-#
-#
-# By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 7/8/14
+# By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 7/18/14
 #
 # *****************************************************************************
 
@@ -233,7 +232,7 @@ def check_for_spike(group, avg, threshold):
 
   return spike_flag
 
-def surplus_check(group):
+def group_surplus_check(group):
     avg = get_average_hour_queue(group.name)
     log.info("")
     log.info("Name: %s, Past hour Avg: %f, Thresh: %d", group.name, avg, group.threshold)
@@ -257,23 +256,9 @@ def surplus_check(group):
       log.info("No spike but avg. above threshold, set accept_surplus to 1, if possible.")
       group.accept_surplus = 1
     log.info("Name: %s, accept_surplus: %d", group.name, group.accept_surplus) 
-
-def get_surplus_parents(self):
-  parents = set()
-  def child_search(node):
-    if node is not None:
-      if not node.children and node.priority > 0:
-	surplus_check(node)
-	parents.add(node.parent)
-      for n in node.children.values():
-	child_search(n)
-  child_search(self)
-  return parents
+    
 
 def lower_priority_surplus_available(group, siblings):
-  print 'LESSER TEST HEAD ' + group.name
-  for x in siblings:
-    print 'Sib: ' + x.name
   lesser_priority_list = (x for x in siblings if x.priority<group.priority)
   if sum(1 for _ in lesser_priority_list) == 0:
     log.info("#Its the lowest priority group,")
@@ -298,7 +283,7 @@ def higher_priority_surplus_available(group, siblings):
     return False
   return True
 
-def compare_surplus(parent):
+def compare_children_surplus(parent):
   
   log.info("")
   log.info("### Initial Values for %s ###", parent.name)
@@ -337,49 +322,40 @@ def compare_surplus(parent):
   log.info("### Post-Compare Values ###")
   for x in parent.children.values():
     log.info("#Name: " + x.name + ", accept_surplus: " + str(x.accept_surplus))
+  #log.info("##############################")
+  return
+
+def parent_surplus_check(parent):
+  for group in parent.children.values():
+    if group.accept_surplus == 1:
+      log.info("#Group: %s, Surplus flag found in children, set surplus to 1", parent.name)
+      parent.accept_surplus = 1
+      log.info("##############################")
+      return
+  parent.accept_surplus = 0
+  log.info("#Group: %s, No surplus flag found in children, set surplus to 0", parent.name)
   log.info("##############################")
   return
 
-def check_for_siblings(parent, check_List):
-  check_flag = False
-  for x in parent.children.values():
-    if x.priority == 0:
-      continue
-    print 'X: ' + x.name
-    for y in check_List:
-      print 'Y: ' + y.name
-      if x == y:
-	print 'X == Y'
-	check_flag = True
-	break
-      else:
-	print 'X != Y'
-	check_flag = False
-  return check_flag
-
-def parent_surplus_compare(parents):
-  parent_list = set()
-  for p in parents:
-    if p.parent not in parent_list:
-      flag = check_for_siblings(p.parent, parents)
-      print 'Flag = ' + str(flag)
-      if flag:
-	print 'True, adding parent if possible'
-	parent_list.add(p.parent)
-  return parent_list
-
-
-def dfsvisit(root):
+  
+def dfs_traversal(root):
   def visit_recursion(node, visited):
     children = node.children.values()
     visited.append(node)
     for node in children:
       if node not in visited:
-	visit_recur(node, visited)
+	visit_recursion(node, visited)
 	if node.children:
-	  print "checking children of " + node.name + ", priority: " + str(node.priority)
-	  compare_surplus(node)
-  visit_recursion(root, [])     
+	  # if backtracking and node has children, compare them
+	  compare_children_surplus(node)
+	  parent_surplus_check(node)
+	# else if leaf node, set the surplus accordingly
+	elif not node.children and node.priority > 0:
+	  group_surplus_check(node)
+  # Begin search with empty visited list
+  visit_recursion(root, [])
+  # final compare of root's children -- currently atlas and grid
+  compare_children_surplus(root)
                 
 
 def do_main():
@@ -397,36 +373,20 @@ def do_main():
     avg = get_average_hour_queue(x)	#
     log.info(x + ' AVG.: ' + str(avg))	#
   #######################################
-    
-  # Find and return the parents of the priority leaves
-  # Also sets the temporary accept_surplus for each leaf based on current data
-  parents = get_surplus_parents(tree)
   
-  # Adjusts the accept_surplus for each leaf based upon sibling comparisons
-  for p in parents:
-    compare_surplus(p)
-  log.info("")
-  
-  parent_list = parent_surplus_compare(parents)
-  
-  for p in parent_list:
-    print 'CHECK CHECK CHECK: ' + p.name
-    compare_surplus(p)
-  log.info("")
-     
-  
-    
+  # DFS to visit each node setting leaf surplus for priority
+  # groups and comparing the children of parents, in a bottom up method
+  dfs_traversal(tree)  
   
   ################## FOR DEBUG ##################
+  log.info("")
   log.info("Surplus before Check:")		#
   for x in priority_list:			#
     log.info(x + ': ' + str(get_surplus(x)))	#
   ###############################################
   
-   
   # Updates all the values currently in the leaves to the table
   tree.enable_surplus_changes(cur, con) 
-  
   
   ################## FOR DEBUG ##################
   log.info("")  				#
@@ -436,13 +396,8 @@ def do_main():
   log.info("")					#
   ###############################################
 
-  dfsvisit(tree)  
-  compare_surplus(tree)
-  
-  
   cur.close()
   con.close()
-  
 
 if __name__ == '__main__':
   try:
