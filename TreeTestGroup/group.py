@@ -127,7 +127,7 @@ class Group(object):
   def __init__(self, name):
     
     self.name = name
-    self.quota = None
+    self.queue = 0
     self.priority = None
     self.accept_surplus = None
     self.threshold = None
@@ -145,9 +145,9 @@ class Group(object):
 	return None
       
       cur = con.cursor()
-      # OBTAIN QUOTA
-      cur.execute(get_Mysql_Val % (quota, dbtable, group_name, name))
-      self.quota = cur.fetchone()[0]
+      ## OBTAIN QUOTA
+      #cur.execute(get_Mysql_Val % (quota, dbtable, group_name, name))
+      #self.quota = cur.fetchone()[0]
       # OBTAIN Priority
       cur.execute(get_Mysql_Val % (priority, dbtable, group_name, name))
       self.priority = cur.fetchone()[0]
@@ -196,7 +196,7 @@ class Group(object):
 	  else:
 	    return '%s' % \
 		  (self.name)
-		
+
   # Creates Group tree, Returns root node. Generated generically based on "." placement
   def tree_creation(self, cur, con):
     aquire_groups(cur, con)		# Populate group_list

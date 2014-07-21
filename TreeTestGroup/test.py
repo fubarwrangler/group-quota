@@ -125,14 +125,17 @@ def get_past_hour_queue_amounts(name):
 # first 8 of 12 entries in the last hour to ensure that a last minute spike 
 # is not detected without the ability to decipher whether it is an issue or not.
 def check_for_spike(group, avg, threshold):
-  
-  #amounts = [0,0,0,20,0,68,9,0,223,522,800]			# For Debug
+  #if group.parent.name == 'group_atlas.prod':
+      #avg = 0
+      #amounts = [0,0,0,0,0,0,0,0,0,0,0]
+  ##amounts = [0,0,0,20,0,68,9,0,223,522,800]			# For Debug
   #avg = reduce(lambda x, y: x + y, amounts) / len(amounts) 	# For Debug
-  
+  #else:
   amounts = get_past_hour_queue_amounts(group.name)
   spike_flag = False			# Initialize to False
   surplus_flag = False
   length = len(amounts)
+  group.queue = amounts[length-1]
   
   
   ## For Debug purposes ##
@@ -278,6 +281,7 @@ def higher_priority_surplus_available(group, siblings):
     if x.accept_surplus == 1:
       log.info("#Surplus flag found in higher priority group,")
       return False
+  greater_priority_list = (x for x in siblings if x.priority>group.priority)
   if sum(1 for _ in greater_priority_list)  == 0:
     log.info("#Its the highest priority group,"),
     return False
@@ -326,14 +330,25 @@ def compare_children_surplus(parent):
   return
 
 def parent_surplus_check(parent):
+  child_queue_sum = 0
+  surplusFlag = False
   for group in parent.children.values():
+    child_queue_sum = child_queue_sum + group.queue
     if group.accept_surplus == 1:
-      log.info("#Group: %s, Surplus flag found in children, set surplus to 1", parent.name)
+      surplusFlag = True
+  parent.queue = child_queue_sum
+  log.info("#Group: %s, children queue sum: %d", parent.name, parent.queue)
+  if child_queue_sum == 0:
+    parent.accept_surplus = 0
+    log.info("#Group: %s, Sum of children's queues = 0, set surplus to 0", parent.name)
+  else:
+    if surplusFlag:
       parent.accept_surplus = 1
-      log.info("##############################")
-      return
-  parent.accept_surplus = 0
-  log.info("#Group: %s, No surplus flag found in children, set surplus to 0", parent.name)
+      log.info("#Group: %s, Sum of children's queues > 0, set surplus to 1", parent.name)
+    else:
+      parent.accept_surplus = 0
+      log.info("#Group: %s, Sum of children's queues > 0, but no flags set in children", parent.name)
+      log.info("#Group: %s, set surplus to 0", parent.name)
   log.info("##############################")
   return
 
