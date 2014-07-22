@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "scp -r surplusCheckLog.log mvjensen@dilbert.rhic.bnl.gov:~/dynamicgroups/TreeTestGroup/surplusCheckLog.log"
+exit 0
