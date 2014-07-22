@@ -101,7 +101,6 @@ def no_recent_surplus_change(name, cur):
   else:
     return False	#RECENT CHANGES, WAIT UNTIL ONE HOUR PASSES TO CHANGE
 
-
 def set_surplus(name, value, cur, con):
   check = get_surplus(name, cur)
   no_recent_switch = no_recent_surplus_change(name, cur)

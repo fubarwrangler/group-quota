@@ -376,22 +376,21 @@ def calculateQueues(root, i):
   visit_recursion(root, [], i)
   
   
-def parent_surplus_check(parent):
-  log.info("#Group: %s, children queue sum: %d", parent.name, parent.queue)
-  print '###########################################'
-  print 'Parent: ' + parent.name
+def parent_surplus_check(parent, i):
+  log.info("#Group: %s, queue sum: %d", parent.name, parent.queue)
   if parent.queue == 0:
     parent.accept_surplus = 0
-    print 'Parent queue = 0'
     log.info("#Group: %s, Sum of children's queues = 0, set surplus to 0", parent.name)
   else:
-    print 'Siblings:'
     sibling_list = (x for x in parent.parent.children.values() if x.name!=parent.name)
     for x in sibling_list:
-      print x.name + ', queue: ' + str(x.queue)
+      if i == 1:
+	print x.name + ', queue: ' + str(x.queue)
       if x.queue > 0:
 	parent.accept_surplus = 0
 	return
+    parent.accept_surplus = 1
+    return
   #log.info("##############################")
   
 def dfs_traversal(root, i):
@@ -403,7 +402,7 @@ def dfs_traversal(root, i):
 	visit_recursion(node, visited, i)
 	if node.children:
 	  # if backtracking and node has children, compare them
-	  parent_surplus_check(node)
+	  parent_surplus_check(node, i)
 	  compare_children_surplus(node)
   # Begin search with empty visited list
   visit_recursion(root, [], i)
