@@ -9,21 +9,26 @@
 #
 # 1. Initialize the root group node
 # 2. Create the group tree
-# 3. Traverse the tree using DFS. As it traverses, the function identifies nodes
-#    without children and sets thier surplus flags, if possible(some have a 
-#    priority = 0, such as group_atlas.software). If the node has children, it 
-#    will determine it's surplus flag based upon the availability 
-#    of surplus among its children.
-# 4. Once the surplus values are finalized, update the data table with the 
+# 3. Set the accept_surplus value for group_grid. (Currently always set to 1)
+# 4. First pass. Traverse the tree using DFS. As the function traverses, it
+#    calculates the queue amounts for jobs waiting to be done. This is done in
+#    a bottom up way such that Parents' queues will always be the sum of their children. 
+# 5. Second Pass. Traverse the tree using DFS. This time calculate the accept_surplus 
+#    flags based upon the amount in the queue, as well as the demand of any siblings
+#    Ensures that the surplus is set in a priority based context. 
+#    i.e. -- Multi-core before single core.
+# 6. Once the surplus values are finalized, update the data table with the 
 #    new values, if changed#
 #
 # Simplified Order:
 #	1. Create tree
-#	2. DFS tree: decide surplus flags based on current need
-#	3. Set new flag values, if possible(no flag flapping)
+#	2. Set group_grid surplus
+#	3. First pass: Determine the queue amounts for each node
+#	4. Second pass. Determine the surplus flags based upon demand and priority
+#	5. Set new flag values, if possible(no flag flapping)
 #
 #
-# By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 7/18/14
+# By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 7/22/14
 #
 # *****************************************************************************
 
@@ -35,7 +40,7 @@ from group import Group
 
 ############################ VARIABLES ############################
 # List of leaf group names sorted by priority for debugging
-priority_list = []
+group_list = []
 
 # Spike multiplier used to multiply threshold and determine if queue spike is present
 spike_multiplier = 2
@@ -43,7 +48,7 @@ spike_multiplier = 2
 # Rapid reduction modifier, to determine if the amount has decreased the necessary percentage
 reduce_mod = .875 # Checks if the spike has dropped by 1/4
 
-logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/surplusCheckLog.log"
+logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/atlasSurplus.log"
 
 # Database parameters
 dbtable = 'atlas_group_quotas'
@@ -69,14 +74,11 @@ get_Mysql_groups = 'SELECT %s FROM %s;'
 get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
 get_Mysql_queue_avg = 'SELECT AVG(%s) FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
 get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
-get_Mysql_sorted_priority_list = 'SELECT %s FROM %s WHERE %s>0 ORDER BY %s DESC;'
+get_Mysql_priority_list = 'SELECT %s FROM %s;'
 
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
                     filename=None if '-d' in sys.argv else logfile,
                     level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
-
-#logging.basicConfig(stream=sys.stdout, level=logging.INFO,
-                    #format="(%(levelname)5s) %(message)s")
 
 log = logging.getLogger()
 
@@ -90,13 +92,13 @@ cur = con.cursor()
 ###################################################################
   
 ##################################### FOR DEBUGGING ######################################
-# Populates the priority_list with the names of the tree leaves for debugging		 #
-def order_by_priority():								 #
+# Populates the group_list with the names of the tree leaves for debugging		 #
+def get_group_list():								 	 #
   # OBTAIN LIST OF GROUPS WITH PRIORITY > 0						 #
-  cur.execute(get_Mysql_sorted_priority_list % (group_name, dbtable, priority, priority))#
+  cur.execute(get_Mysql_priority_list % (group_name, dbtable))				 #
   results = [i[0] for i in cur.fetchall()]						 #
   for x in results:									 #
-    priority_list.append(x)								 #
+    group_list.append(x)								 #
 											 #
 # Used for info and debugging								 #
 def get_surplus(name):									 #
@@ -125,18 +127,17 @@ def get_past_hour_queue_amounts(name):
 # first 8 of 12 entries in the last hour to ensure that a last minute spike 
 # is not detected without the ability to decipher whether it is an issue or not.
 def check_for_spike(group, avg, threshold):
-  #if group.parent.name == 'group_atlas.prod':
-      #avg = 0
-      #amounts = [0,0,0,0,0,0,0,0,0,0,0]
-  ##amounts = [0,0,0,20,0,68,9,0,223,522,800]			# For Debug
-  #avg = reduce(lambda x, y: x + y, amounts) / len(amounts) 	# For Debug
-  #else:
+  
   amounts = get_past_hour_queue_amounts(group.name)
   spike_flag = False			# Initialize to False
   surplus_flag = False
   length = len(amounts)
-  group.queue = amounts[length-1]
   
+  #Prevents group_grid from being checked
+  if length == 0:
+    return True
+  
+  group.queue = amounts[length-1]
   
   ## For Debug purposes ##
   log.info("Checking spike for  %s.", group.name)
@@ -175,7 +176,6 @@ def check_for_spike(group, avg, threshold):
 	if amounts[i] != 0: 
 	  percent = round(float(diff)/float(amounts[i]), 4)
 	  percent = percent * 100
-	  #log.info("Difference between %d and %d = %d, a  %d  change.", i, i+1, diff, percent)
 	  log.info("Difference between %d and %d = %d, a %d%% change.", i, i+1, diff, percent)
 	  
 	  if percent < 0:
@@ -238,15 +238,15 @@ def check_for_spike(group, avg, threshold):
 def group_surplus_check(group):
     avg = get_average_hour_queue(group.name)
     log.info("")
-    log.info("Name: %s, Past hour Avg: %f, Thresh: %d", group.name, avg, group.threshold)
     
-    # Reduce work to do by recognizing no queue
-    if avg == 0: 
-      log.info("Average is 0, set accept_surplus to 0, if possible, and skip processing.")
-      group.accept_surplus = 0
+    # If statement added due to group_grid having an average of 'None' Type
+    if not avg == None:
+      log.info("Name: %s, Past hour Avg: %f, Thresh: %d", group.name, avg, group.threshold)
+    else:
+      log.info("Name: %s, Past hour Avg: %s, Thresh: %d", group.name, avg, group.threshold)
       
     # Spike surplus evaluations handled in method
-    elif check_for_spike(group, avg, group.threshold):
+    if check_for_spike(group, avg, group.threshold):
       return
     
     # Below threshold average, little to no load in queue
@@ -288,7 +288,6 @@ def higher_priority_surplus_available(group, siblings):
   return True
 
 def compare_children_surplus(parent):
-  
   log.info("")
   log.info("### Initial Values for %s ###", parent.name)
   for x in parent.children.values():
@@ -317,43 +316,70 @@ def compare_children_surplus(parent):
       break
     
     else:
-      log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
       for x in parent.children.values():
-	x.accept_surplus = 0
+	if x.children:	# If the node has children, all set to 0
+	  log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
+	  x.accept_surplus = 0
+	else:
+	  # if the node is a leaf node, priority takes precedence
+	  log.info("#NO AVAILABLE RESOURCES, HIGHEST GETS PRIORITY.[DONE]")
+	  priority_list = (x for x in parent.children.values() if x.priority<group.priority)
+	  for x in priority_list:
+	    x.accept_surplus = 0
+	  break
       break
       
   log.info("#")
   log.info("### Post-Compare Values ###")
   for x in parent.children.values():
     log.info("#Name: " + x.name + ", accept_surplus: " + str(x.accept_surplus))
-  #log.info("##############################")
+  log.info("##############################")
+  log.info("")
   return
 
-def parent_surplus_check(parent):
+# Sums the children's queue amounts to set the parent's queue amount
+def calcParentQueues(parent):
   child_queue_sum = 0
-  surplusFlag = False
   for group in parent.children.values():
     child_queue_sum = child_queue_sum + group.queue
-    if group.accept_surplus == 1:
-      surplusFlag = True
   parent.queue = child_queue_sum
-  log.info("#Group: %s, children queue sum: %d", parent.name, parent.queue)
-  if child_queue_sum == 0:
+  return
+
+# DFS which sets the childrens queue amounts, and then sum for their parents
+def calculateQueues(root):
+  def visit_recursion(node, visited):
+    children = node.children.values()
+    visited.append(node)
+    for node in children:
+      if node not in visited:
+	visit_recursion(node, visited)
+	if node.children:
+	  # if backtracking and node has children, sum them
+	  calcParentQueues(node)
+	# else if leaf node, set the surplus accordingly
+	elif not node.children and node.priority > 0:
+	  group_surplus_check(node)
+  # Begin search with empty visited list
+  visit_recursion(root, [])
+  
+  
+# Used to set the parental surplus flag based upon sibling demand 
+def parent_surplus_check(parent):
+  log.info("#Group: %s, queue sum: %d", parent.name, parent.queue)
+  if parent.queue == 0:
     parent.accept_surplus = 0
     log.info("#Group: %s, Sum of children's queues = 0, set surplus to 0", parent.name)
   else:
-    if surplusFlag:
-      parent.accept_surplus = 1
-      log.info("#Group: %s, Sum of children's queues > 0, set surplus to 1", parent.name)
-    else:
-      parent.accept_surplus = 0
-      log.info("#Group: %s, Sum of children's queues > 0, but no flags set in children", parent.name)
-      log.info("#Group: %s, set surplus to 0", parent.name)
-  log.info("##############################")
-  return
+    sibling_list = (x for x in parent.parent.children.values() if x.name!=parent.name)
+    for x in sibling_list:
+      if x.queue > 0:
+	parent.accept_surplus = 0
+	return
+    parent.accept_surplus = 1
+    return
 
-  
-def dfs_traversal(root):
+# Comparison traversal, from the bottom up
+def comparison_traversal(root):
   def visit_recursion(node, visited):
     children = node.children.values()
     visited.append(node)
@@ -362,15 +388,17 @@ def dfs_traversal(root):
 	visit_recursion(node, visited)
 	if node.children:
 	  # if backtracking and node has children, compare them
-	  compare_children_surplus(node)
 	  parent_surplus_check(node)
-	# else if leaf node, set the surplus accordingly
-	elif not node.children and node.priority > 0:
-	  group_surplus_check(node)
+	  compare_children_surplus(node)
   # Begin search with empty visited list
   visit_recursion(root, [])
   # final compare of root's children -- currently atlas and grid
   compare_children_surplus(root)
+  
+# Initialize group_grid accept_surplus flag to '1'
+def set_group_grid(root):
+  group = root.get_by_name('group_grid')
+  group.accept_surplus = 1
                 
 
 def do_main():
@@ -379,34 +407,49 @@ def do_main():
 
   # Set root
   root = Group('<root>') 
+  
+  # Step 1.
   # Create Group Tree Structure from Table
   tree = root.tree_creation(cur, con)
   
+  # Step 2.
+  # Initialize group_grid accept_surplus flag to '1'
+  set_group_grid(root)
+    
   ############## FOR DEBUG ##############
-  order_by_priority()			#
-  for x in priority_list:		#
+  get_group_list()			#
+  group_list.sort()
+  for x in group_list:			#
     avg = get_average_hour_queue(x)	#
     log.info(x + ' AVG.: ' + str(avg))	#
   #######################################
   
-  # DFS to visit each node setting leaf surplus for priority
-  # groups and comparing the children of parents, in a bottom up method
-  dfs_traversal(tree)  
+  # Step 3.
+  # Calulate each node's queue amount
+  calculateQueues(tree)
+  
+  # Step 4.
+  # DFS to visit each node, setting surplus values based upon
+  # priority and demand
+  comparison_traversal(tree)  
   
   ################## FOR DEBUG ##################
-  log.info("")
-  log.info("Surplus before Check:")		#
-  for x in priority_list:			#
-    log.info(x + ': ' + str(get_surplus(x)))	#
+  log.info("")					#
+  log.info("Demand:")				#
+  for x in group_list:				#
+    group = root.get_by_name(x)			#
+    log.info(x + ': ' + str(group.queue))	#
   ###############################################
   
+  # Step 5.
   # Updates all the values currently in the leaves to the table
   tree.enable_surplus_changes(cur, con) 
+  
   
   ################## FOR DEBUG ##################
   log.info("")  				#
   log.info("Surplus After Check")		#
-  for x in priority_list:			#
+  for x in group_list:				#
     log.info(x + ': ' + str(get_surplus(x)))	#
   log.info("")					#
   ###############################################

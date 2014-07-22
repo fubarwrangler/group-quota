@@ -62,7 +62,7 @@ set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s
 
 ########################### LOGGING INFO ###########################
 
-logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/surplusCheckLog.log"
+logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/atlasSurplus.log"
 
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
                     filename=None if '-d' in sys.argv else logfile,
@@ -95,7 +95,7 @@ def no_recent_surplus_change(name, cur):
   
   diff = current_time - recent_surplus_time
   hours,rest = divmod(diff.days*86400+diff.seconds, 3600)
-  # HOURS NOW = TIME DIFFERENCE IN HOURS ROUNDED DOWN
+  # HOURS NOW = TIME DIFFERENCE ROUNDED DOWN TO THE HOUR
   if hours >= 1:
     return True 	#NO RECENT SURPLUS CHANGES, ABLE TO CHANGE
   else:
@@ -145,9 +145,6 @@ class Group(object):
 	return None
       
       cur = con.cursor()
-      ## OBTAIN QUOTA
-      #cur.execute(get_Mysql_Val % (quota, dbtable, group_name, name))
-      #self.quota = cur.fetchone()[0]
       # OBTAIN Priority
       cur.execute(get_Mysql_Val % (priority, dbtable, group_name, name))
       self.priority = cur.fetchone()[0]
@@ -199,7 +196,7 @@ class Group(object):
 
   # Creates Group tree, Returns root node. Generated generically based on "." placement
   def tree_creation(self, cur, con):
-    aquire_groups(cur, con)		# Populate group_list
+    aquire_groups(cur, con)	# Populate group_list
     group_list.sort()		# Sort list
     current_node = self		# Set node to use as pointer to root
     prefix = None		# prefix  for parent/child identification
@@ -223,7 +220,6 @@ class Group(object):
   # Traverse the constructed group tree and update the accept_surplus values in the table, if necessary 
   def enable_surplus_changes(self, cur, con):
     def child_walk(node):
-      print node.name + ', surplus: ' + str(node.accept_surplus)
       if node is not None:
 	if node.parent is not None:
 	  set_surplus(node.name, node.accept_surplus, cur, con)
