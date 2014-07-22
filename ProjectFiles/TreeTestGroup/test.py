@@ -321,7 +321,9 @@ def compare_children_surplus(parent):
       for x in parent.children.values():
 	if x.children:	# If the node has children, all set to 0
 	  log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
-	  x.accept_surplus = 0
+	  for x in parent.children.values():
+	    x.accept_surplus = 0
+	  break
 	else:
 	  # if the node is a leaf node, priority takes precedence
 	  log.info("#NO AVAILABLE RESOURCES, HIGHEST GETS PRIORITY.[DONE]")
@@ -375,8 +377,10 @@ def parent_surplus_check(parent):
     sibling_list = (x for x in parent.parent.children.values() if x.name!=parent.name)
     for x in sibling_list:
       if x.queue > 0:
+	log.info("#Group: %s, Demand found in sibling, set surplus to 0", parent.name)
 	parent.accept_surplus = 0
 	return
+    log.info("#Group: %s, Siblings allow demand, set surplus to 1", parent.name)
     parent.accept_surplus = 1
     return
 
@@ -430,13 +434,14 @@ def do_main():
   # Calulate each node's queue amount
   calculateQueues(tree)
   
+  log.info("")
+  
   # Step 4.
   # DFS to visit each node, setting surplus values based upon
   # priority and demand
   comparison_traversal(tree)  
   
   ################## FOR DEBUG ##################
-  log.info("")					#
   log.info("Demand:")				#
   for x in group_list:				#
     group = root.get_by_name(x)			#
