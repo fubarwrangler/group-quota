@@ -241,11 +241,7 @@ def group_surplus_check(group):
     avg = get_average_hour_queue(group.name)
     log.info("")
     
-    # If statement added due to group_grid having an average of 'None' Type
-    if not avg == None:
-      log.info("Name: %s, Past hour Avg: %f, Thresh: %d", group.name, avg, group.threshold)
-    else:
-      log.info("Name: %s, Past hour Avg: %s, Thresh: %d", group.name, avg, group.threshold)
+    log.info("Name: %s, Past hour Avg: %s, Thresh: %d", group.name, str(avg), group.threshold)
       
     # Spike surplus evaluations handled in method
     if check_for_spike(group, avg, group.threshold):
