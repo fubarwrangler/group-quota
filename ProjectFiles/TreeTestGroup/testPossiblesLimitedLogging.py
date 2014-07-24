@@ -272,90 +272,90 @@ def group_surplus_check(group, i):
     
     # Below threshold average, little to no load in queue
     if avg < group.threshold:
-      log.info("No spike and avg. below threshold, set accept_surplus to 0, if possible.")
+      #log.info("No spike and avg. below threshold, set accept_surplus to 0, if possible.")
       group.accept_surplus = 0
       
     # Else too much in queue set surplus if possible
     else:
-      log.info("No spike but avg. above threshold, set accept_surplus to 1, if possible.")
+      #log.info("No spike but avg. above threshold, set accept_surplus to 1, if possible.")
       group.accept_surplus = 1
-    log.info("Name: %s, accept_surplus: %d", group.name, group.accept_surplus) 
+    #log.info("Name: %s, accept_surplus: %d", group.name, group.accept_surplus) 
     
 
 def lower_priority_surplus_available(group, siblings):
   lesser_priority_list = (x for x in siblings if x.priority<group.priority)
   if sum(1 for _ in lesser_priority_list) == 0:
-    log.info("#Its the lowest priority group,")
+    #log.info("#Its the lowest priority group,")
     return True
   lesser_priority_list = (x for x in siblings if x.priority<group.priority)
   for x in lesser_priority_list:
     if x.accept_surplus == 0:
       if not x.priority == 0: 
-	log.info("#Surplus available in lower priority,"),
+	#log.info("#Surplus available in lower priority,"),
 	return True
-  log.info("#Surplus not available in lower priority,")
+  #log.info("#Surplus not available in lower priority,")
   return False
 
 def higher_priority_surplus_available(group, siblings):
   greater_priority_list = (x for x in siblings if x.priority>group.priority)
   for x in greater_priority_list:
     if x.accept_surplus == 1:
-      log.info("#Surplus flag found in higher priority group,")
+      #log.info("#Surplus flag found in higher priority group,")
       return False
   greater_priority_list = (x for x in siblings if x.priority>group.priority)
   if sum(1 for _ in greater_priority_list)  == 0:
-    log.info("#Its the highest priority group,"),
+    #log.info("#Its the highest priority group,"),
     return False
   return True
 
 def compare_children_surplus(parent):
   
-  log.info("")
-  log.info("### Initial Values for %s ###", parent.name)
+  #log.info("")
+  #log.info("### Initial Values for %s ###", parent.name)
   for x in parent.children.values():
-    log.info("#Name: %s, accept_surplus: %d, priority: %d", x.name, x.accept_surplus, x.priority)
-  log.info("#")
-  log.info("#Comparing Surplus For Children of Parent %s", parent.name)
+    #log.info("#Name: %s, accept_surplus: %d, priority: %d", x.name, x.accept_surplus, x.priority)
+  #log.info("#")
+  #log.info("#Comparing Surplus For Children of Parent %s", parent.name)
   for group in sorted(parent.children.values(), key=lambda x: x.priority, reverse = True):
-    log.info("#Checking: " + group.name + ","),
+    #log.info("#Checking: " + group.name + ","),
     
     if group.accept_surplus == 0:
-      log.info("#Flag remains 0. [DONE]")
+      #log.info("#Flag remains 0. [DONE]")
       continue
     
     if higher_priority_surplus_available(group, parent.children.values()):
       priority_list = (x for x in parent.children.values() if x.priority<group.priority)
       for x in priority_list:
 	x.accept_surplus = 0
-      log.info("#Flag remains 1. Setting all lower priority to 0.[DONE]")
+      #log.info("#Flag remains 1. Setting all lower priority to 0.[DONE]")
       break
     
     elif lower_priority_surplus_available(group, parent.children.values()):
       priority_list = (x for x in parent.children.values() if x.priority<group.priority)
       for x in priority_list:
 	x.accept_surplus = 0
-      log.info("#Flag remains 1. Setting all lower priority to 0.[DONE]")
+      #log.info("#Flag remains 1. Setting all lower priority to 0.[DONE]")
       break
     
     else:
       for x in parent.children.values():
 	if x.children:	# If the node has children, all set to 0
-	  log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
+	  #log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
 	  x.accept_surplus = 0
 	else:
 	  # if the node is a leaf node, priority takes precedence
-	  log.info("#NO AVAILABLE RESOURCES, HIGHEST GETS PRIORITY.[DONE]")
+	  #log.info("#NO AVAILABLE RESOURCES, HIGHEST GETS PRIORITY.[DONE]")
 	  priority_list = (x for x in parent.children.values() if x.priority<group.priority)
 	  for x in priority_list:
 	    x.accept_surplus = 0
 	  break
       break
       
-  log.info("#")
-  log.info("### Post-Compare Values ###")
+  #log.info("#")
+  #log.info("### Post-Compare Values ###")
   for x in parent.children.values():
-    log.info("#Name: " + x.name + ", accept_surplus: " + str(x.accept_surplus))
-  log.info("##############################")
+    #log.info("#Name: " + x.name + ", accept_surplus: " + str(x.accept_surplus))
+  #log.info("##############################")
   return
 
 
@@ -385,10 +385,10 @@ def calculateQueues(root, i):
   
   
 def parent_surplus_check(parent):
-  log.info("#Group: %s, queue sum: %d", parent.name, parent.queue)
+  #log.info("#Group: %s, queue sum: %d", parent.name, parent.queue)
   if parent.queue == 0:
     parent.accept_surplus = 0
-    log.info("#Group: %s, Sum of children's queues = 0, set surplus to 0", parent.name)
+    #log.info("#Group: %s, Sum of children's queues = 0, set surplus to 0", parent.name)
   else:
     sibling_list = (x for x in parent.parent.children.values() if x.name!=parent.name)
     for x in sibling_list:
