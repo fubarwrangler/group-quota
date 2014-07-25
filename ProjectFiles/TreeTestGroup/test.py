@@ -30,7 +30,7 @@
 #	5. Set new flag values, if possible(no flag flapping)
 #
 #
-# By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 7/22/14
+# By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- Updated 7/25/14
 #
 # *****************************************************************************
 
@@ -84,7 +84,7 @@ logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
 
 log = logging.getLogger()
 
-### OPEN MySQL DATABASE FOR SCRIPT USE, CLOSE AT THE END###
+####### OPEN MySQL DATABASE FOR SCRIPT USE, CLOSE AT THE END#######
 try:
   con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass,
 			db=database)
@@ -130,15 +130,16 @@ def get_past_hour_queue_amounts(name):
 # is not detected without the ability to decipher whether it is an issue or not.
 def check_for_spike(group, avg, threshold):
   
+  spike_flag = False	# Used to detect a spike...obviously...
+  surplus_flag = False	# Used to adjust surplus at the end of the function should a non-reducing spike be detected
   amounts = get_past_hour_queue_amounts(group.name)
-  spike_flag = False			# Initialize to False
-  surplus_flag = False
   length = len(amounts)
   
-  #Prevents group_grid from being checked
+  #Prevents any nodes not in the queue_log from being checked, such as group_grid
   if length == 0:
     return True
   
+  #Sets the leaf queue amount to the most recent value
   group.queue = amounts[length-1]
   
   ## For Debug purposes ##
@@ -149,7 +150,7 @@ def check_for_spike(group, avg, threshold):
   if avg < threshold*10: # Queue limit for spike check
     max_index = 0
     max_difference = 0
-    limitCheck = threshold*spike_multiplier
+    limitCheck = threshold*spike_multiplier	#currently set at 2
     
     test = [x - amounts[i - 1] for i, x in enumerate(amounts)][1:]
     # Index used for testing
@@ -165,7 +166,7 @@ def check_for_spike(group, avg, threshold):
     else:
       log.info('POSSIBLE SPIKE IN LAST HOUR')
       i = 0
-      # Search the entire hour for a Spike, only check sor surplus if spike whithin first 8 values
+      # Search the entire hour for a Spike, only check for surplus if spike whithin first 8 values
       while i < length-1:
 	diff = amounts[i+1] - amounts[i]
 	
@@ -192,6 +193,7 @@ def check_for_spike(group, avg, threshold):
 		log.info('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
 		log.info("Spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1]) 
 		
+		# check the whether the maximum spike has reduced sufficiently compared to the most recent value
 		if amounts[max_index]*reduce_mod > amounts[length-1]:
 		  log.info('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
 		  surplus_flag = False
@@ -230,7 +232,8 @@ def check_for_spike(group, avg, threshold):
   else:
     log.info("Queue amount exceeds spike check threshold, spike check unnecessary.")
     
-  # if SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE
+  # IF SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE
+  # SETS THE SURPLUS FLAG IF NOT DECREASING NORMALLY
   if surplus_flag:
     group.accept_surplus = 1
     log.info("Switching on accept surplus for %s", group.name)
@@ -258,12 +261,13 @@ def group_surplus_check(group):
       group.accept_surplus = 1
     log.info("Name: %s, accept_surplus: %d", group.name, group.accept_surplus) 
     
-
+# DETERMINES IF LOWER PRIORITY SURPLUS IS AVAILABLE
 def lower_priority_surplus_available(group, siblings):
   lesser_priority_list = (x for x in siblings if x.priority<group.priority)
   if sum(1 for _ in lesser_priority_list) == 0:
     log.info("#Its the lowest priority group,")
     return True
+  # After checking the sum, the list is empty, repopulate
   lesser_priority_list = (x for x in siblings if x.priority<group.priority)
   for x in lesser_priority_list:
     if x.accept_surplus == 0:
@@ -273,16 +277,18 @@ def lower_priority_surplus_available(group, siblings):
   log.info("#Surplus not available in lower priority,")
   return False
 
+# DETERMINES IF HIGHER PRIORITY SURPLUS IS AVAILABLE
 def higher_priority_surplus_available(group, siblings):
+  greater_priority_list = (x for x in siblings if x.priority>group.priority)
+  if sum(1 for _ in greater_priority_list)  == 0:
+    log.info("#Its the highest priority group,"),
+    return False
+  # After checking the sum, the list is empty, repopulate
   greater_priority_list = (x for x in siblings if x.priority>group.priority)
   for x in greater_priority_list:
     if x.accept_surplus == 1:
       log.info("#Surplus flag found in higher priority group,")
       return False
-  greater_priority_list = (x for x in siblings if x.priority>group.priority)
-  if sum(1 for _ in greater_priority_list)  == 0:
-    log.info("#Its the highest priority group,"),
-    return False
   return True
 
 def compare_children_surplus(parent):
@@ -292,6 +298,8 @@ def compare_children_surplus(parent):
     log.info("#Name: %s, accept_surplus: %d, priority: %d", x.name, x.accept_surplus, x.priority)
   log.info("#")
   log.info("#Comparing Surplus For Children of Parent %s", parent.name)
+  
+  # BEGIN COMPARISONS BY SORTING BY PRIORITY IN DESCENDING ORDER
   for group in sorted(parent.children.values(), key=lambda x: x.priority, reverse = True):
     log.info("#Checking: " + group.name + ","),
     
@@ -314,6 +322,7 @@ def compare_children_surplus(parent):
       break
     
     else:
+      # HANDLES PARENTS AND LEAVES DIFFERENTLY
       for x in parent.children.values():
 	if x.children:	# If the node has children, all set to 0
 	  log.info("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
