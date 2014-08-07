@@ -62,7 +62,7 @@ set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s
 
 ########################### LOGGING INFO ###########################
 
-logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/atlasSurplus.log"
+logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/surplusLimitedLog.log"
 
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
                     filename=None if '-d' in sys.argv else logfile,
