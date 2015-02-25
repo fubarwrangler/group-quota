@@ -40,7 +40,7 @@ log = logging.getLogger('quota_update')
 log.setLevel(logging.DEBUG)
 
 # Needed to run reconfig command below
-os.environ['CONDOR_CONFIG'] = '/etc/condor/condor_config.atlas'
+os.environ['EXTRA_CFG_D'] = '/etc/condor/atlas.d/'
 
 
 class Group(object):

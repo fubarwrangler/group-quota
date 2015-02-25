@@ -36,7 +36,7 @@ if not db_groups:
 
 # get info from condor
 proc = subprocess.Popen(["condor_status",  "-pool",  "condor03.usatlas.bnl.gov:9660",
-                         "-constraint",  "TARGET.AccountingGroup =!= UNDEFINED",
+                         "-constraint",  "AccountingGroup =!= UNDEFINED",
                          "-format",  "%s ",  "AccountingGroup", "-format",
                          "%s\\n", "Cpus"], stdout=subprocess.PIPE)
 
