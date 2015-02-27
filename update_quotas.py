@@ -25,6 +25,7 @@ import subprocess, smtplib
 import logging, tempfile, shutil
 import optparse, re, time
 from email.MIMEText import MIMEText
+from email.utils import formatdate
 import MySQLdb
 
 DB_TABLE    = "atlas_group_quotas"
@@ -244,6 +245,7 @@ reconfigured to use the new quotas indicated on the page above.
     msg['From'] = "root@condor03"
     msg['To'] = address
     msg['Subject'] = "Group quotas changed"
+    msg['Date'] = formatdate(localtime=True)
     try:
         smtp_server = smtplib.SMTP('rcf.rhic.bnl.gov', 25)
         smtp_server.sendmail(msg['From'], msg['To'], msg.as_string())
