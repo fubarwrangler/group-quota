@@ -23,11 +23,11 @@
 #    new values, if changed#
 #
 # Simplified Order:
-#	1. Create tree
-#	2. Set group_grid surplus
-#	3. First pass: Determine the queue amounts for each node
-#	4. Second pass. Determine the surplus flags based upon demand and priority
-#	5. Set new flag values, if possible(no flag flapping)
+#       1. Create tree
+#       2. Set group_grid surplus
+#       3. First pass: Determine the queue amounts for each node
+#       4. Second pass. Determine the surplus flags based upon demand and priority
+#       5. Set new flag values, if possible(no flag flapping)
 #
 #
 # By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- Updated 7/25/14
@@ -87,26 +87,26 @@ log = logging.getLogger()
 ####### OPEN MySQL DATABASE FOR SCRIPT USE, CLOSE AT THE END#######
 try:
   con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass,
-			db=database)
+                        db=database)
 except MySQLdb.Error as E:
   log.error("Error connecting to database: %s" % E)
 cur = con.cursor()
 ###################################################################
 
 ##################################### FOR DEBUGGING ######################################
-# Populates the group_list with the names of the tree leaves for debugging		 #
-def get_group_list():								 	 #
-  # OBTAIN LIST OF GROUPS WITH PRIORITY > 0						 #
-  cur.execute(get_Mysql_priority_list % (group_name, dbtable))				 #
-  results = [i[0] for i in cur.fetchall()]						 #
-  for x in results:									 #
-    group_list.append(x)								 #
-											 #
-# Used for info and debugging								 #
-def get_surplus(name):									 #
-  cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))		 #
-  value = cur.fetchone()[0]								 #
-  return value										 #
+# Populates the group_list with the names of the tree leaves for debugging               #
+def get_group_list():                                                                    #
+  # OBTAIN LIST OF GROUPS WITH PRIORITY > 0                                              #
+  cur.execute(get_Mysql_priority_list % (group_name, dbtable))                           #
+  results = [i[0] for i in cur.fetchall()]                                               #
+  for x in results:                                                                      #
+    group_list.append(x)                                                                 #
+                                                                                         #
+# Used for info and debugging                                                            #
+def get_surplus(name):                                                                   #
+  cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))               #
+  value = cur.fetchone()[0]                                                              #
+  return value                                                                           #
 ##########################################################################################
 
 # Gets the average queue amount for the group over the past hour
@@ -130,8 +130,8 @@ def get_past_hour_queue_amounts(name):
 # is not detected without the ability to decipher whether it is an issue or not.
 def check_for_spike(group, avg, threshold):
 
-  spike_flag = False	# Used to detect a spike...obviously...
-  surplus_flag = False	# Used to adjust surplus at the end of the function should a non-reducing spike be detected
+  spike_flag = False    # Used to detect a spike...obviously...
+  surplus_flag = False  # Used to adjust surplus at the end of the function should a non-reducing spike be detected
   amounts = get_past_hour_queue_amounts(group.name)
   length = len(amounts)
 
@@ -150,7 +150,7 @@ def check_for_spike(group, avg, threshold):
   if avg < threshold*10: # Queue limit for spike check
     max_index = 0
     max_difference = 0
-    limitCheck = threshold*spike_multiplier	#currently set at 2
+    limitCheck = threshold*spike_multiplier     #currently set at 2
 
     test = [x - amounts[i - 1] for i, x in enumerate(amounts)][1:]
     # Index used for testing
@@ -168,64 +168,64 @@ def check_for_spike(group, avg, threshold):
       i = 0
       # Search the entire hour for a Spike, only check for surplus if spike whithin first 8 values
       while i < length-1:
-	diff = amounts[i+1] - amounts[i]
+        diff = amounts[i+1] - amounts[i]
 
-	# Update max index and value
-	if diff > max_difference:
-	  max_index = i+1
-	  max_difference = diff
+        # Update max index and value
+        if diff > max_difference:
+          max_index = i+1
+          max_difference = diff
 
-	# Percent increase can only be determined when not starting at zero
-	if amounts[i] != 0:
-	  percent = round(float(diff)/float(amounts[i]), 4)
-	  percent = percent * 100
-	  log.debug("Difference between %d and %d = %d, a %d%% change.", i, i+1, diff, percent)
+        # Percent increase can only be determined when not starting at zero
+        if amounts[i] != 0:
+          percent = round(float(diff)/float(amounts[i]), 4)
+          percent = percent * 100
+          log.debug("Difference between %d and %d = %d, a %d%% change.", i, i+1, diff, percent)
 
-	  if percent < 0:
-	    log.debug('DECREASE DETECTED')
+          if percent < 0:
+            log.debug('DECREASE DETECTED')
 
-	  elif percent >= 500:
-	    if amounts[i+1] >= limitCheck:
-	      spike_flag = True
+          elif percent >= 500:
+            if amounts[i+1] >= limitCheck:
+              spike_flag = True
 
-	      # Only check first 8 for surplus flag
-	      if i < 7:
-		log.debug('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
-		log.debug("Spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1])
+              # Only check first 8 for surplus flag
+              if i < 7:
+                log.debug('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
+                log.debug("Spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1])
 
-		# check the whether the maximum spike has reduced sufficiently compared to the most recent value
-		if amounts[max_index]*reduce_mod > amounts[length-1]:
-		  log.debug('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
-		  surplus_flag = False
-		else:
-		  log.debug('SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
-		  surplus_flag = True
+                # check the whether the maximum spike has reduced sufficiently compared to the most recent value
+                if amounts[max_index]*reduce_mod > amounts[length-1]:
+                  log.debug('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
+                  surplus_flag = False
+                else:
+                  log.debug('SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
+                  surplus_flag = True
 
-	    else:
-	      log.debug('HIGH PERCENTAGE, LOW VALUE. NOT A SPIKE')
+            else:
+              log.debug('HIGH PERCENTAGE, LOW VALUE. NOT A SPIKE')
 
-	  else:
-	    log.debug('NOT A SPIKE')
+          else:
+            log.debug('NOT A SPIKE')
 
-	## STARTING AT ZERO DIFFERENCE MUST BE GREATER THAN SPIKE THRESHOLD
-	else:
-	  log.debug("Since previous value 0, Difference between %d and %d = %d", i, i+1, diff)
-	  if diff > limitCheck:
-	    spike_flag = True
+        ## STARTING AT ZERO DIFFERENCE MUST BE GREATER THAN SPIKE THRESHOLD
+        else:
+          log.debug("Since previous value 0, Difference between %d and %d = %d", i, i+1, diff)
+          if diff > limitCheck:
+            spike_flag = True
 
-	    # Only check first 8 for surplus
-	    if i < 7:
-	      log.debug('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
-	      log.debug("spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1])
-	      if amounts[max_index]*reduce_mod > amounts[length-1]:
-		log.debug('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
-		surplus_flag = False
-	      else:
-		log.debug('SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
-		surplus_flag = True
-	  else:
-	    log.debug('NOT A SPIKE')
-	i += 1
+            # Only check first 8 for surplus
+            if i < 7:
+              log.debug('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
+              log.debug("spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1])
+              if amounts[max_index]*reduce_mod > amounts[length-1]:
+                log.debug('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
+                surplus_flag = False
+              else:
+                log.debug('SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
+                surplus_flag = True
+          else:
+            log.debug('NOT A SPIKE')
+        i += 1
 
       log.debug("Max diff = %d", max_difference)
 
@@ -272,8 +272,8 @@ def lower_priority_surplus_available(group, siblings):
   for x in lesser_priority_list:
     if x.accept_surplus == 0:
       if not x.priority == 0:
-	log.debug("#Surplus available in lower priority,"),
-	return True
+        log.debug("#Surplus available in lower priority,"),
+        return True
   log.debug("#Surplus not available in lower priority,")
   return False
 
@@ -310,32 +310,32 @@ def compare_children_surplus(parent):
     if higher_priority_surplus_available(group, parent.children.values()):
       priority_list = (x for x in parent.children.values() if x.priority<group.priority)
       for x in priority_list:
-	x.accept_surplus = 0
+        x.accept_surplus = 0
       log.debug("#Flag remains 1. Setting all lower priority to 0.[DONE]")
       break
 
     elif lower_priority_surplus_available(group, parent.children.values()):
       priority_list = (x for x in parent.children.values() if x.priority<group.priority)
       for x in priority_list:
-	x.accept_surplus = 0
+        x.accept_surplus = 0
       log.debug("#Flag remains 1. Setting all lower priority to 0.[DONE]")
       break
 
     else:
       # HANDLES PARENTS AND LEAVES DIFFERENTLY
       for x in parent.children.values():
-	if x.children:	# If the node has children, all set to 0
-	  log.debug("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
-	  for x in parent.children.values():
-	    x.accept_surplus = 0
-	  break
-	else:
-	  # if the node is a leaf node, priority takes precedence
-	  log.debug("#NO AVAILABLE RESOURCES, HIGHEST GETS PRIORITY.[DONE]")
-	  priority_list = (x for x in parent.children.values() if x.priority<group.priority)
-	  for x in priority_list:
-	    x.accept_surplus = 0
-	  break
+        if x.children:  # If the node has children, all set to 0
+          log.debug("#NO AVAILABLE RESOURCES, ALL SET TO 0.[DONE]")
+          for x in parent.children.values():
+            x.accept_surplus = 0
+          break
+        else:
+          # if the node is a leaf node, priority takes precedence
+          log.debug("#NO AVAILABLE RESOURCES, HIGHEST GETS PRIORITY.[DONE]")
+          priority_list = (x for x in parent.children.values() if x.priority<group.priority)
+          for x in priority_list:
+            x.accept_surplus = 0
+          break
       break
 
   log.debug("#")
@@ -361,13 +361,13 @@ def calculateQueues(root):
     visited.append(node)
     for node in children:
       if node not in visited:
-	visit_recursion(node, visited)
-	if node.children:
-	  # if backtracking and node has children, sum them
-	  calcParentQueues(node)
-	# else if leaf node, set the surplus accordingly
-	elif not node.children and node.priority > 0:
-	  group_surplus_check(node)
+        visit_recursion(node, visited)
+        if node.children:
+          # if backtracking and node has children, sum them
+          calcParentQueues(node)
+        # else if leaf node, set the surplus accordingly
+        elif not node.children and node.priority > 0:
+          group_surplus_check(node)
   # Begin search with empty visited list
   visit_recursion(root, [])
 
@@ -382,9 +382,9 @@ def parent_surplus_check(parent):
     sibling_list = (x for x in parent.parent.children.values() if x.name!=parent.name)
     for x in sibling_list:
       if x.queue > 0:
-	log.debug("#Group: %s, Demand found in sibling, set surplus to 0", parent.name)
-	parent.accept_surplus = 0
-	return
+        log.debug("#Group: %s, Demand found in sibling, set surplus to 0", parent.name)
+        parent.accept_surplus = 0
+        return
     log.debug("#Group: %s, Siblings allow demand, set surplus to 1", parent.name)
     parent.accept_surplus = 1
     return
@@ -396,11 +396,11 @@ def comparison_traversal(root):
     visited.append(node)
     for node in children:
       if node not in visited:
-	visit_recursion(node, visited)
-	if node.children:
-	  # if backtracking and node has children, compare them
-	  parent_surplus_check(node)
-	  compare_children_surplus(node)
+        visit_recursion(node, visited)
+        if node.children:
+          # if backtracking and node has children, compare them
+          parent_surplus_check(node)
+          compare_children_surplus(node)
   # Begin search with empty visited list
   visit_recursion(root, [])
   # final compare of root's children -- currently atlas and grid
@@ -428,11 +428,11 @@ def do_main():
   set_group_grid(root)
 
   ############## FOR DEBUG ##############
-  get_group_list()			#
+  get_group_list()                      #
   group_list.sort()
-  for x in group_list:			#
-    avg = get_average_hour_queue(x)	#
-    log.debug(x + ' AVG.: ' + str(avg))	#
+  for x in group_list:                  #
+    avg = get_average_hour_queue(x)     #
+    log.debug(x + ' AVG.: ' + str(avg)) #
   #######################################
 
   # Step 3.
@@ -447,10 +447,10 @@ def do_main():
   comparison_traversal(tree)
 
   ################## FOR DEBUG ##################
-  log.info("Demand:")				#
-  for x in group_list:				#
-    group = root.get_by_name(x)			#
-    log.info(x + ': ' + str(group.queue))	#
+  log.info("Demand:")                           #
+  for x in group_list:                          #
+    group = root.get_by_name(x)                 #
+    log.info(x + ': ' + str(group.queue))       #
   ###############################################
 
   # Step 5.
@@ -459,11 +459,11 @@ def do_main():
 
 
   ################## FOR DEBUG ##################
-  log.info("")  				#
-  log.info("Surplus After Check")		#
-  for x in group_list:				#
-    log.info(x + ': ' + str(get_surplus(x)))	#
-  log.info("")					#
+  log.info("")                                  #
+  log.info("Surplus After Check")               #
+  for x in group_list:                          #
+    log.info(x + ': ' + str(get_surplus(x)))    #
+  log.info("")                                  #
   ###############################################
 
   cur.close()
