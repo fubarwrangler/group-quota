@@ -63,13 +63,12 @@ dbpass = 'atlas'
 # Table Fields for ease of future modification in case they are changed
 group_name = 'group_name'
 quota = 'quota'
-priority = 'priority'
+priority = 'weight'
 accept_surplus = 'accept_surplus'
 busy = 'busy'
 last_update = 'last_update'
 amount_in_queue = 'amount_in_queue'
 query_time = 'query_time'
-priority = 'priority'
 
 # MySQL variable getters and setters
 get_Mysql_groups = 'SELECT %s FROM %s;'

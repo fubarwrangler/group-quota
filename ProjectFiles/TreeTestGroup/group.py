@@ -47,7 +47,7 @@ dbpass = 'atlas'
 # Table Fields for ease of future modification in case they are changed
 group_name = 'group_name'
 quota = 'quota'
-priority = 'priority'
+priority = 'weight'
 accept_surplus = 'accept_surplus'
 busy = 'busy'
 threshold = 'surplus_threshold'
