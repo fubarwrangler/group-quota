@@ -17,7 +17,7 @@
 #    a bottom up way such that Parents' queues will always be the sum of their children.
 # 5. Second Pass. Traverse the tree using DFS. This time calculate the accept_surplus
 #    flags based upon the amount in the queue, as well as the demand of any siblings
-#    Ensures that the surplus is set in a priority based context.
+#    Ensures that the surplus is set in a weight based context.
 #    i.e. -- Multi-core before single core.
 # 6. Once the surplus values are finalized, update the data table with the
 #    new values, if changed#
@@ -26,7 +26,7 @@
 #       1. Create tree
 #       2. Set group_grid surplus
 #       3. First pass: Determine the queue amounts for each node
-#       4. Second pass. Determine the surplus flags based upon demand and priority
+#       4. Second pass. Determine the surplus flags based upon demand and weight
 #       5. Set new flag values, if possible(no flag flapping)
 #
 #
@@ -41,7 +41,7 @@ import datetime
 from group import Group
 
 ############################ VARIABLES ############################
-# List of leaf group names sorted by priority for debugging
+# List of leaf group names sorted by weight for debugging
 group_list = []
 
 # Spike multiplier used to multiply threshold and determine if queue spike is present
@@ -63,7 +63,7 @@ dbpass = 'atlas'
 # Table Fields for ease of future modification in case they are changed
 group_name = 'group_name'
 quota = 'quota'
-priority = 'weight'
+weight = 'weight'
 accept_surplus = 'accept_surplus'
 busy = 'busy'
 last_update = 'last_update'
@@ -262,15 +262,15 @@ def group_surplus_check(group):
 
 # DETERMINES IF LOWER PRIORITY SURPLUS IS AVAILABLE
 def lower_priority_surplus_available(group, siblings):
-    lesser_priority_list = (x for x in siblings if x.priority<group.priority)
+    lesser_priority_list = (x for x in siblings if x.weight<group.weight)
     if sum(1 for _ in lesser_priority_list) == 0:
         log.debug("#Its the lowest priority group,")
         return True
     # After checking the sum, the list is empty, repopulate
-    lesser_priority_list = (x for x in siblings if x.priority<group.priority)
+    lesser_priority_list = (x for x in siblings if x.weight<group.weight)
     for x in lesser_priority_list:
         if x.accept_surplus == 0:
-            if not x.priority == 0:
+            if not x.weight == 0:
                 log.debug("#Surplus available in lower priority,"),
                 return True
     log.debug("#Surplus not available in lower priority,")
@@ -278,12 +278,12 @@ def lower_priority_surplus_available(group, siblings):
 
 # DETERMINES IF HIGHER PRIORITY SURPLUS IS AVAILABLE
 def higher_priority_surplus_available(group, siblings):
-    greater_priority_list = (x for x in siblings if x.priority>group.priority)
+    greater_priority_list = (x for x in siblings if x.weight>group.weight)
     if sum(1 for _ in greater_priority_list)  == 0:
         log.debug("#Its the highest priority group,"),
         return False
     # After checking the sum, the list is empty, repopulate
-    greater_priority_list = (x for x in siblings if x.priority>group.priority)
+    greater_priority_list = (x for x in siblings if x.weight>group.weight)
     for x in greater_priority_list:
         if x.accept_surplus == 1:
             log.debug("#Surplus flag found in higher priority group,")
@@ -294,12 +294,12 @@ def compare_children_surplus(parent):
     log.debug("")
     log.debug("### Initial Values for %s ###", parent.name)
     for x in parent.children.values():
-        log.debug("#Name: %s, accept_surplus: %d, priority: %d", x.name, x.accept_surplus, x.priority)
+        log.debug("#Name: %s, accept_surplus: %d, priority: %d", x.name, x.accept_surplus, x.weight)
     log.debug("#")
     log.debug("#Comparing Surplus For Children of Parent %s", parent.name)
 
     # BEGIN COMPARISONS BY SORTING BY PRIORITY IN DESCENDING ORDER
-    for group in sorted(parent.children.values(), key=lambda x: x.priority, reverse = True):
+    for group in sorted(parent.children.values(), key=lambda x: x.weight, reverse = True):
         log.debug("#Checking: " + group.name + ","),
 
         if group.accept_surplus == 0:
@@ -307,14 +307,14 @@ def compare_children_surplus(parent):
             continue
 
         if higher_priority_surplus_available(group, parent.children.values()):
-            priority_list = (x for x in parent.children.values() if x.priority<group.priority)
+            priority_list = (x for x in parent.children.values() if x.weight<group.weight)
             for x in priority_list:
                 x.accept_surplus = 0
             log.debug("#Flag remains 1. Setting all lower priority to 0.[DONE]")
             break
 
         elif lower_priority_surplus_available(group, parent.children.values()):
-            priority_list = (x for x in parent.children.values() if x.priority<group.priority)
+            priority_list = (x for x in parent.children.values() if x.weight<group.weight)
             for x in priority_list:
                 x.accept_surplus = 0
             log.debug("#Flag remains 1. Setting all lower priority to 0.[DONE]")
@@ -329,9 +329,9 @@ def compare_children_surplus(parent):
                         x.accept_surplus = 0
                     break
                 else:
-                    # if the node is a leaf node, priority takes precedence
+                    # if the node is a leaf node, weight takes precedence
                     log.debug("#NO AVAILABLE RESOURCES, HIGHEST GETS PRIORITY.[DONE]")
-                    priority_list = (x for x in parent.children.values() if x.priority<group.priority)
+                    priority_list = (x for x in parent.children.values() if x.weight<group.weight)
                     for x in priority_list:
                         x.accept_surplus = 0
                     break
@@ -365,7 +365,7 @@ def calculateQueues(root):
                     # if backtracking and node has children, sum them
                     calcParentQueues(node)
                 # else if leaf node, set the surplus accordingly
-                elif not node.children and node.priority > 0:
+                elif not node.children and node.weight > 0:
                     group_surplus_check(node)
     # Begin search with empty visited list
     visit_recursion(root, [])
@@ -442,7 +442,7 @@ def do_main():
 
     # Step 4.
     # DFS to visit each node, setting surplus values based upon
-    # priority and demand
+    # weight and demand
     comparison_traversal(tree)
 
     ################## FOR DEBUG ##################

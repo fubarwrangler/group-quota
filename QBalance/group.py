@@ -47,7 +47,7 @@ dbpass = 'atlas'
 # Table Fields for ease of future modification in case they are changed
 group_name = 'group_name'
 quota = 'quota'
-priority = 'weight'
+weight = 'weight'
 accept_surplus = 'accept_surplus'
 busy = 'busy'
 threshold = 'surplus_threshold'
@@ -129,7 +129,7 @@ class Group(object):
 
         self.name = name
         self.queue = 0
-        self.priority = None
+        self.weight = None
         self.accept_surplus = None
         self.threshold = None
 
@@ -146,9 +146,9 @@ class Group(object):
                 return None
 
             cur = con.cursor()
-            # OBTAIN Priority
-            cur.execute(get_Mysql_Val % (priority, dbtable, group_name, name))
-            self.priority = cur.fetchone()[0]
+            # OBTAIN weight
+            cur.execute(get_Mysql_Val % (weight, dbtable, group_name, name))
+            self.weight = cur.fetchone()[0]
             # OBTAIN ACCEPT_SURPLUS
             cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))
             self.accept_surplus = cur.fetchone()[0]
@@ -189,8 +189,8 @@ class Group(object):
 
     def __str__(self):
         if self.name != '<root>': # Root has no values in table
-            return '%s: quota: %d, priority: %d, surplus: %s, threshold: %d' % \
-                        (self.name, self.quota, self.priority, self.accept_surplus, self.threshold)
+            return '%s: quota: %d, weight: %d, surplus: %s, threshold: %d' % \
+                        (self.name, self.quota, self.weight, self.accept_surplus, self.threshold)
         else:
             return '%s' % \
                         (self.name)
