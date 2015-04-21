@@ -37,10 +37,9 @@
 import sys
 import MySQLdb
 import logging
-import datetime
-from group import Group
+import group as grouplib
 
-############################ VARIABLES ############################
+# ########################### VARIABLES ############################
 # List of leaf group names sorted by weight for debugging
 group_list = []
 
@@ -48,9 +47,7 @@ group_list = []
 spike_multiplier = 2
 
 # Rapid reduction modifier, to determine if the amount has decreased the necessary percentage
-reduce_mod = .875 # Checks if the spike has dropped by 1/4
-
-logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/atlasSurplus.log"
+reduce_mod = .875  # Checks if the spike has dropped by 1/4S
 
 # Database parameters
 dbtable = 'atlas_group_quotas'
@@ -77,22 +74,18 @@ get_Mysql_queue_avg = 'SELECT AVG(%s) FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW(
 get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
 get_Mysql_priority_list = 'SELECT %s FROM %s;'
 
-logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
-                                        filename=None if '-d' in sys.argv else logfile,
-                                        level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
-
 log = logging.getLogger()
 
-####### OPEN MySQL DATABASE FOR SCRIPT USE, CLOSE AT THE END#######
+# ###### OPEN MySQL DATABASE FOR SCRIPT USE, CLOSE AT THE END#######
 try:
     con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass,
-                                                db=database)
+                          db=database)
 except MySQLdb.Error as E:
     log.error("Error connecting to database: %s" % E)
 cur = con.cursor()
-###################################################################
 
-##################################### FOR DEBUGGING ######################################
+
+# #################################### FOR DEBUGGING ######################################
 # Populates the group_list with the names of the tree leaves for debugging               #
 def get_group_list():                                                                    #
     # OBTAIN LIST OF GROUPS WITH PRIORITY > 0                                              #
@@ -100,7 +93,8 @@ def get_group_list():                                                           
     results = [i[0] for i in cur.fetchall()]                                               #
     for x in results:                                                                      #
         group_list.append(x)                                                                 #
-                                                                                                                                                                                 #
+
+
 # Used for info and debugging                                                            #
 def get_surplus(name):                                                                   #
     cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))               #
@@ -108,11 +102,13 @@ def get_surplus(name):                                                          
     return value                                                                           #
 ##########################################################################################
 
+
 # Gets the average queue amount for the group over the past hour
 def get_average_hour_queue(name):
     cur.execute(get_Mysql_queue_avg % (amount_in_queue, queue_log_table, query_time, group_name, name))
     average = cur.fetchone()[0]
     return average
+
 
 # Returns a list of the queue amounts for the specified group over the past hour to analyze
 def get_past_hour_queue_amounts(name):
@@ -122,6 +118,7 @@ def get_past_hour_queue_amounts(name):
     for x in results:
         queue_amounts.append(x)
     return queue_amounts
+
 
 # In order to account for the rapid depletion of a large spike occuring
 # without any necessary changes, only check the difference between the
@@ -134,14 +131,14 @@ def check_for_spike(group, avg, threshold):
     amounts = get_past_hour_queue_amounts(group.name)
     length = len(amounts)
 
-    #Prevents any nodes not in the queue_log from being checked, such as group_grid
+    # Prevents any nodes not in the queue_log from being checked, such as group_grid
     if length == 0:
         return True
 
-    #Sets the leaf queue amount to the most recent value
+    # Sets the leaf queue amount to the most recent value
     group.queue = amounts[length-1]
 
-    ## For Debug purposes ##
+    # # For Debug purposes ##
     log.debug("Checking spike for  %s.", group.name)
     log.debug("AVERAGE: %d, THRESHOLD: %d * 10 = %d", avg, threshold, threshold*10)
     #########################
@@ -155,12 +152,12 @@ def check_for_spike(group, avg, threshold):
         # Index used for testing
         index = test.index(max(test[0:7]))
 
-        log.debug("MAX DIFFERENCE IN FIRST 8 VALUES: %d, at Amount time: %d", max(test[0:7]), index+1)
-        log.debug("Spike Threshold = %d",limitCheck)
+        log.debug("MAX DIFFERENCE IN FIRST 8 VALUES: %d, at Amount time: %d", max(test[0:7]), index + 1)
+        log.debug("Spike Threshold = %d", limitCheck)
 
 
         # Check all values for a spike in order to allow a late spike to be checked before reacting to soon
-        if max(test) < limitCheck: # if all values are too low, no need to do any extra work
+        if max(test) < limitCheck:  # if all values are too low, no need to do any extra work
             log.debug('NO POSSIBLE SPIKES FOUND')
         else:
             log.debug('POSSIBLE SPIKE IN LAST HOUR')
@@ -208,7 +205,7 @@ def check_for_spike(group, avg, threshold):
 
                 ## STARTING AT ZERO DIFFERENCE MUST BE GREATER THAN SPIKE THRESHOLD
                 else:
-                    log.debug("Since previous value 0, Difference between %d and %d = %d", i, i+1, diff)
+                    log.debug("Since previous value 0, Difference between %d and %d = %d", i, i + 1, diff)
                     if diff > limitCheck:
                         spike_flag = True
 
@@ -239,6 +236,7 @@ def check_for_spike(group, avg, threshold):
 
     return spike_flag
 
+
 def group_surplus_check(group):
         avg = get_average_hour_queue(group.name)
         log.debug("")
@@ -260,14 +258,15 @@ def group_surplus_check(group):
             group.accept_surplus = 1
         log.debug("Name: %s, accept_surplus: %d", group.name, group.accept_surplus)
 
+
 # DETERMINES IF LOWER PRIORITY SURPLUS IS AVAILABLE
 def lower_priority_surplus_available(group, siblings):
-    lesser_priority_list = (x for x in siblings if x.weight<group.weight)
+    lesser_priority_list = (x for x in siblings if x.weight < group.weight)
     if sum(1 for _ in lesser_priority_list) == 0:
         log.debug("#Its the lowest priority group,")
         return True
     # After checking the sum, the list is empty, repopulate
-    lesser_priority_list = (x for x in siblings if x.weight<group.weight)
+    lesser_priority_list = (x for x in siblings if x.weight < group.weight)
     for x in lesser_priority_list:
         if x.accept_surplus == 0:
             if not x.weight == 0:
@@ -276,19 +275,21 @@ def lower_priority_surplus_available(group, siblings):
     log.debug("#Surplus not available in lower priority,")
     return False
 
+
 # DETERMINES IF HIGHER PRIORITY SURPLUS IS AVAILABLE
 def higher_priority_surplus_available(group, siblings):
-    greater_priority_list = (x for x in siblings if x.weight>group.weight)
-    if sum(1 for _ in greater_priority_list)  == 0:
+    greater_priority_list = (x for x in siblings if x.weight > group.weight)
+    if sum(1 for _ in greater_priority_list) == 0:
         log.debug("#Its the highest priority group,"),
         return False
     # After checking the sum, the list is empty, repopulate
-    greater_priority_list = (x for x in siblings if x.weight>group.weight)
+    greater_priority_list = (x for x in siblings if x.weight > group.weight)
     for x in greater_priority_list:
         if x.accept_surplus == 1:
             log.debug("#Surplus flag found in higher priority group,")
             return False
     return True
+
 
 def compare_children_surplus(parent):
     log.debug("")
@@ -299,7 +300,7 @@ def compare_children_surplus(parent):
     log.debug("#Comparing Surplus For Children of Parent %s", parent.name)
 
     # BEGIN COMPARISONS BY SORTING BY PRIORITY IN DESCENDING ORDER
-    for group in sorted(parent.children.values(), key=lambda x: x.weight, reverse = True):
+    for group in sorted(parent.children.values(), key=lambda x: x.weight, reverse=True):
         log.debug("#Checking: " + group.name + ","),
 
         if group.accept_surplus == 0:
@@ -307,14 +308,14 @@ def compare_children_surplus(parent):
             continue
 
         if higher_priority_surplus_available(group, parent.children.values()):
-            priority_list = (x for x in parent.children.values() if x.weight<group.weight)
+            priority_list = (x for x in parent.children.values() if x.weight < group.weight)
             for x in priority_list:
                 x.accept_surplus = 0
             log.debug("#Flag remains 1. Setting all lower priority to 0.[DONE]")
             break
 
         elif lower_priority_surplus_available(group, parent.children.values()):
-            priority_list = (x for x in parent.children.values() if x.weight<group.weight)
+            priority_list = (x for x in parent.children.values() if x.weight < group.weight)
             for x in priority_list:
                 x.accept_surplus = 0
             log.debug("#Flag remains 1. Setting all lower priority to 0.[DONE]")
@@ -331,7 +332,7 @@ def compare_children_surplus(parent):
                 else:
                     # if the node is a leaf node, weight takes precedence
                     log.debug("#NO AVAILABLE RESOURCES, HIGHEST GETS PRIORITY.[DONE]")
-                    priority_list = (x for x in parent.children.values() if x.weight<group.weight)
+                    priority_list = (x for x in parent.children.values() if x.weight < group.weight)
                     for x in priority_list:
                         x.accept_surplus = 0
                     break
@@ -345,6 +346,7 @@ def compare_children_surplus(parent):
     log.debug("")
     return
 
+
 # Sums the children's queue amounts to set the parent's queue amount
 def calcParentQueues(parent):
     child_queue_sum = 0
@@ -352,6 +354,7 @@ def calcParentQueues(parent):
         child_queue_sum = child_queue_sum + group.queue
     parent.queue = child_queue_sum
     return
+
 
 # DFS which sets the childrens queue amounts, and then sum for their parents
 def calculateQueues(root):
@@ -378,7 +381,7 @@ def parent_surplus_check(parent):
         parent.accept_surplus = 0
         log.debug("#Group: %s, Sum of children's queues = 0, set surplus to 0", parent.name)
     else:
-        sibling_list = (x for x in parent.parent.children.values() if x.name!=parent.name)
+        sibling_list = (x for x in parent.parent.children.values() if x.name != parent.name)
         for x in sibling_list:
             if x.queue > 0:
                 log.debug("#Group: %s, Demand found in sibling, set surplus to 0", parent.name)
@@ -387,6 +390,7 @@ def parent_surplus_check(parent):
         log.debug("#Group: %s, Siblings allow demand, set surplus to 1", parent.name)
         parent.accept_surplus = 1
         return
+
 
 # Comparison traversal, from the bottom up
 def comparison_traversal(root):
@@ -405,6 +409,7 @@ def comparison_traversal(root):
     # final compare of root's children -- currently atlas and grid
     compare_children_surplus(root)
 
+
 # Initialize group_grid accept_surplus flag to '1'
 def set_group_grid(root):
     group = root.get_by_name('group_grid')
@@ -416,7 +421,7 @@ def do_main():
     log.debug("############################## SURPLUS QUERY ##############################")
 
     # Set root
-    root = Group('<root>')
+    root = grouplib.Group('<root>')
 
     # Step 1.
     # Create Group Tree Structure from Table
@@ -426,13 +431,13 @@ def do_main():
     # Initialize group_grid accept_surplus flag to '1'
     set_group_grid(root)
 
-    ############## FOR DEBUG ##############
-    get_group_list()                      #
+    # ############# FOR DEBUG ##############
+    get_group_list()
     group_list.sort()
-    for x in group_list:                  #
-        avg = get_average_hour_queue(x)     #
-        log.debug(x + ' AVG.: ' + str(avg)) #
-    #######################################
+    for x in group_list:
+        avg = get_average_hour_queue(x)
+        log.debug(x + ' AVG.: ' + str(avg))
+    # ######################################
 
     # Step 3.
     # Calulate each node's queue amount
@@ -445,23 +450,22 @@ def do_main():
     # weight and demand
     comparison_traversal(tree)
 
-    ################## FOR DEBUG ##################
+    # ################ FOR DEBUG ##################
     log.info("Demand:")                           #
     for x in group_list:                          #
-        group = root.get_by_name(x)                 #
-        log.info(x + ': ' + str(group.queue))       #
+        group = root.get_by_name(x)               #
+        log.info(x + ': ' + str(group.queue))     #
     ###############################################
 
     # Step 5.
     # Updates all the values currently in the leaves to the table
     tree.enable_surplus_changes(cur, con)
 
-
-    ################## FOR DEBUG ##################
+    # ################# FOR DEBUG ##################
     log.info("")                                  #
     log.info("Surplus After Check")               #
     for x in group_list:                          #
-        log.info(x + ': ' + str(get_surplus(x)))    #
+        log.info(x + ': ' + str(get_surplus(x)))  #
     log.info("")                                  #
     ###############################################
 

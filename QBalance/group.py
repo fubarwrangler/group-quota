@@ -33,7 +33,7 @@ import MySQLdb
 import logging
 import datetime
 
-############################ VARIABLES ############################
+# ########################### VARIABLES ############################
 # List of group names to eventually populate from Database
 group_list = []
 
@@ -60,18 +60,18 @@ get_Mysql_groups = 'SELECT %s FROM %s;'
 set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
 set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s";'
 
-########################### LOGGING INFO ###########################
+# ########################## LOGGING INFO ###########################
 
 logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/atlasSurplus.log"
 
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
-                                        filename=None if '-d' in sys.argv else logfile,
-                                        level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
+                    filename=None if '-d' in sys.argv else logfile,
+                    level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
 
 log = logging.getLogger()
 
-########################## HELPER METHODS ##########################
 
+# ######################### HELPER METHODS ##########################
 # Populates the group_list with the groups in the database
 def aquire_groups(cur, con):
     cur = con.cursor()
@@ -86,6 +86,7 @@ def get_surplus(name, cur):
     value = cur.fetchone()[0]
     return value
 
+
 # USED FOR CHECKING WHETHER THE SURPLUS FLAG HAS BEEN FLIPPED IN THE LAST HOUR
 # PREVENTS FLAPPING
 def no_recent_surplus_change(name, cur):
@@ -94,12 +95,12 @@ def no_recent_surplus_change(name, cur):
     current_time = datetime.datetime.now()
 
     diff = current_time - recent_surplus_time
-    hours,rest = divmod(diff.days*86400+diff.seconds, 3600)
+    hours, rest = divmod(diff.days*86400 + diff.seconds, 3600)
     # HOURS NOW = TIME DIFFERENCE ROUNDED DOWN TO THE HOUR
     if hours >= 1:
-        return True         #NO RECENT SURPLUS CHANGES, ABLE TO CHANGE
+        return True         # NO RECENT SURPLUS CHANGES, ABLE TO CHANGE
     else:
-        return False        #RECENT CHANGES, WAIT UNTIL ONE HOUR PASSES TO CHANGE
+        return False        # RECENT CHANGES, WAIT UNTIL ONE HOUR PASSES TO CHANGE
 
 
 def set_surplus(name, value, cur, con):
@@ -121,8 +122,8 @@ def set_surplus(name, value, cur, con):
             log.info("######### Group: %s, surplus change is allowed, however, last change #########", name)
             log.info("######### less than one hour ago. Switch cancelled to prevent flapping #########")
 
-###################################################################
 
+###################################################################
 # Group Object for group creation and tree formulation
 class Group(object):
     def __init__(self, name):
@@ -133,12 +134,12 @@ class Group(object):
         self.accept_surplus = None
         self.threshold = None
 
-        #### FOR TREE ####
+        # ### FOR TREE ####
         self.parent = None
         self.children = {}
         ###################
 
-        if name != '<root>': # IF ROOT, NO VALUES
+        if name != '<root>':  # IF ROOT, NO VALUES
             try:
                 con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass, db=database)
             except MySQLdb.Error as E:
@@ -164,7 +165,7 @@ class Group(object):
         child = Group(name)
         child.parent = self
         self.children[name] = child
-        return child # Return child node for tree creation node pointer
+        return child  # Return child node for tree creation node pointer
 
     # Recursively iterate through all lower nodes in the tree
     def walk(self):
@@ -188,12 +189,11 @@ class Group(object):
         return iter(self.walk())
 
     def __str__(self):
-        if self.name != '<root>': # Root has no values in table
+        if self.name != '<root>':  # Root has no values in table
             return '%s: quota: %d, weight: %d, surplus: %s, threshold: %d' % \
-                        (self.name, self.quota, self.weight, self.accept_surplus, self.threshold)
+                   (self.name, self.quota, self.weight, self.accept_surplus, self.threshold)
         else:
-            return '%s' % \
-                        (self.name)
+            return '%s' % (self.name)
 
     # Creates Group tree, Returns root node. Generated generically based on "." placement
     def tree_creation(self, cur, con):
@@ -208,7 +208,7 @@ class Group(object):
                 prefix = x              # Set new prefix
             elif x.startswith(prefix):
                 prefix = x              # Update prefix
-                current_node = current_node.add_child(prefix) # add and adjust
+                current_node = current_node.add_child(prefix)  # add and adjust
             else:
                 # Used to backtrack if prefix not recognized
                 while not x.startswith(prefix) & (prefix != '<root>'):
@@ -218,7 +218,7 @@ class Group(object):
                 prefix = x                              # Update prefix
         return self
 
-    # Traverse the constructed group tree and update the accept_surplus values in the table, if necessary
+    # Traverse the constructed group tree and update accept_surplus values in the table, if needed
     def enable_surplus_changes(self, cur, con):
         def child_walk(node):
             if node is not None:
