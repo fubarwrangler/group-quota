@@ -23,7 +23,7 @@
 #               tree_creation(self, cur, con):  creates the tree, for analysis
 #               enable_surplus_changes(self, cur, con): updates the data table
 #               no_recent_surplus_change(name, cur): checks for recent surplus switch
-#               (Helper methods) -- aquire_groups, get_surplus, set_surplus
+#               (Helper methods) -- acquire_groups, get_surplus, set_surplus
 #
 # By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 6/13/14 *updated 7/8/14
 #
@@ -36,17 +36,16 @@ import config as c
 
 # ########################## LOGGING INFO ###########################
 
-logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/atlasSurplus.log"
-
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
-                    filename=logfile, level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
+                    filename=c.logfile if '-d' not in sys.argv else None,
+                    level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
 
 log = logging.getLogger()
 
 
 # ######################### HELPER METHODS ##########################
 # Populates a list with the groups in the database
-def aquire_groups(con):
+def acquire_groups(con):
     cur = con.cursor()
     cur.execute("SELECT %s FROM %s" % (c.group_name, c.dbtable))
     data = cur.fetchall()
@@ -125,7 +124,7 @@ class Group(object):
 
             cur.execute('SELECT %s, %s, %s FROM %s WHERE %s="%s"' %
                         (c.weight, c.accept_surplus, c.threshold, c.dbtable, c.group_name, name))
-            self.weight, self.accept_surplus, self.threshold = cur.fetchall()
+            self.weight, self.accept_surplus, self.threshold = cur.fetchall()[0]
 
             cur.close()
             con.close()
@@ -169,7 +168,7 @@ class Group(object):
     def tree_creation(self, con):
         current_node = self         # Set node to use as pointer to root
         prefix = None               # prefix  for parent/child identification
-        for x in aquire_groups(con):
+        for x in acquire_groups(con):
             if '.' not in x:          # No '.' denotes tier 1 group
                 current_node = self     # Set current current_node to root current_node
                 current_node = current_node.add_child(x)        # add child and adjust pointer

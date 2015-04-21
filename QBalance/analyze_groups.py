@@ -405,7 +405,7 @@ def do_main():
     set_group_grid(root)
 
     # ############# FOR DEBUG ##############
-    group_list = grouplib.aquire_groups()
+    group_list = grouplib.acquire_groups(con)
     for x in group_list:
         avg = get_average_hour_queue(x)
         log.debug(x + ' AVG.: ' + str(avg))
