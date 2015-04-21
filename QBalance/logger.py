@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 # *****************************************************************************
-# Script to query PANDA for how many jobs are activated in 
+# Script to query PANDA for how many jobs are activated in
 # each queue and to update the queue_log accordingly.
 #
 #   1. Query PANDA for data queues
-#   2. Identify active queues 
+#   2. Identify active queues
 #   3. Insert the queue size into the log for each queue
 #
 # By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 6/11/14
@@ -48,7 +48,6 @@ logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
 
 log = logging.getLogger()
 
-print("\nSTART OF TEST")
 # **************************************************************************
 
 # According to J. Hover, this is the definitive test for if a queue is analysis
@@ -64,7 +63,8 @@ def get_num_activated(queue, data):
         return data[key]['activated']
     else:
         return 0
-    
+
+
 def set_current_queue(queue, amount):
     try:
         con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass,
@@ -75,7 +75,6 @@ def set_current_queue(queue, amount):
     cur = con.cursor()
     cur.execute(q_current % (dbtable, queue, amount))
     log.info("%s added to %s", queue, dbtable)
-    print('\n')
     n = cur.rowcount
     con.commit()
     cur.close()
@@ -102,13 +101,12 @@ def do_main():
         else:
             log.debug("queue %s: %s", panda_q, data)
 
-        n = get_num_activated(panda_q, data)        
+        n = get_num_activated(panda_q, data)
         log.info("%s:%s has %d activated", panda_q, queues[panda_q], n)
         set_current_queue(queues[panda_q], n)
-       
-    print("END OF TEST\n")
+
     return 0
-    
+
 
 if __name__ == '__main__':
     try:

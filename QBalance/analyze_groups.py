@@ -38,48 +38,18 @@ import sys
 import MySQLdb
 import logging
 import group as grouplib
+import config as c
 
-# ########################### VARIABLES ############################
-# List of leaf group names sorted by weight for debugging
-group_list = []
-
-# Spike multiplier used to multiply threshold and determine if queue spike is present
+# Algorithm Parameters
 spike_multiplier = 2
-
-# Rapid reduction modifier, to determine if the amount has decreased the necessary percentage
-reduce_mod = .875  # Checks if the spike has dropped by 1/4S
-
-# Database parameters
-dbtable = 'atlas_group_quotas'
-queue_log_table = 'queue_log'
-dbhost = 'old-db.rcf.bnl.gov'
-database = 'atlas_demand'
-dbuser = 'group_edit'
-dbpass = 'atlas'
-
-# Table Fields for ease of future modification in case they are changed
-group_name = 'group_name'
-quota = 'quota'
-weight = 'weight'
-accept_surplus = 'accept_surplus'
-busy = 'busy'
-last_update = 'last_update'
-amount_in_queue = 'amount_in_queue'
-query_time = 'query_time'
-
-# MySQL variable getters and setters
-get_Mysql_groups = 'SELECT %s FROM %s;'
-get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
-get_Mysql_queue_avg = 'SELECT AVG(%s) FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
-get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
-get_Mysql_priority_list = 'SELECT %s FROM %s;'
+reduce_mod = .875
 
 log = logging.getLogger()
 
 # ###### OPEN MySQL DATABASE FOR SCRIPT USE, CLOSE AT THE END#######
 try:
-    con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass,
-                          db=database)
+    con = MySQLdb.connect(host=c.dbhost, user=c.dbuser, passwd=c.dbpass,
+                          db=c.database)
 except MySQLdb.Error as E:
     log.error("Error connecting to database: %s" % E)
 cur = con.cursor()
@@ -87,17 +57,11 @@ cur = con.cursor()
 
 # #################################### FOR DEBUGGING ######################################
 # Populates the group_list with the names of the tree leaves for debugging               #
-def get_group_list():                                                                    #
-    # OBTAIN LIST OF GROUPS WITH PRIORITY > 0                                              #
-    cur.execute(get_Mysql_priority_list % (group_name, dbtable))                           #
-    results = [i[0] for i in cur.fetchall()]                                               #
-    for x in results:                                                                      #
-        group_list.append(x)                                                                 #
 
 
 # Used for info and debugging                                                            #
 def get_surplus(name):                                                                   #
-    cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))               #
+    cur.execute(c.get_Mysql_Val % (c.accept_surplus, c.dbtable, c.group_name, name))               #
     value = cur.fetchone()[0]                                                              #
     return value                                                                           #
 ##########################################################################################
@@ -105,7 +69,8 @@ def get_surplus(name):                                                          
 
 # Gets the average queue amount for the group over the past hour
 def get_average_hour_queue(name):
-    cur.execute(get_Mysql_queue_avg % (amount_in_queue, queue_log_table, query_time, group_name, name))
+    cur.execute(c.get_Mysql_queue_avg % (c.amount_in_queue, c.queue_log_table,
+                                         c.query_time, c.group_name, name))
     average = cur.fetchone()[0]
     return average
 
@@ -113,7 +78,8 @@ def get_average_hour_queue(name):
 # Returns a list of the queue amounts for the specified group over the past hour to analyze
 def get_past_hour_queue_amounts(name):
     queue_amounts = []
-    cur.execute(get_Mysql_queue_amounts % (amount_in_queue, queue_log_table, query_time, group_name, name))
+    cur.execute(c.get_Mysql_queue_amounts % (c.amount_in_queue, c.queue_log_table,
+                                             c.query_time, c.group_name, name))
     results = [i[0] for i in cur.fetchall()]
     for x in results:
         queue_amounts.append(x)
@@ -143,18 +109,18 @@ def check_for_spike(group, avg, threshold):
     log.debug("AVERAGE: %d, THRESHOLD: %d * 10 = %d", avg, threshold, threshold*10)
     #########################
 
-    if avg < threshold*10: # Queue limit for spike check
+    if avg < threshold*10:  # Queue limit for spike check
         max_index = 0
         max_difference = 0
-        limitCheck = threshold*spike_multiplier     #currently set at 2
+        limitCheck = threshold * spike_multiplier     # currently set at 2
 
         test = [x - amounts[i - 1] for i, x in enumerate(amounts)][1:]
         # Index used for testing
         index = test.index(max(test[0:7]))
 
-        log.debug("MAX DIFFERENCE IN FIRST 8 VALUES: %d, at Amount time: %d", max(test[0:7]), index + 1)
+        log.debug("MAX DIFFERENCE IN FIRST 8 VALUES: %d, at Amount time: %d",
+                  max(test[0:7]), index + 1)
         log.debug("Spike Threshold = %d", limitCheck)
-
 
         # Check all values for a spike in order to allow a late spike to be checked before reacting to soon
         if max(test) < limitCheck:  # if all values are too low, no need to do any extra work
@@ -175,8 +141,8 @@ def check_for_spike(group, avg, threshold):
                 if amounts[i] != 0:
                     percent = round(float(diff)/float(amounts[i]), 4)
                     percent = percent * 100
-                    log.debug("Difference between %d and %d = %d, a %d%% change.", i, i+1, diff, percent)
-
+                    log.debug("Difference between %d and %d = %d, a %d%% change.",
+                              i, i+1, diff, percent)
                     if percent < 0:
                         log.debug('DECREASE DETECTED')
 
@@ -187,10 +153,13 @@ def check_for_spike(group, avg, threshold):
                             # Only check first 8 for surplus flag
                             if i < 7:
                                 log.debug('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
-                                log.debug("Spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1])
+                                log.debug("Spike = %d, .875 * spike = %d, most recent value = %d",
+                                          amounts[max_index], amounts[max_index]*reduce_mod,
+                                          amounts[length-1])
 
-                                # check the whether the maximum spike has reduced sufficiently compared to the most recent value
-                                if amounts[max_index]*reduce_mod > amounts[length-1]:
+                                # check the whether the maximum spike has reduced sufficiently
+                                # compared to the most recent value
+                                if amounts[max_index] * reduce_mod > amounts[length-1]:
                                     log.debug('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
                                     surplus_flag = False
                                 else:
@@ -203,17 +172,20 @@ def check_for_spike(group, avg, threshold):
                     else:
                         log.debug('NOT A SPIKE')
 
-                ## STARTING AT ZERO DIFFERENCE MUST BE GREATER THAN SPIKE THRESHOLD
+                # STARTING AT ZERO DIFFERENCE MUST BE GREATER THAN SPIKE THRESHOLD
                 else:
-                    log.debug("Since previous value 0, Difference between %d and %d = %d", i, i + 1, diff)
+                    log.debug("Since previous value 0, Difference between %d and %d = %d",
+                              i, i + 1, diff)
                     if diff > limitCheck:
                         spike_flag = True
 
                         # Only check first 8 for surplus
                         if i < 7:
                             log.debug('SPIKE DETECTED, DETERMINING RAPID REDUCTION')
-                            log.debug("spike = %d, .875 * spike = %d, most recent value = %d", amounts[max_index], amounts[max_index]*reduce_mod, amounts[length-1])
-                            if amounts[max_index]*reduce_mod > amounts[length-1]:
+                            log.debug("spike = %d, .875 * spike = %d, most recent value = %d",
+                                      amounts[max_index], amounts[max_index]*reduce_mod,
+                                      amounts[length-1])
+                            if amounts[max_index] * reduce_mod > amounts[length - 1]:
                                 log.debug('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
                                 surplus_flag = False
                             else:
@@ -432,8 +404,7 @@ def do_main():
     set_group_grid(root)
 
     # ############# FOR DEBUG ##############
-    get_group_list()
-    group_list.sort()
+    group_list = grouplib.aquire_groups()
     for x in group_list:
         avg = get_average_hour_queue(x)
         log.debug(x + ' AVG.: ' + str(avg))

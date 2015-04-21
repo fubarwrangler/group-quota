@@ -32,33 +32,7 @@ import sys
 import MySQLdb
 import logging
 import datetime
-
-# ########################### VARIABLES ############################
-# List of group names to eventually populate from Database
-group_list = []
-
-# Database parameters
-dbtable = 'atlas_group_quotas'
-dbhost = 'old-db.rcf.bnl.gov'
-database = 'atlas_demand'
-dbuser = 'group_edit'
-dbpass = 'atlas'
-
-# Table Fields for ease of future modification in case they are changed
-group_name = 'group_name'
-quota = 'quota'
-weight = 'weight'
-accept_surplus = 'accept_surplus'
-busy = 'busy'
-threshold = 'surplus_threshold'
-last_update = 'last_update'
-last_surplus_update = 'last_surplus_update'
-
-# MySQL variable getter
-get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
-get_Mysql_groups = 'SELECT %s FROM %s;'
-set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
-set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s";'
+import config as c
 
 # ########################## LOGGING INFO ###########################
 
@@ -72,17 +46,17 @@ log = logging.getLogger()
 
 
 # ######################### HELPER METHODS ##########################
-# Populates the group_list with the groups in the database
-def aquire_groups(cur, con):
+# Populates a list with the groups in the database
+def aquire_groups(con):
     cur = con.cursor()
-    cur.execute(get_Mysql_groups % (group_name, dbtable))
-    results = [i[0] for i in cur.fetchall()]
-    for x in results:
-        group_list.append(x)
+    cur.execute("SELECT %s FROM %s" % (c.group_name, c.dbtable))
+    data = cur.fetchall()
+    cur.close()
+    return sorted([i[0] for i in data])
 
 
 def get_surplus(name, cur):
-    cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))
+    cur.execute(c.get_Mysql_Val % (c.accept_surplus, c.dbtable, c.group_name, name))
     value = cur.fetchone()[0]
     return value
 
@@ -90,7 +64,7 @@ def get_surplus(name, cur):
 # USED FOR CHECKING WHETHER THE SURPLUS FLAG HAS BEEN FLIPPED IN THE LAST HOUR
 # PREVENTS FLAPPING
 def no_recent_surplus_change(name, cur):
-    cur.execute(get_Mysql_Val % (last_surplus_update, dbtable, group_name, name))
+    cur.execute(c.get_Mysql_Val % (c.last_surplus_update, c.dbtable, c.group_name, name))
     recent_surplus_time = cur.fetchone()[0]
     current_time = datetime.datetime.now()
 
@@ -113,9 +87,11 @@ def set_surplus(name, value, cur, con):
             log.info("###########################################################################")
             log.info("######### Changing surplus of %s from %d to %d #########", name, check, value)
             log.info("###########################################################################")
-            cur.execute(set_Mysql_surplus % (dbtable, accept_surplus, value, group_name, name))
+            cur.execute(c.set_Mysql_surplus % (c.dbtable, c.accept_surplus, value,
+                                               c.group_name, name))
             con.commit()
-            cur.execute(set_Mysql_last_surplus_update % (dbtable, last_surplus_update, group_name, name))
+            cur.execute(c.set_Mysql_last_surplus_update % (c.dbtable, c.last_surplus_update,
+                                                           c.group_name, name))
             con.commit()
         else:
             log.info("")
@@ -141,21 +117,16 @@ class Group(object):
 
         if name != '<root>':  # IF ROOT, NO VALUES
             try:
-                con = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass, db=database)
+                con = MySQLdb.connect(host=c.dbhost, user=c.dbuser, passwd=c.dbpass, db=c.database)
             except MySQLdb.Error as E:
                 log.error("Error connecting to database: %s" % E)
                 return None
 
             cur = con.cursor()
-            # OBTAIN weight
-            cur.execute(get_Mysql_Val % (weight, dbtable, group_name, name))
-            self.weight = cur.fetchone()[0]
-            # OBTAIN ACCEPT_SURPLUS
-            cur.execute(get_Mysql_Val % (accept_surplus, dbtable, group_name, name))
-            self.accept_surplus = cur.fetchone()[0]
-            # OBTAIN THRESHOLD
-            cur.execute(get_Mysql_Val % (threshold, dbtable, group_name, name))
-            self.threshold = cur.fetchone()[0]
+
+            cur.execute('SELECT %s, %s, %s FROM %s WHERE %s="%s"' %
+                        (c.weight, c.accept_surplus, c.threshold, c.dbtable, c.group_name, name))
+            self.weight, self.accept_surplus, self.threshold = cur.fetchall()
 
             cur.close()
             con.close()
@@ -196,12 +167,10 @@ class Group(object):
             return '%s' % (self.name)
 
     # Creates Group tree, Returns root node. Generated generically based on "." placement
-    def tree_creation(self, cur, con):
-        aquire_groups(cur, con)     # Populate group_list
-        group_list.sort()           # Sort list
+    def tree_creation(self, con):
         current_node = self         # Set node to use as pointer to root
         prefix = None               # prefix  for parent/child identification
-        for x in group_list:
+        for x in aquire_groups(con):
             if '.' not in x:          # No '.' denotes tier 1 group
                 current_node = self     # Set current current_node to root current_node
                 current_node = current_node.add_child(x)        # add child and adjust pointer
