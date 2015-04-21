@@ -37,6 +37,7 @@
 import sys
 import MySQLdb
 import logging
+
 import group as grouplib
 import config as c
 
@@ -397,7 +398,7 @@ def do_main():
 
     # Step 1.
     # Create Group Tree Structure from Table
-    tree = root.tree_creation(cur, con)
+    tree = root.tree_creation(con)
 
     # Step 2.
     # Initialize group_grid accept_surplus flag to '1'

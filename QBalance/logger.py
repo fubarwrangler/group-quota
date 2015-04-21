@@ -40,7 +40,7 @@ dbpass = 'atlas'
 
 q_current = 'INSERT INTO %s VALUES ("%s", %d, NOW())'
 
-logfile = "/home/mvjensen/dynamicgroups/Logger/queueLog.log"
+logfile = "/home/mvjensen/queueLog.log"
 
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
                     filename=None if '-d' in sys.argv else logfile,

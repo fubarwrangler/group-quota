@@ -39,8 +39,7 @@ import config as c
 logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/atlasSurplus.log"
 
 logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
-                    filename=None if '-d' in sys.argv else logfile,
-                    level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
+                    filename=logfile, level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
 
 log = logging.getLogger()
 

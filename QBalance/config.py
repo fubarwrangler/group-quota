@@ -18,7 +18,7 @@ query_time = 'query_time'
 queue_log_table = 'queue_log'
 quota = 'quota'
 threshold = 'surplus_threshold'
-weight = 'weight'
+weight = 'priority'
 
 # Query Skeletons
 get_Mysql_groups = 'SELECT %s FROM %s;'
@@ -31,4 +31,4 @@ set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s
 set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
 
 
-logfile = "/home/mvjensen/dynamicgroups/TreeTestGroup/atlasSurplus.log"
+logfile = "/home/mvjensen/atlasSurplus.log"
