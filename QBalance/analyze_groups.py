@@ -38,12 +38,20 @@ import sys
 import MySQLdb
 import logging
 
-import group as grouplib
 import config as c
 
 # Algorithm Parameters
 spike_multiplier = 2
 reduce_mod = .875
+
+# ########################## LOGGING INFO ###########################
+
+logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
+                    filename=c.logfile if '-d' not in sys.argv else None,
+                    level=logging.DEBUG)
+
+
+import group as grouplib
 
 log = logging.getLogger()
 

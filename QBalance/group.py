@@ -28,17 +28,11 @@
 # By: Mark Jensen -- mvjensen@rcf.rhic.bnl.gov -- 6/13/14 *updated 7/8/14
 #
 # *****************************************************************************
-import sys
 import MySQLdb
 import logging
 import datetime
 import config as c
 
-# ########################## LOGGING INFO ###########################
-
-logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
-                    filename=c.logfile if '-d' not in sys.argv else None,
-                    level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
 
 log = logging.getLogger()
 
