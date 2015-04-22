@@ -20,6 +20,21 @@ quota = 'quota'
 threshold = 'surplus_threshold'
 weight = 'priority'
 
+
+# **************** Configuration variables and information *****************
+panda_server = "https://pandaserver.cern.ch:25443"
+web_path = "/server/panda/getJobStatisticsWithLabel"
+
+# Queues to watch, map of PANDA Name -> Condor Group name
+queues = {
+    'BNL_PROD_MCORE': 'group_atlas.prod.mp',
+    'BNL_ATLAS_2': 'group_atlas.prod.test',
+    'BNL_PROD': 'group_atlas.prod.production',
+    'ANALY_BNL_SHORT': 'group_atlas.analysis.short',
+    'ANALY_BNL_LONG': 'group_atlas.analysis.long',
+}
+
+
 # Query Skeletons
 get_Mysql_groups = 'SELECT %s FROM %s;'
 get_Mysql_priority_list = 'SELECT %s FROM %s;'
