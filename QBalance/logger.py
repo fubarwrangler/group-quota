@@ -47,8 +47,8 @@ def get_num_activated(queue, data):
 
 def set_current_queue(con, queue, amount):
     cur = con.cursor()
-    cur.execute('INSERT INTO '+c.log_dbtable+' VALUES (%s, %s, NOW())', (queue, amount))
-    log.info("%s added to %s", queue, c.log_dbtable)
+    cur.execute('INSERT INTO '+c.queue_log_table+' VALUES (%s, %s, NOW())', (queue, amount))
+    log.info("%s added to %s", queue, c.queue_log_table)
     n = cur.rowcount
     con.commit()
     cur.close()
@@ -67,7 +67,7 @@ def do_main():
         return 1
 
     try:
-        con = MySQLdb.connect(host=c.queue_log_table, user=c.dbuser, passwd=c.dbpass,
+        con = MySQLdb.connect(host=c.dbhost, user=c.dbuser, passwd=c.dbpass,
                               db=c.database)
     except MySQLdb.Error as E:
         log.error("Error connecting to database: %s" % E)

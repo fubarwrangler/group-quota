@@ -34,12 +34,14 @@ queues = {
     'ANALY_BNL_LONG': 'group_atlas.analysis.long',
 }
 
+# Hours to look back for last change
+lookback = 1
 
 # Query Skeletons
 get_Mysql_groups = 'SELECT %s FROM %s;'
 get_Mysql_priority_list = 'SELECT %s FROM %s;'
-get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
-get_Mysql_queue_avg = 'SELECT AVG(%s) FROM %s WHERE TIMESTAMPDIFF(HOUR, %s, NOW()) < 1 AND %s="%s";'
+get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE %s >= DATE_SUB(NOW(), INTERVAL %d HOUR) AND %s="%s";'
+get_Mysql_queue_avg = 'SELECT AVG(%s) FROM %s WHERE %s >= DATE_SUB(NOW(), INTERVAL %d HOUR) AND %s="%s";'
 get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
 
 set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s";'

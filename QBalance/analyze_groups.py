@@ -79,7 +79,8 @@ def get_surplus(name):                                                          
 # Gets the average queue amount for the group over the past hour
 def get_average_hour_queue(name):
     cur.execute(c.get_Mysql_queue_avg % (c.amount_in_queue, c.queue_log_table,
-                                         c.query_time, c.group_name, name))
+                                         c.query_time, c.lookback, c.group_name, name))
+    'SELECT AVG(%s) FROM %s WHERE %s >= DATE_SUB(NOW(), INTERVAL %d HOUR) AND %s="%s";'
     average = cur.fetchone()[0]
     return average
 
@@ -88,7 +89,7 @@ def get_average_hour_queue(name):
 def get_past_hour_queue_amounts(name):
     queue_amounts = []
     cur.execute(c.get_Mysql_queue_amounts % (c.amount_in_queue, c.queue_log_table,
-                                             c.query_time, c.group_name, name))
+                                             c.query_time, c.lookback, c.group_name, name))
     results = [i[0] for i in cur.fetchall()]
     for x in results:
         queue_amounts.append(x)
