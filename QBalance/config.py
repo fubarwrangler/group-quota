@@ -1,11 +1,12 @@
 # Parameters shared by QBalance software
 
 # Db Connection parameters
-dbhost = 'old-db.rcf.bnl.gov'
-database = 'atlas_demand'
-dbuser = 'group_edit'
-dbpass = 'atlas'
+dbhost = 'database.rcf.bnl.gov'
+database = 'group_quotas'
+dbuser = 'atlas_groupmod'
+dbpass = 'zF@KmmZt?F'
 dbtable = 'atlas_group_quotas'
+queue_log_table = 'atlas_queue_log'
 
 # DB Fields
 accept_surplus = 'accept_surplus'
@@ -15,10 +16,9 @@ group_name = 'group_name'
 last_surplus_update = 'last_surplus_update'
 last_update = 'last_update'
 query_time = 'query_time'
-queue_log_table = 'queue_log'
 quota = 'quota'
 threshold = 'surplus_threshold'
-weight = 'priority'
+weight = 'weight'
 
 
 # **************** Configuration variables and information *****************
