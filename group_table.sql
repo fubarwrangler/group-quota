@@ -17,6 +17,7 @@ CREATE TABLE `atlas_group_quotas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+DROP TABLE IF EXISTS `atlas_queue_log`;
 CREATE TABLE `atlas_queue_log` (
   `group_name` varchar(128) NOT NULL DEFAULT '',
   `amount_in_queue` int(10) unsigned NOT NULL DEFAULT '0',
