@@ -20,16 +20,16 @@
 #       and the farmweb01:/var/www/public/cronjobs/update_db_condor_usage.py, which
 #       act as a database frontend and update the busy slots in each group respectively
 
-import sys
+import logging
+import optparse
 import os
 import os.path
-import subprocess
-import smtplib
-import logging
-import tempfile
-import shutil
-import optparse
 import re
+import shutil
+import smtplib
+import subprocess
+import sys
+import tempfile
 import time
 from email.MIMEText import MIMEText
 from email.utils import formatdate
@@ -37,6 +37,11 @@ from email.utils import formatdate
 import MySQLdb
 
 DB_TABLE = "atlas_group_quotas"
+DB_HOST = 'localhost'
+DB_USER = 'willsk'
+DB_DB = 'group_quotas'
+
+# TODO: CHANGE ME BACK!
 QUOTA_FILE = '/etc/condor/atlas-group-definitions'
 QUOTA_BACK = '/etc/condor/atlas-group-definitions.previous'
 LOGFILE = '/etc/condor/group-def.log'
@@ -70,6 +75,17 @@ class Group(object):
         msg += 'GROUP_PRIO_FACTOR_%s = %.1f\n' % (self.name, self.prio)
         msg += 'GROUP_ACCEPT_SURPLUS_%s = %s\n' % (self.name, self.surplus)
         return msg
+
+    def diff(self, other):
+        diffs = list()
+        for x in ("name", "quota", "prio", "surplus"):
+            if getattr(self, x) != getattr(other, x):
+                diffs.append(x)
+        return diffs
+
+    def __repr__(self):
+        return "'%s' - quota=%d - prio=%.1f - surplus=%s" % \
+               (self.name, self.quota, self.prio, self.surplus)
 
     def __cmp__(self, other):
 
@@ -122,7 +138,7 @@ class Groups(object):
         return len(self._groups)
 
     def __eq__(self, other):
-        if set(self._groups.keys()) ^ set(other._groups.keys()):
+        if set(self._groups) ^ set(other._groups):
             return False
         else:
             for x in self:
@@ -132,6 +148,28 @@ class Groups(object):
 
     def __ne__(self, other):
         return not self == other
+
+    def diff(self, other):
+        mine = set(self._groups)
+        theirs = set(other._groups)
+
+        grps_added = mine - theirs
+        grps_removed = theirs - mine
+
+        s = ''
+
+        for grp in grps_added:
+            s += "Added " + repr(self[grp]) + "\n"
+        for grp in grps_removed:
+            s += "Deleted '" + grp + "'\n"
+
+        for grp in mine & theirs:
+            diffattrs = self[grp].diff(other[grp])
+            for attr, myval, theirval in ((x, getattr(self[grp], x), getattr(other[grp], x))
+                                          for x in diffattrs):
+                s += "Group '%s' - %s changed from %s to %s\n" % (grp, attr, myval, theirval)
+
+        return s
 
     def write_file(self, fname):
         try:
@@ -156,8 +194,8 @@ class Groups(object):
 
 class DBGroups(Groups):
 
-    def __init__(self, table, host="database.rcf.bnl.gov", user="db_query",
-                 database="group_quotas"):
+    def __init__(self, table, host=DB_HOST, user=DB_USER,
+                 database=DB_DB):
 
         super(DBGroups, self).__init__()
 
@@ -235,21 +273,19 @@ class FileGroups(Groups):
             sys.exit(1)
 
 
-def send_email(address):
+def send_email(address, changes):
 
     log.info('Sending mail to "%s"...' % address)
     body = \
         """
 Info: condor03 has detected a change in the ATLAS group quota
-database; see the following links for a detailed description of the changes
-made and who made them:
+database; the changes that were made are:
 
-https://webdocs.racf.bnl.gov/Facility/LinuxFarm/cgi-bin/group_quota.py
-https://webdocs.racf.bnl.gov/Facility/LinuxFarm/atlas_groupquota_hgq.log
+%s
 
 Receipt of this message indicates that condor has been successfully
 reconfigured to use the new quotas indicated on the page above.
-"""
+""" % changes
     msg = MIMEText(body)
     msg['From'] = "root@condor03"
     msg['To'] = address
@@ -281,10 +317,10 @@ log.addHandler(file_handler)
 db_groups = DBGroups(DB_TABLE)
 fp_groups = FileGroups(QUOTA_FILE)
 
-
 if db_groups == fp_groups:
     log.debug('No Database Change...')
     sys.exit(0)
+
 
 # 1. Open temporary file --> Write Changed quota file to temp file
 # 2. A bit pedantic, but re-scan temp file for consistency
@@ -310,6 +346,11 @@ os.rename(tmpname, QUOTA_FILE)
 
 log.info('Quota file updated with new values')
 
+changes = db_groups.diff(fp_groups)
+log.info('Changes made are:')
+for line in (x for x in changes.split("\n") if x):
+    log.info(line)
+
 # Do a reconfig, and send mail before we exit
 if options.reconfig:
     if subprocess.call('/usr/sbin/condor_reconfig') != 0:
@@ -320,7 +361,7 @@ else:
     log.info('No reconfig done...')
 
 if options.email:
-    sys.exit(send_email(options.email))
+    sys.exit(send_email(options.email, changes))
 else:
     log.info('Not sending mail...')
 
