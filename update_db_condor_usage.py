@@ -21,7 +21,8 @@ import datetime
 import subprocess
 
 try:
-    conn = MySQLdb.connect(db="group_quotas", host="database.rcf.bnl.gov", user="atlas_update", passwd="XPASSX")
+    conn = MySQLdb.connect(db="group_quotas", host="database.rcf.bnl.gov",
+                           user="atlas_update", passwd="XPASSX")
     dbc = conn.cursor()
 except MySQLdb.Error, e:
     print "DB Error %d: %s" % (e.args[0], e.args[1])
@@ -42,7 +43,7 @@ proc = subprocess.Popen(["condor_status",  "-pool",  "condor03.usatlas.bnl.gov:9
 
 active = {}
 
-for group,count in ((y.split()) for y in proc.communicate()[0].split("\n") if y):
+for group, count in ((y.split()) for y in proc.communicate()[0].split("\n") if y):
     group = ".".join(group.split("@")[0].split(".")[:-1])
     if group in active:
         active[group] += int(count)
@@ -57,7 +58,8 @@ for group in (x for x in db_groups if x not in active):
 try:
     dbc = conn.cursor()
     for x in active:
-        dbc.execute('UPDATE atlas_group_quotas SET busy = %d WHERE group_name = "%s"' % (active[x], x))
+        dbc.execute('UPDATE atlas_group_quotas SET busy = %d WHERE group_name = "%s"' %
+                    (active[x], x))
     dbc.execute('UPDATE atlas_group_quotas SET last_update = %s', datetime.datetime.now())
     dbc.close()
 except MySQLdb.Error, e:
