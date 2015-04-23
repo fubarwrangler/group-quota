@@ -24,9 +24,10 @@ def get_parents(x):
         return []
     return [".".join(x.split(".")[:-i]) for i in range(1, x.count(".") + 1)]
 
+
 # Execute database command, or list of commands, and die if something goes wrong
 def db_execute(command, database="group_quotas", host="localhost",
-                        user="atlas_update", p="XPASSX"):
+               user="atlas_update", p="XPASSX"):
     try:
         conn = MySQLdb.connect(db=database, host=host, user=user, passwd=p)
         dbc = conn.cursor()
@@ -86,8 +87,8 @@ def make_changes(oldquota, quota, group, d, force=False):
         print 'You will be setting %s from %d --> %d (%d)' % \
             (group, d[group], quota, quota - d[group])
         for x in get_parents(group):
-              print ' * (parent update)  %s from %d --> %d (%d)' % \
-                    (x, d[x], d[x] + (quota - oldquota), (quota - oldquota))
+            print ' * (parent update)  %s from %d --> %d (%d)' % \
+                  (x, d[x], d[x] + (quota - oldquota), (quota - oldquota))
         proceed = raw_input('Is this OK? [y/N]: ')
         if proceed.upper() != 'Y':
             print 'OK, bailing...'
@@ -138,7 +139,9 @@ if newquota and diff:
 if EDIT and group and (newquota is not None or diff is not None):
 
     # Gather information on groups and their quotas
-    groups = db_execute("SELECT group_name,quota,priority,accept_surplus FROM atlas_group_quotas ORDER BY group_name", user="db_query", p="")
+    groups = db_execute("""SELECT group_name,quota,priority,accept_surplus FROM
+                           atlas_group_quotas ORDER BY group_name""",
+                        user="db_query", p="")
     names = [x[0] for x in groups]
     quotas = [x[1] for x in groups]
     d = dict(zip(names, quotas))

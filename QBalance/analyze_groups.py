@@ -42,7 +42,7 @@ import config as c
 
 # Algorithm Parameters
 spike_multiplier = 2
-reduce_mod = .875
+reduce_mod = 0.875
 
 # ########################## LOGGING INFO ###########################
 
@@ -103,7 +103,11 @@ def get_past_hour_queue_amounts(name):
 def check_for_spike(group, avg, threshold):
 
     spike_flag = False    # Used to detect a spike...obviously...
-    surplus_flag = False  # Used to adjust surplus at the end of the function should a non-reducing spike be detected
+
+    # Used to adjust surplus at the end of the function
+    # should a non-reducing spike be detected
+    surplus_flag = False
+
     amounts = get_past_hour_queue_amounts(group.name)
     length = len(amounts)
 
@@ -132,13 +136,14 @@ def check_for_spike(group, avg, threshold):
                   max(test[0:7]), index + 1)
         log.debug("Spike Threshold = %d", limitCheck)
 
-        # Check all values for a spike in order to allow a late spike to be checked before reacting to soon
+        # Check all values for a spike in order to allow a late spike to be checked
+        # before reacting to soon
         if max(test) < limitCheck:  # if all values are too low, no need to do any extra work
             log.debug('NO POSSIBLE SPIKES FOUND')
         else:
             log.debug('POSSIBLE SPIKE IN LAST HOUR')
             i = 0
-            # Search the entire hour for a Spike, only check for surplus if spike whithin first 8 values
+            # Search entire hour for a Spike, only check for surplus if spike whithin first 8 values
             while i < length-1:
                 diff = amounts[i+1] - amounts[i]
 
@@ -173,7 +178,8 @@ def check_for_spike(group, avg, threshold):
                                     log.debug('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
                                     surplus_flag = False
                                 else:
-                                    log.debug('SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
+                                    log.debug('SPIKE NOT DECREASING NORMALLY, '
+                                              'SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
                                     surplus_flag = True
 
                         else:
@@ -199,7 +205,8 @@ def check_for_spike(group, avg, threshold):
                                 log.debug('SPIKE DECREASING NORMALLY, NO CHANGE NEEDED')
                                 surplus_flag = False
                             else:
-                                log.debug('SPIKE NOT DECREASING NORMALLY, SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
+                                log.debug('SPIKE NOT DECREASING NORMALLY, '
+                                          'SWITCH ON ACCEPT SURPLUS IF POSSIBLE')
                                 surplus_flag = True
                     else:
                         log.debug('NOT A SPIKE')
