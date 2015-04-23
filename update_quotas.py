@@ -346,7 +346,7 @@ os.rename(tmpname, QUOTA_FILE)
 
 log.info('Quota file updated with new values')
 
-changes = db_groups.diff(fp_groups)
+changes = fp_groups.diff(db_groups)
 log.info('Changes made are:')
 for line in (x for x in changes.split("\n") if x):
     log.info(line)
