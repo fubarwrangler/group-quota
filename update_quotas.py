@@ -37,8 +37,8 @@ from email.utils import formatdate
 import MySQLdb
 
 DB_TABLE = "atlas_group_quotas"
-DB_HOST = 'localhost'
-DB_USER = 'willsk'
+DB_HOST = 'database.rcf.bnl.gov'
+DB_USER = 'db_query'
 DB_DB = 'group_quotas'
 
 # TODO: CHANGE ME BACK!
