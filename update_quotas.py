@@ -20,19 +20,27 @@
 #       and the farmweb01:/var/www/public/cronjobs/update_db_condor_usage.py, which
 #       act as a database frontend and update the busy slots in each group respectively
 
-import sys, os, os.path
-import subprocess, smtplib
-import logging, tempfile, shutil
-import optparse, re, time
+import sys
+import os
+import os.path
+import subprocess
+import smtplib
+import logging
+import tempfile
+import shutil
+import optparse
+import re
+import time
 from email.MIMEText import MIMEText
 from email.utils import formatdate
+
 import MySQLdb
 
-DB_TABLE    = "atlas_group_quotas"
-QUOTA_FILE  = '/etc/condor/atlas-group-definitions'
-QUOTA_BACK  = '/etc/condor/atlas-group-definitions.previous'
-LOGFILE     = '/etc/condor/group-def.log'
-LOGLEVEL    = logging.INFO
+DB_TABLE = "atlas_group_quotas"
+QUOTA_FILE = '/etc/condor/atlas-group-definitions'
+QUOTA_BACK = '/etc/condor/atlas-group-definitions.previous'
+LOGFILE = '/etc/condor/group-def.log'
+LOGLEVEL = logging.INFO
 
 frmt = logging.Formatter("%(asctime)s %(name)s: (%(levelname)-6s)"
                          " %(message)s", "%m/%d %X")
@@ -149,7 +157,7 @@ class Groups(object):
 class DBGroups(Groups):
 
     def __init__(self, table, host="database.rcf.bnl.gov", user="db_query",
-                              database="group_quotas"):
+                 database="group_quotas"):
 
         super(DBGroups, self).__init__()
 
@@ -184,11 +192,12 @@ class FileGroups(Groups):
             log.error("Error opening %s: %s", filename, e)
             sys.exit(1)
 
-        regexes = { "names": re.compile('^GROUP_NAMES\s*=\s*(.*)$'),
-                    "quota": re.compile('^GROUP_QUOTA_([\w\.]+)\s*=\s*(\d+)$'),
-                    "prio": re.compile('^GROUP_PRIO_FACTOR_([\w\.]+)\s*=\s*([\d\.]+)$'),
-                    "surplus": re.compile('^GROUP_ACCEPT_SURPLUS_([\w\.]+)\s*=\s*(\w+)$'),
-                  }
+        regexes = {
+            "names": re.compile('^GROUP_NAMES\s*=\s*(.*)$'),
+            "quota": re.compile('^GROUP_QUOTA_([\w\.]+)\s*=\s*(\d+)$'),
+            "prio": re.compile('^GROUP_PRIO_FACTOR_([\w\.]+)\s*=\s*([\d\.]+)$'),
+            "surplus": re.compile('^GROUP_ACCEPT_SURPLUS_([\w\.]+)\s*=\s*(\w+)$'),
+            }
 
         grps = {}
         group_names = []
@@ -230,7 +239,7 @@ def send_email(address):
 
     log.info('Sending mail to "%s"...' % address)
     body = \
-"""
+        """
 Info: condor03 has detected a change in the ATLAS group quota
 database; see the following links for a detailed description of the changes
 made and who made them:
