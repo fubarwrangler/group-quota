@@ -36,9 +36,9 @@
 
 import sys
 import MySQLdb
-import logging
 
 import config as c
+from log import setup_logging
 
 # Algorithm Parameters
 spike_multiplier = 2
@@ -46,14 +46,10 @@ reduce_mod = 0.875
 
 # ########################## LOGGING INFO ###########################
 
-logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
-                    filename=c.logfile if '-d' not in sys.argv else None,
-                    level=logging.DEBUG)
-
+log = setup_logging(c.analyze_logfile, backup=2)
 
 import group as grouplib
 
-log = logging.getLogger()
 
 # ###### OPEN MySQL DATABASE FOR SCRIPT USE, CLOSE AT THE END#######
 try:

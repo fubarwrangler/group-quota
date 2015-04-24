@@ -15,18 +15,13 @@
 import sys
 import MySQLdb
 import urllib2
-import logging
 import cPickle
+import logging
 
+from log import setup_logging
 import config as c
 
-logfile = "/home/mvjensen/queueLog.log"
-
-logging.basicConfig(format="%(asctime)-15s (%(levelname)s) %(message)s",
-                    filename=None if '-d' in sys.argv else logfile,
-                    level=logging.DEBUG if '-d' in sys.argv else logging.INFO)
-
-log = logging.getLogger()
+log = setup_logging(c.panda_logfile, backup=1, size_mb=20, level=logging.INFO)
 
 # **************************************************************************
 

@@ -47,5 +47,5 @@ get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
 set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s";'
 set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
 
-
-logfile = "/home/mvjensen/atlasSurplus.log"
+analyze_logfile = "/home/mvjensen/atlasSurplus.log"
+panda_logfile = "/home/mvjensen/queueLog.log"
