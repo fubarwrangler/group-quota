@@ -48,7 +48,7 @@ def get_num_activated(queue, data):
 def set_current_queue(con, queue, amount):
     cur = con.cursor()
     cur.execute('INSERT INTO '+c.queue_log_table+' VALUES (%s, %s, NOW())', (queue, amount))
-    log.info("%s added to %s", queue, c.queue_log_table)
+    log.debug("%s added to %s", queue, c.queue_log_table)
     n = cur.rowcount
     con.commit()
     cur.close()
