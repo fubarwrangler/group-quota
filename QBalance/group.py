@@ -46,6 +46,9 @@ class Group(object):
             for y in x.walk():
                 yield y
 
+    def get_child(self, name):
+        return self.children.get(name)
+
     def get_children(self):
         return self.children.values()
 
@@ -65,8 +68,8 @@ class Group(object):
         return (x for x in self if not x.children)
 
     def print_tree(self, n=0):
-        print '|' + '--'*(n) + self.name
-        for child in sorted(self, key=lambda x: x.name):
+        print '|' + '--'*(n) + str(self)
+        for child in sorted(self.get_children(), key=lambda x: x.name):
             child.print_tree(n + 1)
 
     def __getitem__(self, key):
