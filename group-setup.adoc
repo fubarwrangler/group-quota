@@ -1,0 +1,94 @@
+Group Balancing Architecture
+============================
+
+This design document will describe the setup in our ATLAS Condor pool of our
+implementation of support for multicore jobs in a generic way using partitionable
+slots and hierarchical-group-quotas
+
+Assumptions:
+
+1. Using hierarchical group-quotas in Condor
+2. Separating different job-species into different groups (i.e. 8-core, high-mem, etc...)
+3. Only leaf-nodes in the group-tree have jobs assigned to them, other levels are for classification
+4. All nodes are configured the same, with one large partitionable-slot
+
+The high-level idea is that we set accept-surplus on a per-group level to reflect
+what queues have demand in them to allow an always-optimal allocation of farm
+resources.
+
+
+Group Definition
+----------------
+
+Group are defined in a hierarchy, with leaf-nodes having jobs running in them.
+For example, our current ATLAS tree looks like:
+
+----
+
+<root> --group_atlas -- group_atlas.analysis -- group_atlas.analysis.long  (1)
+        |            |                       |
+        |            |                       \- group_atlas.analysis.short (1)
+        |            |
+        |            +- group_atlas.prod -- group_atlas.prod.production (1)
+        |            |                   |
+        |            |                   +- group_atlas.prod.mp (8)
+        |            |                   |
+        |            |                   \- group_atlas.prod.test (2)
+        |            |
+        |            \- group_atlas.software (1)
+        |
+        \-- group_grid (1)
+
+----
+
+The groups are named as such, with increasing length and a dot '.' to separate
+nodes, and the weights of the jobs in each group is listed next to it
+
+The groups are stored in a single database table with group-name as PK and other
+pertinent fields like quota, weight, threshold, etc... We currently quotas like
+like long/short each 1k, mp 6k, production 4k, test 2k. The parent groups have
+a fictitious "quota" of the sum of their child groups.
+
+Load Balancing
+~~~~~~~~~~~~~~
+
+As mentioned in the first section, the idea is to use accept-surplus per-group
+to allow efficient allocation of resources on the farm. This require reading
+what the demand if for each queue from PANDA, and storing that somewhere for
+later analysis.
+
+This is done with a script that watches PANDA every 5 minutes and logs the
+demand for each queue (as measured by 'activeated' job-count) into a DB.
+
+
+Balancing Algorithm
+-------------------
+
+The main argument against allowing free-for-all accept-surplus everywhere is
+that this would starve multicore queues by giving each free slot that came up
+to the next quota that *can* match, rather then one that *should* match.
+
+In other words, it is incompatible to have prod.mp and prod.production competing
+for surplus slots under prod from an underutilized prod.test queue -- because
+as each slot became available, even if prod.mp negotiates first because say
+prod.production is over quota, they can't match the larger mp job, so they will
+get allocated to the single-core queues.
+
+The actual algorithm proceeds in three broad steps:
+
+. For each group in the tree, determine if there is *sufficient* demand and if
+  so, add it to a list of candidate surplus-receivers.
+. For each candidate, determine if any if it's direct-siblings have any slack
+  in their demand -- i.e. if they have extra slots available. If none do, then
+  remove the candidate from the list
+. For each remaining surplus-receiver candidate, determine if it is (or is tied for)
+  the highest-weighted group among its direct siblings (mp vs test vs production).
+  If it is, set its surplus flag to true.
+
+Now, the wording above is very careful, because the definition of *demand*/*slack*,
+and *weight* is important. We extend these two concepts across groups that
+both have jobs and parent-groups that don't. Their definition for leaf-groups
+with jobs is mentioned above, but the concept is extended according to:
+
+1. Weight for non-leaf groups is defined as the average weight of it's children
+2. Demand is simply defined like quota, i.e. the sum of the children's demand.

@@ -1,10 +1,10 @@
 # Parameters shared by QBalance software
 
 # Db Connection parameters
-dbhost = 'localhost'
+dbhost = 'database.rcf.bnl.gov'
 database = 'group_quotas'
-dbuser = 'willsk'
-dbpass = ''
+dbuser = 'atlas_groupmod'
+dbpass = 'zF@KmmZt?F'
 dbtable = 'atlas_group_quotas'
 queue_log_table = 'atlas_queue_log'
 

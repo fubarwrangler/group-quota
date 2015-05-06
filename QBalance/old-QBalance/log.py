@@ -9,7 +9,7 @@ def setup_logging(filename, backup=2, size_mb=150, level=logging.DEBUG):
 
     fmt_str = "%(asctime)-15s (%(levelname)s) %(message)s"
 
-    if '-d' in sys.argv or filename is None:
+    if '-d' in sys.argv:
         logging.basicConfig(format=fmt_str, level=logging.DEBUG)
         return logging.getLogger()
 

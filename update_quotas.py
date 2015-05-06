@@ -285,7 +285,7 @@ database; the changes that were made are:
 
 Receipt of this message indicates that condor has been successfully
 reconfigured to use the new quotas indicated on the page above.
-""" % changes
+""" % changes.strip()
     msg = MIMEText(body)
     msg['From'] = "root@condor03"
     msg['To'] = address
