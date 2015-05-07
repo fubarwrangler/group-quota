@@ -20,22 +20,11 @@ class Group(object):
         self.parent = None
         self.children = {}
 
-    def add_child(self, group):
+    def add_child(self, new_grp):
         """ Add a child node to this one, setting it's parent pointer """
 
-        print "Adding child %s to %s" % (group.name, self.name)
-
-        group.parent = self
-        self.children[group.name] = group
-
-    @property
-    def full_name(self):
-        names = list()
-        parent = self
-        while parent is not None:
-            names.append(parent.name)
-            parent = parent.parent
-        return ".".join(reversed(names[:-1]))
+        new_grp.parent = self
+        self.children[new_grp.name] = new_grp
 
     def walk(self):
         """ Recursively iterate through all lower nodes in the tree """
@@ -46,13 +35,21 @@ class Group(object):
             for y in x.walk():
                 yield y
 
-    def get_child(self, name):
-        return self.children.get(name)
+    @property
+    def full_name(self):
+        names = list()
+        parent = self
+        while parent is not None:
+            names.append(parent.name)
+            parent = parent.parent
+        return ".".join(reversed(names[:-1]))
 
     def get_children(self):
+        """ Return list of all children group-objects """
         return self.children.values()
 
     def find(self, name):
+        """ Find a group named @name below self -- raise Exception """
         if self.name == name:
             return self
         for x in self.walk():
@@ -60,11 +57,7 @@ class Group(object):
                 return x
         raise Exception("No group %s found" % name)
 
-    def names(self):
-        return (x.name for x in self)
-
-    def active_groups(self):
-        """ Active groups are leaf nodes -- i.e. nodes without children """
+    def leaf_nodes(self):
         return (x for x in self if not x.children)
 
     def print_tree(self, n=0):
@@ -76,7 +69,7 @@ class Group(object):
         return self.children[key]
 
     def __repr__(self):
-        return '<0x%x> %s (%d)' % (id(self), self.name, self.quota)
+        return '<0x%x> %s' % (id(self), self.full_name)
 
     def __iter__(self):
         return iter(self.walk())
