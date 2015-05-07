@@ -1,7 +1,11 @@
 #!/usr/bin/python
 # *****************************************************************************
+#
 # Get jobs from PANDA for appropriate groups (non-grid)
-# All modules must have the get_jobs() method
+# All modules must have the get_jobs() method that returns a mapping of
+# group-name -->  num_idle
+#
+# William Strecker-Kellogg <willsk@bnl.gov>
 #
 # *****************************************************************************
 

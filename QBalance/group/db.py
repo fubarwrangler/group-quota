@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Module to build group-tree from database
 
 import sys
 import logging
@@ -10,10 +11,12 @@ import config as c
 
 log = logging.getLogger()
 
-__all__ = ['build_groups']
+__all__ = ['build_groups_db']
 
 
-def build_groups(root_group):
+def build_groups_db():
+
+    root_group = Group('<root>')
 
     for name, weight, surplus, threshold in get_groups():
         parts = name.split('.')
@@ -25,6 +28,8 @@ def build_groups(root_group):
             parent = parent[x]
 
         parent.add_child(Group(myname, weight, surplus, threshold))
+
+    return root_group
 
 
 def get_groups():
@@ -46,7 +51,3 @@ def get_groups():
         sys.exit(1)
 
     return data
-
-# root = Group('<root>')
-# build_groups(root)
-# root.print_tree()
