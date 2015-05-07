@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 import sys
+import logging
 
 from group import Group
 import MySQLdb
 
 import config as c
-from log import setup_logging
 
-log = setup_logging(None)
+log = logging.getLogger()
 
 __all__ = ['build_groups']
 
@@ -47,6 +47,6 @@ def get_groups():
 
     return data
 
-root = Group('<root>')
-build_groups(root)
-root.print_tree()
+# root = Group('<root>')
+# build_groups(root)
+# root.print_tree()
