@@ -58,7 +58,7 @@ what the demand if for each queue from PANDA, and storing that somewhere for
 later analysis.
 
 This is done with a script that watches PANDA every 5 minutes and logs the
-demand for each queue (as measured by 'activeated' job-count) into a DB.
+demand for each queue (as measured by 'activated' job-count) into a DB.
 
 
 Balancing Algorithm
@@ -78,9 +78,7 @@ The actual algorithm proceeds in three broad steps:
 
 . For each group in the tree, determine if there is *sufficient* demand and if
   so, add it to a list of candidate surplus-receivers.
-. For each candidate, determine if any if it's direct-siblings have any slack
-  in their demand -- i.e. if they have extra slots available. If none do, then
-  remove the candidate from the list
+. For each candidate, determine if any if it is the only or tied for the only
 . For each remaining surplus-receiver candidate, determine if it is (or is tied for)
   the highest-weighted group among its direct siblings (mp vs test vs production).
   If it is, set its surplus flag to true.
@@ -92,3 +90,23 @@ with jobs is mentioned above, but the concept is extended according to:
 
 1. Weight for non-leaf groups is defined as the average weight of it's children
 2. Demand is simply defined like quota, i.e. the sum of the children's demand.
+
+Definition of Demand
+~~~~~~~~~~~~~~~~~~~~
+
+There are some subtleties in defining what constitutes "sufficient demand" for
+a queue. A moving average for the last hour is looked at as well as whether
+there were any "spikes", defined as a sudden burst moving more than ~50% above
+the previous average. There is also a threshold for each queue below which the
+queue is considered empty.
+
+This means that the queue cannot
+
+
+
+
+
+Set TRUE for the largest queue in subtree unless there are
+lower weight-groups that *do* have demand *and* it doesn't.
+
+
