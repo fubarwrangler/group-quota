@@ -8,7 +8,7 @@ from log import setup_logging
 
 log = setup_logging(c.panda_logfile, backup=1, size_mb=20, level=logging.INFO)
 
-from idlejobs import module_names
+from jobquery import module_names
 
 modules = list()
 for mod in module_names:
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     statements = list()
 
     # For each module, generate a list of tuples of group_name,#idle by
-    # calling the get_jobs() method of each module in idlejobs/*.py
+    # calling the get_jobs() method of each module in jobquery/*.py
     for module in modules:
         statements.extend(module.get_jobs().items())
 

@@ -1,7 +1,7 @@
 import os.path
 import glob
 
-""" Get list of files in this (idlejobs) directory not including __init__.py
+""" Get list of files in this (jobquery) directory not including __init__.py
     and generate a list @module_names from them of the right string to
     pass to __import__() in the getidle.py program
 """
