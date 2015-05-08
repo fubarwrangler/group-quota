@@ -7,7 +7,7 @@ import logging
 from group import Group
 import MySQLdb
 
-import config as c
+import config.dbconn as db
 
 log = logging.getLogger()
 
@@ -40,7 +40,7 @@ def get_groups():
     query = 'SELECT %s FROM atlas_group_quotas ORDER BY group_name' % ", ".join(fields)
 
     try:
-        con, cur = c.database.get()
+        con, cur = db.get()
         cur.execute(query)
         data = cur.fetchall()
         cur.close()

@@ -19,6 +19,7 @@ class Group(object):
 
         self.parent = None
         self.children = {}
+        self.demand = 0
 
     def add_child(self, new_grp):
         """ Add a child node to this one, setting it's parent pointer """
@@ -30,10 +31,17 @@ class Group(object):
         """ Recursively iterate through all lower nodes in the tree """
         if not self.children:
             return
-        for x in self.children.values():
+        for x in self.get_children():
             yield x
             for y in x.walk():
                 yield y
+
+    def walk_dfs(self):
+        """ Iterate through tree in a depth-first order """
+        for child in self.get_children():
+            for sub in child.walk_dfs():
+                yield sub
+            yield child
 
     @property
     def full_name(self):
@@ -43,6 +51,10 @@ class Group(object):
             names.append(parent.name)
             parent = parent.parent
         return ".".join(reversed(names[:-1]))
+
+    @property
+    def is_leaf(self):
+        return (not self.children)
 
     def get_children(self):
         """ Return list of all children group-objects """
@@ -59,6 +71,10 @@ class Group(object):
 
     def leaf_nodes(self):
         return (x for x in self if not x.children)
+
+    def print_dfs(self, n=0):
+        for x in self:
+            print x.full_name
 
     def print_tree(self, n=0):
         print '|' + '--'*(n) + str(self)
@@ -78,5 +94,6 @@ class Group(object):
         return (len([x.name for x in self if x.name == key]) > 0)
 
     def __str__(self):
-        return '%s: surplus %s, weight %f, threshold %d' % \
-               (self.name, self.accept_surplus, self.weight, self.threshold)
+        return '%s: surplus %s, weight %f, threshold %d demand %d' % \
+               (self.name, self.accept_surplus, self.weight, self.threshold,
+                self.demand)
