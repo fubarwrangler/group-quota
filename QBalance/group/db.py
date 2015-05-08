@@ -40,8 +40,7 @@ def get_groups():
     query = 'SELECT %s FROM atlas_group_quotas ORDER BY group_name' % ", ".join(fields)
 
     try:
-        con = MySQLdb.connect(host=c.dbhost, user=c.dbuser, db=c.database, passwd=c.dbpass)
-        cur = con.cursor()
+        con, cur = c.database.get()
         cur.execute(query)
         data = cur.fetchall()
         cur.close()

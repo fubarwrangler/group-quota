@@ -28,7 +28,7 @@ lookback = 21
 get_Mysql_groups = 'SELECT %s FROM %s;'
 get_Mysql_priority_list = 'SELECT %s FROM %s;'
 get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE %s >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND %s="%s";'
-get_Mysql_queue_avg = 'SELECT AVG(%s) FROM %s WHERE %s >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND %s="%s";'
+get_Mysql_queue_avg = 'SELECT AVG(amount_in_queue) FROM atlas_queue_log WHERE query_time >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND %s="%s"'
 get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
 
 set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s";'

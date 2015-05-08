@@ -4,6 +4,8 @@ import MySQLdb
 import logging
 
 import config as c
+import config.dbconn
+
 from log import setup_logging
 
 log = setup_logging(c.panda_logfile, backup=1, size_mb=20, level=logging.INFO)
@@ -17,16 +19,11 @@ for mod in module_names:
 
 def insert_to_db(data):
     try:
-        con = MySQLdb.connect(host=c.dbhost, user=c.dbuser, passwd=c.dbpass,
-                              db=c.database)
-
-        cur = con.cursor()
+        con, cur = config.dbconn.get()
         cur.executemany('INSERT INTO atlas_queue_log '
                         '(`group_name`, `amount_in_queue`) VALUES (%s, %s)',
                         statements)
         con.commit()
-        cur.close()
-        con.close()
     except MySQLdb.Error as E:
         log.error("Error connecting to database: %s" % E)
         return None

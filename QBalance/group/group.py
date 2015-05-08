@@ -46,7 +46,7 @@ class Group(object):
 
     def get_children(self):
         """ Return list of all children group-objects """
-        return self.children.values()
+        return self.children.itervalues()
 
     def find(self, name):
         """ Find a group named @name below self -- raise Exception """
