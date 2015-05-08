@@ -28,23 +28,24 @@ class Group(object):
         self.children[new_grp.name] = new_grp
 
     def walk(self):
-        """ Recursively iterate through all lower nodes in the tree """
-        if not self.children:
-            return
+        """ Recursively iterate through all lower nodes in the tree DFS order """
         for x in self.get_children():
-            yield x
             for y in x.walk():
                 yield y
+            yield x
 
-    def walk_dfs(self):
-        """ Iterate through tree in a depth-first order """
-        for child in self.get_children():
-            for sub in child.walk_dfs():
-                yield sub
-            yield child
+    def siblings(self):
+        if self.parent:
+            return self.parent.get_children()
+        else:
+            return
 
     @property
     def full_name(self):
+
+        if not self.parent:
+            return self.name
+
         names = list()
         parent = self
         while parent is not None:
@@ -71,10 +72,6 @@ class Group(object):
 
     def leaf_nodes(self):
         return (x for x in self if not x.children)
-
-    def print_dfs(self, n=0):
-        for x in self:
-            print x.full_name
 
     def print_tree(self, n=0):
         print '|' + '--'*(n) + str(self)

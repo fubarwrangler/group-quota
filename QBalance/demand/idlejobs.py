@@ -10,6 +10,10 @@ log = logging.getLogger()
 
 
 def get_db_demand(con, name, window=60):
+    """ Return list of demand-values in last hour unless there are too few then
+        return None and warn about it
+    """
+
     fewest_datapoints = 5
 
     where = 'query_time >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND group_name="%s"' % \
@@ -29,6 +33,7 @@ def get_db_demand(con, name, window=60):
     return [x[0] for x in data]
 
 
+# FIXME: Is this needed!?
 def get_avg_demand(con, name, window=60):
     where = 'query_time >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND group_name="%s"' % \
             (window, name)
@@ -41,6 +46,7 @@ def get_avg_demand(con, name, window=60):
     return avg
 
 
+# TODO: Add real implementation
 def spike_detected(data):
     return False
 
@@ -71,7 +77,7 @@ def populate(root):
         node.demand = demand
     con.close()
 
-    for node in root.walk_dfs():
+    for node in root.walk():
         if not node.is_leaf:
             demand = sum(x.demand for x in node.get_children())
             log.debug("sub-demand set for %s -> %d", node.full_name, demand)
