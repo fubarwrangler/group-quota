@@ -12,7 +12,7 @@ class Group(object):
     def __init__(self, name, weight=1, surplus=False, threshold=0, running=0):
         # These variables define the nature of the group, and are explicitly set
         self.name = name
-        self.accept_surplus = surplus
+        self.accept = bool(surplus)
         self.running = running
         self.threshold = threshold
         self.weight = weight
@@ -91,6 +91,6 @@ class Group(object):
         return (len([x.name for x in self if x.name == key]) > 0)
 
     def __str__(self):
-        return '%s: surplus %s, weight %f, threshold %d demand %d' % \
-               (self.name, self.accept_surplus, self.weight, self.threshold,
+        return '\033[94m%s\033[0m: surplus \033[93m%s\033[0m, weight %f, threshold %d demand %d' % \
+               (self.name, self.accept, self.weight, self.threshold,
                 self.demand)

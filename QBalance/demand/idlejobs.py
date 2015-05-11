@@ -80,5 +80,6 @@ def populate(root):
     for node in root.walk():
         if not node.is_leaf:
             demand = sum(x.demand for x in node.get_children())
-            log.debug("derived-demand set for %s -> %d", node.full_name, demand)
-            node.demand = demand
+            threshold = sum(x.threshold for x in node.get_children())
+            log.debug("derived-demand set for %s -> %d / %d", node.full_name, demand, threshold)
+            node.demand, node.threshold = demand, threshold
