@@ -34,6 +34,14 @@ class Group(object):
                 yield y
             yield x
 
+    def all(self):
+        """ Like walk() but include self in list returned """
+        for x in self.get_children():
+            for y in x.walk():
+                yield y
+            yield x
+        yield self
+
     def siblings(self):
         if self.parent:
             return self.parent.get_children()
