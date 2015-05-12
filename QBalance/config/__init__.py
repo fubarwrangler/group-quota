@@ -3,8 +3,8 @@
 # Db Connection parameters
 dbhost = 'localhost'
 database = 'group_quotas'
-dbuser = 'willsk'
-dbpass = ''
+dbuser = 'gqu'
+dbpass = 'CHANGEME'
 dbtable = 'atlas_group_quotas'
 queue_log_table = 'atlas_queue_log'
 
