@@ -10,7 +10,6 @@ class Group(object):
     """
 
     def __init__(self, name, weight=1, surplus=False, threshold=0, running=0):
-        # These variables define the nature of the group, and are explicitly set
         self.name = name
         self.accept = bool(surplus)
         self.running = running
@@ -43,14 +42,24 @@ class Group(object):
         yield self
 
     def siblings(self):
+        """ Siblings are *all* your parent's children, self included """
         if self.parent:
             return self.parent.get_children()
         else:
-            return
+            return {}
+
+    def has_demand(self):
+        return self.weight > 0 and self.demand >= self.threshold
+
+    def has_slack(self):
+        return self.weight > 0 and self.demand < self.threshold
+
+    def real_demand(self):
+        return self.has_demand() and self.is_leaf
 
     @property
     def full_name(self):
-
+        """ Walk up tree to form fqdn for group, except for implicit <root> """
         if not self.parent:
             return self.name
 
@@ -79,7 +88,7 @@ class Group(object):
         raise Exception("No group %s found" % name)
 
     def leaf_nodes(self):
-        return (x for x in self if not x.children)
+        return (x for x in self if x.is_leaf)
 
     def print_tree(self, n=0):
         print '|' + '--'*(n) + str(self)

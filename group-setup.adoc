@@ -105,8 +105,31 @@ This means that the queue cannot
 
 
 
+IF ALL LEAF NODES
 
 Set TRUE for the largest queue in subtree unless there are
 lower weight-groups that *do* have demand *and* it doesn't.
 
+ELSE
 
+Set TRUE for largest queue in subtree with demand if there is any slack
+from other queues
+
+--------
+
+l = all-leaf
+s = slack-in-lower
+d = demand-in-lower
+j = demand(jobs)-in-self
+
+True if:
+1. l & ~(d & ~j)  --> l & (j | ~d)
+2. ~l & (j | s)
+
+(l & (j | ~d)) | (~l & (j | s)) -->
+(~d & l) | j | (~l & s)
+
+
+
+
+--------
