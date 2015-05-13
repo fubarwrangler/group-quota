@@ -49,10 +49,10 @@ class Group(object):
             return {}
 
     def has_demand(self):
-        return self.weight > 0 and self.demand >= self.threshold
+        return self.weight > 0 and self.demand > self.threshold
 
     def has_slack(self):
-        return self.weight > 0 and self.demand < self.threshold
+        return self.weight > 0 and self.demand <= self.threshold
 
     def real_demand(self):
         return self.has_demand() and self.is_leaf
@@ -108,6 +108,7 @@ class Group(object):
         return (len([x.name for x in self if x.name == key]) > 0)
 
     def __str__(self):
-        return '\033[94m%s\033[0m: surplus \033[93m%s\033[0m, weight %f, threshold %d demand %d' % \
+        return '\033[94m%s\033[0m: surplus \033[93m%s\033[0m, weight %f,' \
+               ' threshold %d demand %d' % \
                (self.name, self.accept, self.weight, self.threshold,
                 self.demand)
