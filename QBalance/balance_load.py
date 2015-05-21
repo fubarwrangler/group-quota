@@ -11,27 +11,10 @@ from log import setup_logging
 log = setup_logging('/foo', backup=1, size_mb=20, level=logging.INFO)
 
 
-def group_by(g, val):
-    ov = None
-    l = list()
-    for n, i in enumerate(g):
-        v = getattr(i, val)
-        if v != ov and ov is not None:
-            yield l
-            l = list()
-        l.append(i)
-        ov = v
-    yield l
-
-
-def surplus_logic(leaf, lower_slack, lower_demand, jobs):
-    # ((~d | j) & l) | (~l & s)
-    if (leaf and (jobs or not lower_demand)) or (not leaf and lower_slack):
-        log.debug("--> l & (j | !d) OR !l & s = OK")
-        return True
-    else:
-        log.debug("--> Fail - FALSE")
-        return False
+def set_equal(group, groups, val):
+    for g in (x for x in groups if x.weight == group.weight):
+        log.debug("%s accept=%s", g.full_name, val)
+        g.accept = val
 
 
 def set_surplus(root):
@@ -39,39 +22,40 @@ def set_surplus(root):
 
     for group in (x for x in root.all() if not x.is_leaf):
 
-        log.debug("Sibling group -- children of %s", group.full_name)
         candidates = sorted(group.get_children(), key=lambda x: -x.weight)
 
-        for equal_grouping in group_by(candidates, 'weight'):
-            g = equal_grouping[0]
-            lower_groups = [x for x in candidates if 0 < x.weight < g.weight]
+        already_set = False
+        all_leaf = all([x.is_leaf for x in candidates])
+        log.debug("Sibling group -- children of %s, all_leaf=%s",
+                  group.full_name, all_leaf)
 
-            # Are we an all-leaf group?
-            all_leaf = all([x.is_leaf for x in candidates])
+        for w in sorted(set(g.weight for g in candidates), reverse=True):
+            g = [x for x in candidates if x.weight == w][0]
 
-            # any lower queues with demand or slack?
-            lower_slack = any([x for x in lower_groups if x.has_slack()])
+            lower_groups = [x for x in candidates if 0 < x.weight < w]
             lower_demand = any([x for x in lower_groups if x.has_demand()])
-
             log.debug("%s -- lower groups = %s", g.full_name,
                       ", ".join((x.full_name for x in lower_groups)))
-            log.debug("%s lower_demand=%s, lower_slack=%s, all_leaf=%s",
-                      g.full_name, lower_demand, lower_slack, all_leaf)
-            if surplus_logic(all_leaf, lower_slack, lower_demand, g.real_demand()):
-                for grp in equal_grouping:
-                    grp.accept = True
-                break
-            for grp in equal_grouping:
-                grp.accept = False
+            log.debug("%s slack=%s l_demand=%s", g.full_name, g.has_slack(), lower_demand)
+
+            if (g.has_slack() and lower_demand) or already_set:
+                if all_leaf and not already_set:
+                    set_equal(g, candidates, True)
+                    already_set = True
+                else:
+                    set_equal(g, candidates, False)
+            else:
+                set_equal(g, candidates, True)
+                already_set = True
 
 
 groups = build_groups_db()
 
 demand.idlejobs.populate(groups)
-groups['group_atlas']['analysis']['short'].demand = 0
-groups['group_atlas']['analysis']['long'].demand = 0
-groups['group_atlas']['analysis'].demand = 0
-#groups['group_atlas']['prod']['mp'].demand = 0
+# groups['group_atlas']['analysis']['short'].demand = 0
+# groups['group_atlas']['analysis']['long'].demand = 0
+# groups['group_atlas']['analysis'].demand = 0
+# groups['group_atlas']['prod']['mp'].demand = 0
 groups['group_grid'].demand = 1
 groups['group_grid'].threshold = 10
 groups.print_tree()
