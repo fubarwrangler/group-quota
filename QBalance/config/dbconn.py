@@ -9,7 +9,7 @@ log = logging.getLogger()
 
 def get():
     try:
-        con = MySQLdb.connect(host=c.dbhost, user=c.dbuser, db=c.database, passwd=c.dbpass)
+        con = MySQLdb.connect(**c.db)
         cur = con.cursor()
     except MySQLdb.Error as E:
         log.error("Error connecting to database: %s" % E)

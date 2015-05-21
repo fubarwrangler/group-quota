@@ -1,10 +1,15 @@
 # Parameters shared by QBalance software
 
 # Db Connection parameters
-dbhost = 'localhost'
-database = 'group_quotas'
-dbuser = 'gqu'
-dbpass = 'CHANGEME'
+
+db = {
+    'host': 'localhost',
+    'db': 'group_quotas',
+    'port': 3306,
+    'passwd': 'CHANGEME',
+    'user': 'gqu'
+}
+
 dbtable = 'atlas_group_quotas'
 queue_log_table = 'atlas_queue_log'
 
