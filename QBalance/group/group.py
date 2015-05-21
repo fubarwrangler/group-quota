@@ -108,7 +108,8 @@ class Group(object):
         return (len([x.name for x in self if x.name == key]) > 0)
 
     def __str__(self):
+        n = 'D' if self.has_demand() else '' + 'S' if self.has_slack() else ''
         return '\033[94m%s\033[0m: surplus \033[93m%s\033[0m, weight %f,' \
                ' threshold %d demand %d' % \
-               (self.name, self.accept, self.weight, self.threshold,
+               ('(%s)' % n + self.name, self.accept, self.weight, self.threshold,
                 self.demand)

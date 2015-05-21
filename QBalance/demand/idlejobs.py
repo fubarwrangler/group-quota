@@ -9,7 +9,7 @@ import config.dbconn as db
 log = logging.getLogger()
 
 
-def get_db_demand(con, name, window=60):
+def get_db_demand(con, name, window=120):
     """ Return list of demand-values in last hour unless there are too few then
         return None and warn about it
     """
@@ -79,7 +79,8 @@ def populate(root):
 
     for node in root.walk():
         if not node.is_leaf:
-            demand = sum(x.demand for x in node.get_children())
+            # demand = sum(x.demand for x in node.get_children())
+            demand = max(x.demand for x in node.get_children())
             threshold = sum(x.threshold for x in node.get_children())
             log.debug("derived-demand set for %s -> %d / %d", node.full_name, demand, threshold)
             node.demand, node.threshold = demand, threshold

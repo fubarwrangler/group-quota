@@ -11,8 +11,8 @@ from log import setup_logging
 log = setup_logging('/foo', backup=1, size_mb=20, level=logging.INFO)
 
 
-def set_equal(group, groups, val):
-    for g in (x for x in groups if x.weight == group.weight):
+def set_equal(groups, val):
+    for g in groups:
         log.debug("%s accept=%s", g.full_name, val)
         g.accept = val
 
@@ -30,33 +30,58 @@ def set_surplus(root):
                   group.full_name, all_leaf)
 
         for w in sorted(set(g.weight for g in candidates), reverse=True):
-            g = [x for x in candidates if x.weight == w][0]
+            groups = [x for x in candidates if x.weight == w]
+            any_slack = any([x.has_slack() for x in candidates])
 
             lower_groups = [x for x in candidates if 0 < x.weight < w]
             lower_demand = any([x for x in lower_groups if x.has_demand()])
-            log.debug("%s -- lower groups = %s", g.full_name,
+            log.debug("%s -- lower groups = %s", groups,
                       ", ".join((x.full_name for x in lower_groups)))
-            log.debug("%s slack=%s l_demand=%s", g.full_name, g.has_slack(), lower_demand)
+            log.debug("%s slack=%s l_demand=%s", groups, any_slack, lower_demand)
 
-            if (g.has_slack() and lower_demand) or already_set:
+            if (any_slack and lower_demand) or already_set:
                 if all_leaf and not already_set:
-                    set_equal(g, candidates, True)
+                    log.debug('Would be false, but leaf so true!')
+                    set_equal(groups, True)
                     already_set = True
                 else:
-                    set_equal(g, candidates, False)
+                    set_equal(groups, False)
             else:
-                set_equal(g, candidates, True)
-                already_set = True
+                if not all_leaf and not any_slack:
+                    log.debug('Would be true, but non-leaf & no slack so false!')
+                    set_equal(groups, False)
+                else:
+                    set_equal(groups, True)
+                    already_set = True
 
+
+def scn1(groups):
+    groups['group_atlas']['analysis']['short'].demand = 0
+    groups['group_atlas']['analysis']['long'].demand = 251
+    groups['group_atlas']['analysis'].demand = 251
+
+
+def scn2(groups):
+    groups['group_atlas']['analysis']['short'].demand = 0
+    groups['group_atlas']['analysis']['long'].demand = 0
+
+
+def scn3(groups):
+    groups['group_atlas']['analysis'].demand = 1000
+    groups['group_atlas']['analysis']['short'].demand = 1000
+    groups['group_atlas']['analysis']['long'].demand = 1000
+
+
+def scn4(groups):
+    groups['group_atlas']['prod']['mp'].demand = 0
 
 groups = build_groups_db()
 
 demand.idlejobs.populate(groups)
-# groups['group_atlas']['analysis']['short'].demand = 0
-# groups['group_atlas']['analysis']['long'].demand = 0
-# groups['group_atlas']['analysis'].demand = 0
-# groups['group_atlas']['prod']['mp'].demand = 0
-groups['group_grid'].demand = 1
+
+scn1(groups)
+
+groups['group_grid'].demand = 11
 groups['group_grid'].threshold = 10
 groups.print_tree()
 
