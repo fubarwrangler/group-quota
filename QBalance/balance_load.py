@@ -40,50 +40,62 @@ def set_surplus(root):
             log.debug("%s slack=%s l_demand=%s", groups, any_slack, lower_demand)
 
             if (any_slack and lower_demand) or already_set:
-                if all_leaf and not already_set:
-                    log.debug('Would be false, but leaf so true!')
-                    set_equal(groups, True)
-                    already_set = True
-                else:
-                    set_equal(groups, False)
+                set_equal(groups, False)
             else:
-                if not all_leaf and not any_slack:
-                    log.debug('Would be true, but non-leaf & no slack so false!')
-                    set_equal(groups, False)
-                else:
-                    set_equal(groups, True)
-                    already_set = True
+                set_equal(groups, True)
+                already_set = True
+
+    # Go through again and turn off certain non-leaf intermediate nodes
+    for group in root.all():
+        all_leaf = all([x.is_leaf for x in group.siblings()])
+        no_slack = not any([x.has_slack() for x in group.siblings()])
+        if group.accept and no_slack and not all_leaf:
+            log.debug("%s toggle t->f", group.full_name)
+            group.accept = False
 
 
-def scn1(groups):
-    groups['group_atlas']['analysis']['short'].demand = 0
-    groups['group_atlas']['analysis']['long'].demand = 251
-    groups['group_atlas']['analysis'].demand = 251
+def scn_asym_analysys(groups):
+    groups.group_atlas.analysis.short.demand = 0
+    groups.group_atlas.analysis.long.demand = 251
+    groups.group_atlas.analysis.demand = 251
 
 
-def scn2(groups):
-    groups['group_atlas']['analysis']['short'].demand = 0
-    groups['group_atlas']['analysis']['long'].demand = 0
+def scn_no_analysis(groups):
+    groups.group_atlas.analysis.short.demand = 0
+    groups.group_atlas.analysis.long.demand = 0
+    groups.group_atlas.analysis.demand = 0
 
 
-def scn3(groups):
-    groups['group_atlas']['analysis'].demand = 1000
-    groups['group_atlas']['analysis']['short'].demand = 1000
-    groups['group_atlas']['analysis']['long'].demand = 1000
+def scn_full_analysis(groups):
+    groups.group_atlas.analysis.short.demand = 1000
+    groups.group_atlas.analysis.long.demand = 1000
+    groups.group_atlas.analysis.demand = 1000
 
 
-def scn4(groups):
-    groups['group_atlas']['prod']['mp'].demand = 0
+def scn_no_mcore(groups):
+    groups.group_atlas.prod.mp.demand = 0
+    scn_full_analysis(groups)
+
+
+def scn_no_mcore_or_himem(groups):
+    groups.group_atlas.prod.mp.demand = 0
+    groups.group_atlas.prod.test.demand = 0
+    scn_full_analysis(groups)
+
+
+def scn_no_atlas(groups):
+    for g in groups.group_atlas.all():
+        g.demand = 0
+
 
 groups = build_groups_db()
 
 demand.idlejobs.populate(groups)
 
-scn1(groups)
+scn_no_analysis(groups)
 
-groups['group_grid'].demand = 11
-groups['group_grid'].threshold = 10
-groups.print_tree()
+groups.group_grid.demand = 11
+groups.group_grid.threshold = 10
 
 set_surplus(groups)
 

@@ -49,7 +49,10 @@ class Group(object):
             return {}
 
     def has_demand(self):
-        return self.weight > 0 and self.demand > self.threshold
+        if self.is_leaf:
+            return self.weight > 0 and self.demand > self.threshold
+        else:
+            return self.weight > 0 and any(x.has_demand() for x in self)
 
     def has_slack(self):
         return self.weight > 0 and self.demand <= self.threshold
@@ -97,6 +100,11 @@ class Group(object):
 
     def __getitem__(self, key):
         return self.children[key]
+
+    def __getattr__(self, name):
+        if name in self.children:
+            return self.children[name]
+        raise AttributeError
 
     def __repr__(self):
         return '<0x%x> %s' % (id(self), self.full_name)
