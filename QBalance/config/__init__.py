@@ -3,9 +3,9 @@
 # Db Connection parameters
 
 db = {
-    'host': 'localhost',
+    'host': '127.0.0.1',
     'db': 'group_quotas',
-    'port': 3306,
+    'port': 3333,
     'passwd': 'CHANGEME',
     'user': 'gqu'
 }

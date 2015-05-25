@@ -31,15 +31,17 @@ def set_surplus(root):
 
         for w in sorted(set(g.weight for g in candidates), reverse=True):
             groups = [x for x in candidates if x.weight == w]
-            any_slack = any([x.has_slack() for x in candidates])
+            my_demand = any([x.has_demand() for x in groups])
 
             lower_groups = [x for x in candidates if 0 < x.weight < w]
+            log.debug([(x.full_name, x.has_slack()) for x in lower_groups])
+
             lower_demand = any([x for x in lower_groups if x.has_demand()])
             log.debug("%s -- lower groups = %s", groups,
                       ", ".join((x.full_name for x in lower_groups)))
-            log.debug("%s slack=%s l_demand=%s", groups, any_slack, lower_demand)
+            log.debug("%s demand=%s l_demand=%s", groups, my_demand, lower_demand)
 
-            if (any_slack and lower_demand) or already_set:
+            if (not my_demand and lower_demand) or already_set:
                 set_equal(groups, False)
             else:
                 set_equal(groups, True)
@@ -77,6 +79,14 @@ def scn_no_mcore(groups):
     scn_full_analysis(groups)
 
 
+def scn_no_prod(groups):
+    for x in groups.group_atlas.prod.all():
+        x.demand = 0
+    scn_full_analysis(groups)
+
+    # scn_full_analysis(groups)
+
+
 def scn_no_mcore_or_himem(groups):
     groups.group_atlas.prod.mp.demand = 0
     groups.group_atlas.prod.test.demand = 0
@@ -92,7 +102,12 @@ groups = build_groups_db()
 
 demand.idlejobs.populate(groups)
 
-scn_no_analysis(groups)
+# scn_full_analysis(groups)
+# scn_no_analysis(groups)
+# scn_no_atlas(groups)
+# scn_no_prod(groups)
+scn_asym_analysys(groups)
+
 
 groups.group_grid.demand = 11
 groups.group_grid.threshold = 10

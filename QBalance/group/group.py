@@ -52,10 +52,13 @@ class Group(object):
         if self.is_leaf:
             return self.weight > 0 and self.demand > self.threshold
         else:
-            return self.weight > 0 and any(x.has_demand() for x in self)
+            return self.weight > 0 and any(x.has_demand() for x in self.get_children())
 
     def has_slack(self):
-        return self.weight > 0 and self.demand <= self.threshold
+        if self.is_leaf:
+            return self.weight == 0 or self.demand <= self.threshold
+        else:
+            return self.weight > 0 and all(x.has_slack() for x in self.get_children())
 
     def real_demand(self):
         return self.has_demand() and self.is_leaf
@@ -94,7 +97,7 @@ class Group(object):
         return (x for x in self if x.is_leaf)
 
     def print_tree(self, n=0):
-        print '|' + '--'*(n) + str(self)
+        print '|' + '--' * (n) + str(self)
         for child in sorted(self.get_children(), key=lambda x: x.name):
             child.print_tree(n + 1)
 
