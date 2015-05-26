@@ -3,7 +3,6 @@
 import MySQLdb
 import logging
 
-import config as c
 import config.dbconn
 
 from log import setup_logging
@@ -16,6 +15,9 @@ modules = list()
 for mod in module_names:
     modules.append(__import__(mod, fromlist=module_names))
 
+# Days to keep old data around
+keep_days = 14
+
 
 def insert_to_db(data):
     try:
@@ -23,6 +25,8 @@ def insert_to_db(data):
         cur.executemany('INSERT INTO atlas_queue_log '
                         '(`group_name`, `amount_in_queue`) VALUES (%s, %s)',
                         statements)
+        cur.execute('DELETE FROM atlas_queue_log WHERE '
+                    'query_time < DATE_SUB(NOW(), INTERVAL %d DAY)' % keep_days)
         con.commit()
     except MySQLdb.Error as E:
         log.error("Error connecting to database: %s" % E)
