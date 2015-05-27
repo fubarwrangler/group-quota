@@ -2,7 +2,7 @@
 
 import logging
 
-from group.db import build_groups_db
+from group.db import build_groups_db, update_surplus_flags
 import demand.idlejobs
 
 
@@ -11,47 +11,51 @@ from log import setup_logging
 log = setup_logging('/foo', backup=1, size_mb=20, level=logging.INFO)
 
 
-def set_equal(groups, val):
+def turn_surplus_flag(groups, val):
     for g in groups:
         log.debug("%s accept=%s", g.full_name, val)
         g.accept = val
 
 
-def set_surplus(root):
+def calculate_surplus(root):
+
     log.debug("*********************  Get Candidates  **********************")
 
     for group in (x for x in root.all() if not x.is_leaf):
 
+        # Candidates are the children of the intermediate groups in DFS order
         candidates = sorted(group.get_children(), key=lambda x: -x.weight)
 
-        already_set = False
-        all_leaf = all([x.is_leaf for x in candidates])
-        log.debug("Sibling group -- children of %s, all_leaf=%s",
-                  group.full_name, all_leaf)
+        log.debug("Sibling group -- children of %s", group.full_name)
 
-        for w in sorted(set(g.weight for g in candidates), reverse=True):
-            groups = [x for x in candidates if x.weight == w]
+        already_set = False
+
+        # Weights in descending order
+        for weight in sorted(set(g.weight for g in candidates), reverse=True):
+            # All groups with same weight get same treatment
+            groups = [x for x in candidates if x.weight == weight]
             my_demand = any([x.has_demand() for x in groups])
 
-            lower_groups = [x for x in candidates if 0 < x.weight < w]
-            log.debug([(x.full_name, x.has_slack()) for x in lower_groups])
+            lower_groups = [x for x in candidates if 0 < x.weight < weight]
 
             lower_demand = any([x for x in lower_groups if x.has_demand()])
-            log.debug("%s -- lower groups = %s", groups,
-                      ", ".join((x.full_name for x in lower_groups)))
-            log.debug("%s demand=%s l_demand=%s", groups, my_demand, lower_demand)
+            log.debug("%s -- lower groups=%s, demand=%s, l_demand=%s",
+                      ", ".join(x.full_name for x in groups),
+                      ", ".join(x.full_name for x in lower_groups),
+                      my_demand, lower_demand)
 
             if (not my_demand and lower_demand) or already_set:
-                set_equal(groups, False)
+                turn_surplus_flag(groups, False)
             else:
-                set_equal(groups, True)
+                turn_surplus_flag(groups, True)
                 already_set = True
 
-    # Go through again and turn off certain non-leaf intermediate nodes
+    # Go through again and turn off non-leaf intermediate nodes that don't
+    # have slack from their neighbors, just to prevent toggling too much
     for group in root.all():
         all_leaf = all([x.is_leaf for x in group.siblings()])
-        no_slack = not any([x.has_slack() for x in group.siblings()])
-        if group.accept and no_slack and not all_leaf:
+        slack = any([x.has_slack() for x in group.siblings()])
+        if group.accept and not slack and not all_leaf:
             log.debug("%s toggle t->f", group.full_name)
             group.accept = False
 
@@ -102,16 +106,20 @@ groups = build_groups_db()
 
 demand.idlejobs.populate(groups)
 
+groups.print_tree()
+
 # scn_full_analysis(groups)
 # scn_no_analysis(groups)
 # scn_no_atlas(groups)
 # scn_no_prod(groups)
-scn_asym_analysys(groups)
+# scn_asym_analysys(groups)
 
 
 groups.group_grid.demand = 11
 groups.group_grid.threshold = 10
 
-set_surplus(groups)
+calculate_surplus(groups)
 
 groups.print_tree()
+
+update_surplus_flags(groups)

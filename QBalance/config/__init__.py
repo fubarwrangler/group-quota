@@ -3,7 +3,7 @@
 # Db Connection parameters
 
 db = {
-    'host': '127.0.0.1',
+    'host': 'localhost',
     'db': 'group_quotas',
     'port': 3333,
     'passwd': 'CHANGEME',
@@ -27,17 +27,7 @@ weight = 'weight'
 
 
 # Minutes to look back for last change
-lookback = 21
-
-# Query Skeletons
-get_Mysql_groups = 'SELECT %s FROM %s;'
-get_Mysql_priority_list = 'SELECT %s FROM %s;'
-get_Mysql_queue_amounts = 'SELECT %s FROM %s WHERE %s >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND %s="%s";'
-get_Mysql_queue_avg = 'SELECT AVG(amount_in_queue) FROM atlas_queue_log WHERE query_time >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND %s="%s"'
-get_Mysql_Val = 'SELECT %s FROM %s WHERE %s="%s"'
-
-set_Mysql_last_surplus_update = 'UPDATE %s SET %s=current_timestamp WHERE %s="%s";'
-set_Mysql_surplus = 'UPDATE %s SET %s=%d WHERE %s="%s";'
+lookback = 60
 
 analyze_logfile = "/home/mvjensen/atlasSurplus.log"
 panda_logfile = "/home/mvjensen/queueLog.log"

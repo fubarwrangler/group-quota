@@ -10,7 +10,7 @@
 # *****************************************************************************
 
 import urllib2
-import pickle
+import cPickle
 import logging
 
 log = logging.getLogger()
@@ -24,9 +24,12 @@ queues = {
     'BNL_PROD':        'group_atlas.prod.production',
     'ANALY_BNL_SHORT': 'group_atlas.analysis.short',
     'ANALY_BNL_LONG':  'group_atlas.analysis.long',
+    'ANALY_BNL_MCORE': 'group_atlas.analysis.mcore',
 }
 
 # **************** Configuration variables and information *****************
+
+# FIXME: This will stop working if/when python validates SSL certs!
 url = "https://pandaserver.cern.ch:25443/server/panda/getJobStatisticsWithLabel"
 
 # According to J. Hover, this is the definitive test for if a queue is analysis
@@ -49,7 +52,7 @@ def get_jobs():
     try:
         webservice = urllib2.urlopen(url, timeout=30)
         # This is so horribly insecure, I can't believe it!
-        webdata = pickle.load(webservice)
+        webdata = cPickle.load(webservice)
 
     except urllib2.URLError:
         log.error("Timeout accessing PANDA webservice, exit...")

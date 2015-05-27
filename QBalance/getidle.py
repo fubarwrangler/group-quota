@@ -16,7 +16,7 @@ for mod in module_names:
     modules.append(__import__(mod, fromlist=module_names))
 
 # Days to keep old data around
-keep_days = 14
+keep_days = 30
 
 
 def insert_to_db(data):

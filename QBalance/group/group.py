@@ -60,9 +60,6 @@ class Group(object):
         else:
             return self.weight > 0 and all(x.has_slack() for x in self.get_children())
 
-    def real_demand(self):
-        return self.has_demand() and self.is_leaf
-
     @property
     def full_name(self):
         """ Walk up tree to form fqdn for group, except for implicit <root> """
