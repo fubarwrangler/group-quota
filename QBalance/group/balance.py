@@ -4,6 +4,8 @@ import logging
 
 log = logging.getLogger()
 
+__all__ = ['calculate_surplus']
+
 
 def turn_surplus_flag(groups, val):
     for g in groups:
@@ -12,6 +14,9 @@ def turn_surplus_flag(groups, val):
 
 
 def calculate_surplus(root):
+    """ This is the core balancing algorithm for figuring out which group
+        get the accept_surplus flag
+    """
 
     log.debug("*********************  Get Candidates  **********************")
 

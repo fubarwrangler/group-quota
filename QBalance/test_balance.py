@@ -2,7 +2,7 @@
 import logging
 from log import setup_logging
 
-log = setup_logging('/foo', backup=1, size_mb=20, level=logging.INFO)
+log = setup_logging(None, backup=1, size_mb=20, level=logging.DEBUG)
 
 from group.db import build_groups_db, update_surplus_flags
 from group.idlejobs import populate_demand
@@ -71,4 +71,4 @@ calculate_surplus(groups)
 
 groups.print_tree()
 
-update_surplus_flags(groups)
+# update_surplus_flags(groups)
