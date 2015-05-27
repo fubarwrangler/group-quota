@@ -61,18 +61,22 @@ def get_average(data):
     return avg / float(len(data) - 1)
 
 
-def populate(root):
+def populate_demand(root):
 
     con = db.get()[0]
     for node in root.leaf_nodes():
+        name = node.full_name
         last_hour = get_db_demand(con, node.full_name)
         if last_hour is None:
+            log.info("Queue %s has insufficient data for demand calc", name)
             demand = 0
         elif spike_detected(last_hour):
+            log.info("Queue %s -- spike detected", name)
             demand = 0
         else:
             demand = int(round(get_average(last_hour)))
 
-        log.info('real-demand for %s set -> %d', node.full_name, demand)
+        log.info('real-demand for %s set -> %d', name, demand)
         node.demand = demand
+
     con.close()

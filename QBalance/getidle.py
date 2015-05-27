@@ -7,7 +7,7 @@ import config.dbconn
 
 from log import setup_logging
 
-log = setup_logging(c.panda_logfile, backup=1, size_mb=20, level=logging.INFO)
+log = setup_logging('/scratch/panda_dump.log', backup=3, size_mb=20, level=logging.INFO)
 
 from jobquery import module_names
 

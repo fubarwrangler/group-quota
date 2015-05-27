@@ -121,3 +121,16 @@ class Group(object):
                ' threshold %d demand %d' % \
                ('(%s)' % n + self.name, self.accept, self.weight, self.threshold,
                 self.demand)
+
+    def color_str(self):
+        p = self
+        d = -1
+        while p.parent:
+            p = p.parent
+            d += 1
+
+        n = 'D' if self.has_demand() else '' + 'S' if self.has_slack() else ''
+        return ' '*d + '\033[94m%s\033[0m: surplus \033[93m%s\033[0m, weight %f,' \
+               ' threshold %d demand %d' % \
+               ('(%s)' % n + self.name, self.accept, self.weight, self.threshold,
+                self.demand)

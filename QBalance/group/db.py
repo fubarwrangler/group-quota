@@ -13,14 +13,15 @@ import config as c
 
 log = logging.getLogger()
 
-__all__ = ['build_groups_db']
+__all__ = ['build_groups_db', 'update_surplus_flags']
 
 
 def build_groups_db():
+    """ Build group tree from database """
 
     root_group = Group('<root>')
 
-    for name, weight, surplus, threshold in get_groups():
+    for name, weight, surplus, threshold in _get_groups():
         parts = name.split('.')
         myname = parts[-1]
 
@@ -34,7 +35,7 @@ def build_groups_db():
     return root_group
 
 
-def get_groups():
+def _get_groups():
     """ Return groups from DB ordered by name appropriate for tree creation """
 
     fields = ('group_name', 'weight', 'accept_surplus', 'surplus_threshold')

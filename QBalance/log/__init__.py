@@ -2,15 +2,14 @@
 
 import logging
 from logging.handlers import RotatingFileHandler
-import sys
 
 
 def setup_logging(filename, backup=2, size_mb=150, level=logging.DEBUG):
 
     fmt_str = "%(asctime)-15s (%(levelname)s) %(message)s"
 
-    if '-d' in sys.argv or filename is None:
-        logging.basicConfig(format=fmt_str, level=logging.DEBUG)
+    if filename is None or filename == '-':
+        logging.basicConfig(format=fmt_str, level=level)
         return logging.getLogger()
 
     log = logging.getLogger()
