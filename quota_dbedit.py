@@ -11,18 +11,19 @@
 # 12/6/10  -- restructured the code and add an incremental option '-i'
 # 12/14/10 -- fixed bug where -q 0 wouldn't work (fixed by compare w/ None)
 # 1/24/12  -- Minor aesthetic fixes and fix for heirarchical group database
+# 5/28/15  -- Use optparse module for better CLI interface
 
 
 import sys
-import getopt
+import optparse
 import MySQLdb
 
 
 # Get all parent groups of a group (separator is ".")
 def get_parents(x):
-    if noparent:
+    if options.parent:
         return []
-    return [".".join(x.split(".")[:-i]) for i in range(1, x.count(".") + 1)]
+    return (".".join(x.split(".")[:-i]) for i in range(1, x.count(".") + 1))
 
 
 # Execute database command, or list of commands, and die if something goes wrong
@@ -56,7 +57,7 @@ def db_execute(command, database="group_quotas", host="localhost",
 # Show a table of the quota information
 def print_quotas():
     groups = db_execute("SELECT group_name,quota,priority,accept_surplus FROM "
-                        "atlas_group_quotas ORDER BY group_name", user="db_query")
+                        "atlas_group_quotas ORDER BY group_name")
     print 'There are %d groups' % len(groups)
     longest = max(len(x[0]) for x in groups)
     print 'Group ' + ' ' * (longest - 6) + '\tQuota\tPriority\tAccept_Surplus'
@@ -64,17 +65,6 @@ def print_quotas():
     for g in groups:
         print '%s %s\t%d\t%.1f\t\t%s' % \
             (g[0], ' ' * (longest - len(g[0])), g[1], g[2], bool(g[3]))
-
-
-def usage():
-    print 'Usage: %s [-l] | [[-e group] [-q quota]|[-i interval]]' % sys.argv[0]
-    print '  -l	Print a list of current groups/quotas'
-    print '  -e	Edit quotas (needed by -g/-q options)'
-    print '  -f	Forces changes to be made, no output (for scripting)'
-    print '  -q	Specify new quota (must be positive integer)'
-    print '  -p	Parent disable, do not add/subtract from parent groups'
-    print '  -i	Specify difference from current value (+/- integer)'
-    print '  -h	Shows this help screen'
 
 
 # Write changes to db, asking for the user's approval unless force=True
@@ -102,65 +92,52 @@ def make_changes(oldquota, quota, group, d, force=False):
     db_execute(dbcommands)
     return True
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:], 'lhpfe:q:i:')
-except getopt.GetoptError, err:
-    print str(err)
-    usage()
-    sys.exit(2)
 
-EDIT = False
-group = None
-newquota = None
-diff = None
-force = False
-noparent = False
-for o, a in opts:
-    if o == '-l':
-        print_quotas()
-        sys.exit(0)
-    if o == '-e':
-        group = a
-        EDIT = True
-    if o == '-q':
-        newquota = int(a)
-    if o == '-i':
-        diff = int(a)
-    if o == '-f':
-        force = True
-    if o == '-p':
-        noparent = True
+usage = "Usage: %prog -l | [[-e group] [-q quota]|[-i interval]] [-f]"
+parser = optparse.OptionParser(usage)
+parser.add_option("-l", "--list", action="store_true",
+                  help="Print a list of current groups/quotas")
+parser.add_option("-e", "--edit", action="store", dest="group",
+                  help="Edit quotas (needed by -i/-q options)")
+parser.add_option("-q", "--new-quota", type="int", dest="quota",
+                  help="Specify new quota (must be positive integer)")
+parser.add_option("-i", "--incremental-quota", type="int", dest="inc",
+                  help="Specify a increment +/- int to the quota value")
+parser.add_option("-f", "--force", action="store_true",
+                  help="Force change to be made without confirmation")
+parser.add_option("-p", "--no-parent", action="store_true", dest="parent",
+                  help="Do not change parent group's quotas (use with caution)")
+options, args = parser.parse_args()
 
 
-if newquota and diff:
+if options.list:
+    print_quotas()
+elif options.quota and options.inc:
     print 'Please specify only a new quota or a difference, not both'
-    EDIT = False
-
-if EDIT and group and (newquota is not None or diff is not None):
+elif options.group and (options.quota is not None or options.inc is not None):
 
     # Gather information on groups and their quotas
-    groups = db_execute("""SELECT group_name,quota,priority,accept_surplus FROM
-                           atlas_group_quotas ORDER BY group_name""",
-                        user="db_query", p="")
+    groups = db_execute("SELECT group_name,quota,priority,accept_surplus FROM "
+                        "atlas_group_quotas ORDER BY group_name")
     names = [x[0] for x in groups]
     quotas = [x[1] for x in groups]
     d = dict(zip(names, quotas))
 
-    if group not in d:
-        print 'Error, group %s not in database' % group
+    if options.group not in d:
+        print 'Error, group %s not in database' % options.group
     else:
         # Get new quota from newquota or diff
-        if newquota is not None:
-            oldquota = d[group]
-            quota = newquota
+        if options.quota is not None:
+            oldquota = d[options.group]
+            quota = options.quota
         else:
-            if d[group] + diff < 0:
+            if d[options.group] + options.inc < 0:
                 print 'Error, quotas must remain positive'
                 sys.exit(1)
-            oldquota = d[group]
-            quota = d[group] + diff
+            oldquota = d[options.group]
+            quota = d[options.group] + options.inc
 
         # Write the changes to the database
-        make_changes(oldquota, quota, group, d, force)
+        make_changes(oldquota, quota, options.group, d, options.force)
 else:
-    usage()
+    parser.print_usage()
