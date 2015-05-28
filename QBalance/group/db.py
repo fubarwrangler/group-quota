@@ -1,12 +1,10 @@
-#!/usr/bin/python
 # Module to build group-tree from database
 
 import sys
 import logging
 import datetime
-
-from group import Group
 import MySQLdb
+import MySQLdb.cursors
 
 import config.dbconn as db
 import config as c
@@ -16,34 +14,42 @@ log = logging.getLogger()
 __all__ = ['build_groups_db', 'update_surplus_flags']
 
 
-def build_groups_db():
-    """ Build group tree from database """
+def build_groups_db(grp_CLS, field_map):
+    """ Build group tree from database, mapping from db-field names to
+        group-class parameter names via @field_map and instantiating
+        the class passed in @grp_CLS
+    """
 
-    root_group = Group('<root>')
+    root_group = grp_CLS('<root>')
 
-    for name, weight, surplus, threshold in _get_groups():
-        parts = name.split('.')
-        myname = parts[-1]
+    for data in _get_groups(field_map):
+        args = dict([(field_map.get(key, key), data[key]) for key in data])
+
+        parts = data['group_name'].split('.')
+        my_name = parts[-1]
 
         # Find appropriate parent from string of full group-name
         parent = root_group
         for x in parts[:-1]:
-            parent = parent[x]
+            try:
+                parent = parent[x]
+            except KeyError:
+                log.error("%s without parent found in DB", data['group_name'])
+                sys.exit(1)
 
-        parent.add_child(Group(myname, weight, surplus, threshold))
+        args['name'] = my_name
+        parent.add_child(grp_CLS(**args))
 
     return root_group
 
 
-def _get_groups():
+def _get_groups(fields):
     """ Return groups from DB ordered by name appropriate for tree creation """
-
-    fields = ('group_name', 'weight', 'accept_surplus', 'surplus_threshold')
 
     query = 'SELECT %s FROM atlas_group_quotas ORDER BY group_name' % ", ".join(fields)
 
     try:
-        con, cur = db.get()
+        con, cur = db.get(curclass=MySQLdb.cursors.DictCursor)
         cur.execute(query)
         data = cur.fetchall()
         cur.close()

@@ -7,10 +7,10 @@ import logging
 log = logging.getLogger()
 
 
-def get():
+def get(curclass=None):
     try:
         con = MySQLdb.connect(**c.db)
-        cur = con.cursor()
+        cur = con.cursor(cursorclass=curclass)
     except MySQLdb.Error as E:
         log.error("Error connecting to database: %s" % E)
         sys.exit(1)
