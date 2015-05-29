@@ -4,7 +4,7 @@ from log import setup_logging
 
 log = setup_logging(None, backup=1, size_mb=20, level=logging.DEBUG)
 
-from group.db import build_groups_db, update_surplus_flags
+from group.db import build_demand_groups_db, update_surplus_flags
 from group.idlejobs import populate_demand
 from group.balance import calculate_surplus
 
@@ -51,7 +51,7 @@ def scn_no_atlas(groups):
         g.demand = 0
 
 
-groups = build_groups_db()
+groups = build_demand_groups_db()
 
 populate_demand(groups)
 

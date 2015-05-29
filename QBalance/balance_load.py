@@ -4,7 +4,6 @@ import optparse
 import logging
 import sys
 
-import group.group as grp
 import group.db as group_db
 import group.idlejobs as idle
 import group.balance as balance
@@ -39,7 +38,7 @@ field_map = {'group_name': 'name',
 
 if __name__ == "__main__":
     try:
-        groups = group_db.build_groups_db(grp.DemandGroup, field_map)
+        groups = group_db.build_demand_groups_db()
         idle.populate_demand(groups)
 
         log.info("Current Groups:")

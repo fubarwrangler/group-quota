@@ -9,21 +9,29 @@ import MySQLdb.cursors
 import config.dbconn as db
 import config as c
 
+from group import DemandGroup, QuotaGroup
+
 log = logging.getLogger()
 
-__all__ = ['build_groups_db', 'update_surplus_flags']
+
+def build_demand_groups_db(grpCLS=DemandGroup):
+    fields = ('group_name', 'accept_surplus', 'surplus_threshold', 'weight',)
+    return _build_groups_db(grpCLS, fields)
 
 
-def build_groups_db(grp_CLS, field_map):
-    """ Build group tree from database, mapping from db-field names to
-        group-class parameter names via @field_map and instantiating
-        the class passed in @grp_CLS
+def build_quota_groups_db(grpCLS=QuotaGroup):
+    fields = ('group_name', 'accept_surplus', 'quota', 'priority',)
+    return _build_groups_db(grpCLS, fields)
+
+
+def _build_groups_db(grp_CLS, fields):
+    """ Build group tree from database, instantiating the class passed in
+        @grp_CLS and querying the db-fields in @fields
     """
 
     root_group = grp_CLS('<root>')
 
-    for data in _get_groups(field_map):
-        args = dict([(field_map.get(key, key), data[key]) for key in data])
+    for data in _get_groups(fields):
 
         parts = data['group_name'].split('.')
         my_name = parts[-1]
@@ -37,8 +45,9 @@ def build_groups_db(grp_CLS, field_map):
                 log.error("%s without parent found in DB", data['group_name'])
                 sys.exit(1)
 
-        args['name'] = my_name
-        parent.add_child(grp_CLS(**args))
+        data['name'] = my_name
+        data.pop('group_name')
+        parent.add_child(grp_CLS(**data))
 
     return root_group
 

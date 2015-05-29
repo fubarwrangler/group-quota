@@ -68,13 +68,11 @@ class AbstractGroup(object):
         return self.children.itervalues()
 
     def find(self, name):
-        """ Find a group named @name below self -- raise Exception """
-        if self.name == name:
-            return self
-        for x in self.walk():
-            if name == x.name:
+        """ Find a group named @name below self """
+        for x in self.all():
+            if name == x.full_name:
                 return x
-        raise Exception("No group %s found" % name)
+        return None
 
     def leaf_nodes(self):
         return (x for x in self if x.is_leaf)
@@ -99,7 +97,7 @@ class AbstractGroup(object):
         return iter(self.walk())
 
     def __contains__(self, key):
-        return (len([x.name for x in self if x.name == key]) > 0)
+        return (len([x.full_name for x in self if x.full_name == key]) > 0)
 
     def __str__(self):
         return self.full_name
@@ -107,12 +105,11 @@ class AbstractGroup(object):
 
 class DemandGroup(AbstractGroup):
 
-    def __init__(self, name, weight=1, surplus=False, threshold=0, running=0):
+    def __init__(self, name, weight=1.0, accept_surplus=False, surplus_threshold=0):
         super(DemandGroup, self).__init__(name)
 
-        self.accept = bool(surplus)
-        self.running = running
-        self.threshold = threshold
+        self.accept = bool(accept_surplus)
+        self.threshold = surplus_threshold
         self.weight = weight
 
         self.demand = 0
@@ -153,39 +150,40 @@ class DemandGroup(AbstractGroup):
 
 class QuotaGroup(AbstractGroup):
 
-    def __init__(self, name, quota=0, prio=10.0, surplus=False):
+    def __init__(self, name, quota=0, priority=10.0, accept_surplus=False):
         super(QuotaGroup, self).__init__(name)
 
         self.quota = int(quota)
-        self.prio = float(prio)
-        self.surplus = str(bool(surplus)).upper()
+        self.prio = float(priority)
+        self.surplus = str(bool(accept_surplus)).upper()
 
     def __str__(self):
-        msg = '\n'
-        msg += 'GROUP_QUOTA_%s = %d\n' % (self.name, self.quota)
-        msg += 'GROUP_PRIO_FACTOR_%s = %.1f\n' % (self.name, self.prio)
-        msg += 'GROUP_ACCEPT_SURPLUS_%s = %s\n' % (self.name, self.surplus)
-        return msg
+        return repr(self)
+
+    def __repr__(self):
+        return "'%s' - quota=%d - prio=%.1f - surplus=%s" % \
+               (self.full_name, self.quota, self.prio, self.surplus)
 
     def diff(self, other):
         diffs = list()
         for x in ("full_name", "quota", "prio", "surplus"):
             if getattr(self, x) != getattr(other, x):
                 diffs.append(x)
+        if diffs:
+            log.debug("Compare %s-%s, diffs: %s" % (self.name, other.name, diffs))
         return diffs
 
-    def __repr__(self):
-        return "'%s' - quota=%d - prio=%.1f - surplus=%s" % \
-               (self.name, self.quota, self.prio, self.surplus)
+    def full_cmp(self, other):
+        my_names = set([x.full_name for x in self.all()])
+        other_names = set([x.full_name for x in other.all()])
 
-    def __cmp__(self, other):
+        if set(my_names) ^ set(other_names):
+            return False
 
-        same = True
-        for x in ("full_name", "quota", "prio", "surplus"):
-            if getattr(self, x) != getattr(other, x):
-                same = False
-                break
-        if same:
-            return 0
-        else:
-            return 1 if self.full_name >= other.full_name else -1
+        return all([x == y for x, y in zip(self.all(), other.all())])
+
+    def __eq__(self, other):
+        return not self.diff(other)
+
+    def __ne__(self, other):
+        return self.diff(other)
