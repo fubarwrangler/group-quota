@@ -61,15 +61,15 @@ class UpdateQuotaGroup(group.group.QuotaGroup):
         mine = set([x.full_name for x in self.all()])
         theirs = set([x.full_name for x in other.all()])
 
-        grps_added = mine - theirs
-        grps_removed = theirs - mine
+        grps_added = theirs - mine
+        grps_removed = mine - theirs
 
         s = ''
 
         for grp in grps_added:
-            s += "Added " + repr(grp) + "\n"
+            s += "Added " + repr(other.find(grp)) + "\n"
         for grp in grps_removed:
-            s += "Deleted '" + grp + "'\n"
+            s += "Deleted " + repr(self.find(grp)) + "\n"
 
         for grpname in mine & theirs:
             mygrp = self.find(grpname)
@@ -113,6 +113,10 @@ class UpdateQuotaGroup(group.group.QuotaGroup):
             sys.exit(1)
 
 
+get_file_groups = lambda x: group.file.build_quota_groups_file(x, UpdateQuotaGroup)
+get_db_groups = lambda: group.db.build_quota_groups_db(UpdateQuotaGroup)
+
+
 def send_email(address, changes):
 
     log.info('Sending mail to "%s"...' % address)
@@ -150,8 +154,8 @@ parser.add_option("-r", "--reconfig", action="store_true", default=False,
 options, args = parser.parse_args()
 
 
-db_groups = group.db.build_quota_groups_db(UpdateQuotaGroup)
-fp_groups = group.file.build_quota_groups_file(QUOTA_FILE, UpdateQuotaGroup)
+db_groups = get_db_groups()
+fp_groups = get_file_groups(QUOTA_FILE)
 
 if db_groups.full_cmp(fp_groups):
     log.debug('No Database Change...')
@@ -169,7 +173,7 @@ tmpname = tempfile.mktemp(suffix='grpq', dir=os.path.dirname(QUOTA_FILE))
 db_groups.write_file(tmpname)
 
 # This may be overkill...but can't hurt -- reread temp-file and compare w/ db
-new_groups = group.file.build_quota_groups_file(QUOTA_FILE)
+new_groups = get_file_groups(QUOTA_FILE)
 if new_groups != db_groups:
     log.error("Very strange, new file %s is corrupt", tmpname)
     sys.exit(1)

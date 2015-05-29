@@ -169,8 +169,6 @@ class QuotaGroup(AbstractGroup):
         for x in ("full_name", "quota", "prio", "surplus"):
             if getattr(self, x) != getattr(other, x):
                 diffs.append(x)
-        if diffs:
-            log.debug("Compare %s-%s, diffs: %s" % (self.name, other.name, diffs))
         return diffs
 
     def full_cmp(self, other):
