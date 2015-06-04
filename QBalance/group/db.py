@@ -90,7 +90,7 @@ def update_surplus_flags(root):
         # last change ago in seconds or a year ago if not defined
         last_change = (now - ts).total_seconds() if ts else year
 
-        if last_change > c.lookback * 60:
+        if last_change > c.change_lookback * 60:
             log.info("Changing %s from %s->%s", group.full_name,
                      not group.accept, group.accept)
             cur.execute("UPDATE atlas_group_quotas SET last_surplus_update=now(), "

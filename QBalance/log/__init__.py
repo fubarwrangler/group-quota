@@ -6,7 +6,7 @@ from logging.handlers import RotatingFileHandler
 
 def setup_logging(filename, backup=2, size_mb=150, level=logging.DEBUG):
 
-    fmt_str = "%(asctime)-15s (%(levelname)s) %(message)s"
+    fmt_str = "%(asctime)-15s (%(levelname)-7s) %(message)s"
 
     if filename is None or filename == '-':
         logging.basicConfig(format=fmt_str, level=level)

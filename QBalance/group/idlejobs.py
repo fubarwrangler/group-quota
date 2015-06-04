@@ -5,16 +5,17 @@
 
 import logging
 import config.dbconn as db
+import config as c
 
 log = logging.getLogger()
 
 
-def get_db_demand(con, name, window=120):
+def get_db_demand(con, name, window=c.demand_lookback):
     """ Return list of demand-values in last hour unless there are too few then
         return None and warn about it
     """
 
-    fewest_datapoints = 5
+    fewest_datapoints = 8
 
     where = 'query_time >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND group_name="%s"' % \
             (window, name)
@@ -33,21 +34,32 @@ def get_db_demand(con, name, window=120):
     return [x[0] for x in data]
 
 
-# FIXME: Is this needed!?
-def get_avg_demand(con, name, window=60):
-    where = 'query_time >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND group_name="%s"' % \
-            (window, name)
-    avg_query = "SELECT AVG(amount_in_queue) FROM atlas_queue_log WHERE %s" % where
-    cur = con.cursor(avg_query)
-    cur.execute(avg_query)
-    avg = cur.fetchall()
-    cur.close()
-
-    return avg
-
-
-# TODO: Add real implementation
+# XXX: This is poorly named
 def spike_detected(data):
+    """ Look for rapid-decrease between halves of dataset or if second-half is
+        a flat zero. If so return True so there is no demand considered.
+    """
+
+    # Half the data and look at the averages separately
+    first, second = data[:len(data)/2], data[len(data)/2:]
+    m, n = get_average(first), get_average(second)
+
+    # If the entire second half is zero, consider it exhausted and return True
+    if n == 0:
+        log.debug("Second half zero, spike to true")
+        return True
+
+    # Avoid div-by-zero
+    if m == 0:
+        log.debug("First half zero, no change-detect possible")
+        return False
+
+    d = 100 * (n - m) / m
+    log.debug("First avg: %d, second avg: %d, change: %.2f%%", m, n, d)
+
+    if d < -30.0:
+        log.debug("Decrease sufficient between halves, spike to true")
+
     return False
 
 
@@ -68,7 +80,7 @@ def populate_demand(root):
         name = node.full_name
         last_hour = get_db_demand(con, node.full_name)
         if last_hour is None:
-            log.info("Queue %s has insufficient data for demand calc", name)
+            log.warning("Queue %s has insufficient data for demand calc", name)
             demand = 0
         elif spike_detected(last_hour):
             log.info("Queue %s -- spike detected", name)
@@ -76,7 +88,7 @@ def populate_demand(root):
         else:
             demand = int(round(get_average(last_hour)))
 
-        log.info('real-demand for %s set -> %d', name, demand)
+        log.debug('real-demand for %s set -> %d', name, demand)
         node.demand = demand
 
     con.close()

@@ -10,7 +10,10 @@ db = {
 }
 
 # Minutes to look back for last change
-lookback = 60
+change_lookback = 30
+
+# Minutes ago to average to consider for demand
+demand_lookback = 160
 
 analyze_logfile = "/home/mvjensen/atlasSurplus.log"
 panda_logfile = "/home/mvjensen/queueLog.log"
