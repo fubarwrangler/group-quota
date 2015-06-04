@@ -11,8 +11,8 @@ from group.balance import calculate_surplus
 
 def scn_asym_analysys(groups):
     groups.group_atlas.analysis.short.demand = 0
-    groups.group_atlas.analysis.long.demand = 251
-    groups.group_atlas.analysis.demand = 251
+    groups.group_atlas.analysis.long.demand = 6000
+    groups.group_atlas.analysis.demand = 6000
 
 
 def scn_no_analysis(groups):
@@ -22,9 +22,9 @@ def scn_no_analysis(groups):
 
 
 def scn_full_analysis(groups):
-    groups.group_atlas.analysis.short.demand = 1000
-    groups.group_atlas.analysis.long.demand = 1000
-    groups.group_atlas.analysis.demand = 1000
+    groups.group_atlas.analysis.short.demand = 6000
+    groups.group_atlas.analysis.long.demand = 6000
+    groups.group_atlas.analysis.demand = 6000
 
 
 def scn_no_mcore(groups):
@@ -60,8 +60,8 @@ groups.print_tree()
 # scn_full_analysis(groups)
 # scn_no_analysis(groups)
 # scn_no_atlas(groups)
-# scn_no_prod(groups)
-# scn_asym_analysys(groups)
+scn_no_prod(groups)
+scn_asym_analysys(groups)
 
 
 groups.group_grid.demand = 11
