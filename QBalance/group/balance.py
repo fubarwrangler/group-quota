@@ -53,7 +53,7 @@ def calculate_surplus(root):
     # have slack from their neighbors, just to prevent toggling too much
     for group in root.all():
         all_leaf = all([x.is_leaf for x in group.siblings()])
-        slack = any([x.has_slack() for x in group.siblings()])
+        slack = any([x.has_slack() for x in group.siblings() if x.weight > 0])
         if group.accept and not slack and not all_leaf:
             log.info("%s (intermediate and no slack) toggle t->f", group.full_name)
             group.accept = False
