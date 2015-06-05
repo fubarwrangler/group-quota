@@ -45,19 +45,19 @@ def spike_detected(data):
     m, n = get_average(first), get_average(second)
 
     # If the entire second half is zero, consider it exhausted and return True
-    if n == 0:
+    if m > 0 and n == 0:
         log.debug("Second half zero, spike to true")
         return True
 
-    # Avoid div-by-zero
-    if m == 0:
-        log.debug("First half zero, no change-detect possible")
+    # Avoid div-by-zero and too-small-to-matter for percentage change
+    if m < 5:
+        log.debug("First half too small, no change-detect possible")
         return False
 
     d = 100 * (n - m) / m
     log.debug("First avg: %d, second avg: %d, change: %.2f%%", m, n, d)
 
-    if d < -30.0:
+    if d < -c.pct_dec_spike:
         log.debug("Decrease sufficient between halves, spike to true")
 
     return False
@@ -79,14 +79,16 @@ def populate_demand(root):
     for node in root.leaf_nodes():
         name = node.full_name
         last_hour = get_db_demand(con, node.full_name)
+        average = int(round(get_average(last_hour))) if last_hour is not None else 0
+
         if last_hour is None:
             log.warning("Queue %s has insufficient data for demand calc", name)
             demand = 0
-        elif spike_detected(last_hour):
+        elif average > 0 and spike_detected(last_hour):
             log.info("Queue %s -- spike detected", name)
             demand = 0
         else:
-            demand = int(round(get_average(last_hour)))
+            demand = average
 
         log.debug('real-demand for %s set -> %d', name, demand)
         node.demand = demand
