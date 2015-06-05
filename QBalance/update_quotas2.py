@@ -115,6 +115,32 @@ get_file_groups = lambda x: group.file.build_quota_groups_file(x, UpdateQuotaGro
 get_db_groups = lambda: group.db.build_quota_groups_db(UpdateQuotaGroup)
 
 
+def overwrite_file(groups):
+    # 1. Open temporary file --> Write Changed quota file to temp file
+    # 2. A bit pedantic, but re-scan temp file for consistency
+    # 3. Overwrite backup file with copy of current file
+    # 4. Replace current file with temp copy
+
+    # Needs to be on same filesystem to allow hardlinking that goes on when
+    # os.rename() is called, else we get a 'Invalid cross-device link' error
+    tmpname = tempfile.mktemp(suffix='grpq', dir=os.path.dirname(QUOTA_FILE))
+    groups.write_file(tmpname)
+
+    # This may be overkill...but can't hurt -- reread tmpfile and compare w/ db
+    new_groups = get_file_groups(QUOTA_FILE)
+    if new_groups != groups:
+        log.error("Very strange, new file %s is corrupt", tmpname)
+        sys.exit(1)
+
+    # Overwrite the backup with a simply copy operation
+    shutil.copy2(QUOTA_FILE, QUOTA_BACK)
+
+    # Replace (atomically) the actual file with the new version
+    os.rename(tmpname, QUOTA_FILE)
+
+    log.info('Quota file updated with new values')
+
+
 def send_email(address, changes):
 
     log.info('Sending mail to "%s"...' % address)
@@ -141,65 +167,48 @@ reconfigured to use the new quotas indicated on the page above.
         return 1
     return 0
 
+
+def parse_options():
+    parser = optparse.OptionParser()
+    parser.add_option("-m", "--mail", action="store", dest="email",
+                      help="Send email to address given here when a change is made")
+    parser.add_option("-r", "--reconfig", action="store_true", default=False,
+                      help="Issue a condor_reconfig after a change is detected")
+    # No args!
+    return parser.parse_args()[0]
 # **************************************************************************************
 
 
-parser = optparse.OptionParser()
-parser.add_option("-m", "--mail", action="store", dest="email",
-                  help="Send email to address given here when a change is made")
-parser.add_option("-r", "--reconfig", action="store_true", default=False,
-                  help="Issue a condor_reconfig after a change is detected")
-options, args = parser.parse_args()
+if __name__ == '__main__':
 
+    options = parse_options()
 
-db_groups = get_db_groups()
-fp_groups = get_file_groups(QUOTA_FILE)
+    db_groups = get_db_groups()
+    fp_groups = get_file_groups(QUOTA_FILE)
 
-if db_groups.full_cmp(fp_groups):
-    log.debug('No Database Change...')
-    sys.exit(0)
+    if db_groups.full_cmp(fp_groups):
+        log.debug('No Database Change...')
+        sys.exit(0)
 
+    # Write the DB groups to the file
+    overwrite_file(db_groups)
 
-# 1. Open temporary file --> Write Changed quota file to temp file
-# 2. A bit pedantic, but re-scan temp file for consistency
-# 3. Overwrite backup file with copy of current file
-# 4. Replace current file with temp copy
+    changes = fp_groups.get_diff_str(db_groups)
+    log.info('Changes made are:')
+    for line in changes.split("\n"):
+        if line:
+            log.info(line)
 
-# Needs to be on same filesystem to allow hardlinking that goes on when
-# os.rename() is called, else we get a 'Invalid cross-device link' error
-tmpname = tempfile.mktemp(suffix='grpq', dir=os.path.dirname(QUOTA_FILE))
-db_groups.write_file(tmpname)
+    # Do a reconfig, and send mail before we exit
+    if options.reconfig:
+        if subprocess.call(CONDOR_RECONFIG) != 0:
+            log.error('Problem with condor_reconfig, returned nonzero')
+            sys.exit(1)
+        log.info('Reconfig successful...')
+    else:
+        log.info('No reconfig done...')
 
-# This may be overkill...but can't hurt -- reread temp-file and compare w/ db
-new_groups = get_file_groups(QUOTA_FILE)
-if new_groups != db_groups:
-    log.error("Very strange, new file %s is corrupt", tmpname)
-    sys.exit(1)
-
-# Overwrite the backup with a simply copy operation
-shutil.copy2(QUOTA_FILE, QUOTA_BACK)
-
-# Replace (atomically) the actual file with the new version
-os.rename(tmpname, QUOTA_FILE)
-
-log.info('Quota file updated with new values')
-
-changes = fp_groups.get_diff_str(db_groups)
-log.info('Changes made are:')
-for line in changes.split("\n"):
-    if line:
-        log.info(line)
-
-# Do a reconfig, and send mail before we exit
-if options.reconfig:
-    if subprocess.call(CONDOR_RECONFIG) != 0:
-        log.error('Problem with condor_reconfig, returned nonzero')
-        sys.exit(1)
-    log.info('Reconfig successful...')
-else:
-    log.info('No reconfig done...')
-
-if options.email:
-    sys.exit(send_email(options.email, changes))
-else:
-    log.info('Not sending mail...')
+    if options.email:
+        sys.exit(send_email(options.email, changes))
+    else:
+        log.info('Not sending mail...')
