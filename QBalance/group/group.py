@@ -113,7 +113,6 @@ class DemandGroup(AbstractGroup):
         self.weight = weight
 
         self.demand = 0
-        log.debug("Create group: %s", self)
 
     def has_demand(self):
         if self.is_leaf:

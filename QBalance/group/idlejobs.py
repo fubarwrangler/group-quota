@@ -59,6 +59,7 @@ def spike_detected(data):
 
     if d < -c.pct_dec_spike:
         log.debug("Decrease sufficient between halves, spike to true")
+        return True
 
     return False
 
