@@ -7,13 +7,51 @@ import group
 log = logging.getLogger()
 
 
+class NoQuotaFile(Exception):
+    pass
+
+
 def build_quota_groups_file(fname, grpCLS=group.QuotaGroup):
 
     root = grpCLS('<root>')
 
     try:
+        group_names, grps = _read_quotas(fname)
+    except NoQuotaFile:
+        log.info("Quota file %s not found, return blank group-tree", fname)
+        return root
+
+    for grp in sorted(group_names):
+
+        p = grps.get(grp, None)
+        if p is None or not ("quota" in p and "prio" in p and "surplus" in p):
+            log.error("Invalid incomplete file-group found: %s", grp)
+            sys.exit(1)
+
+        parts = grp.split('.')
+        my_name = parts[-1]
+
+        # Find appropriate parent from string of full group-name
+        parent = root
+        for x in parts[:-1]:
+            try:
+                parent = parent[x]
+            except KeyError:
+                log.error("%s without parent found in DB", grp)
+                sys.exit(1)
+
+        new = group.QuotaGroup(my_name, p["quota"], p["prio"], p["surplus"])
+        parent.add_child(new)
+
+    return root
+
+
+def _read_quotas(fname):
+    try:
         fp = open(fname, "r")
-    except IOError, e:
+    except EnvironmentError, e:
+        if e.errno == 2:
+            raise NoQuotaFile
         log.error("Error opening %s: %s", fname, e)
         sys.exit(1)
 
@@ -22,7 +60,7 @@ def build_quota_groups_file(fname, grpCLS=group.QuotaGroup):
         "quota":   re.compile('^GROUP_QUOTA_([\w\.]+)\s*=\s*(\d+)$'),
         "prio":    re.compile('^GROUP_PRIO_FACTOR_([\w\.]+)\s*=\s*([\d\.]+)$'),
         "surplus": re.compile('^GROUP_ACCEPT_SURPLUS_([\w\.]+)\s*=\s*(\w+)$'),
-        }
+    }
 
     grps = {}
     group_names = []
@@ -48,26 +86,4 @@ def build_quota_groups_file(fname, grpCLS=group.QuotaGroup):
                 grps[grp][kind] = val
     fp.close()
 
-    for grp in sorted(group_names):
-
-        p = grps.get(grp, None)
-        if p is None or not ("quota" in p and "prio" in p and "surplus" in p):
-            log.error("Invalid incomplete file-group found: %s", grp)
-            sys.exit(1)
-
-        parts = grp.split('.')
-        my_name = parts[-1]
-
-        # Find appropriate parent from string of full group-name
-        parent = root
-        for x in parts[:-1]:
-            try:
-                parent = parent[x]
-            except KeyError:
-                log.error("%s without parent found in DB", grp)
-                sys.exit(1)
-
-        new = group.QuotaGroup(my_name, p["quota"], p["prio"], p["surplus"])
-        parent.add_child(new)
-
-    return root
+    return group_names, grps

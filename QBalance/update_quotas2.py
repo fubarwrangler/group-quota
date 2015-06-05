@@ -41,11 +41,11 @@ from email.utils import formatdate
 
 CONDOR_RECONFIG = '/usr/sbin/condor_reconfig'
 
-QUOTA_FILE = '/etc/condor/atlas-group-definitions'
-QUOTA_BACK = '/etc/condor/atlas-group-definitions.previous'
-LOGFILE = '/etc/condor/group-def.log'
+QUOTA_FILE = '/tmp/atlas-group-definitions'
+QUOTA_BACK = '/tmp/atlas-group-definitions.previous'
+LOGFILE = '/tmp/group-def.log'
 
-log = setup_logging(LOGFILE, backup=3, size_mb=40, level=logging.INFO)
+log = setup_logging(None, backup=3, size_mb=40, level=logging.DEBUG)
 
 # Needed to run reconfig command below
 os.environ['EXTRA_CFG_D'] = '/etc/condor/atlas.d/'
@@ -127,13 +127,14 @@ def overwrite_file(groups):
     groups.write_file(tmpname)
 
     # This may be overkill...but can't hurt -- reread tmpfile and compare w/ db
-    new_groups = get_file_groups(QUOTA_FILE)
-    if new_groups != groups:
+    new_groups = get_file_groups(tmpname)
+    if not new_groups.full_cmp(groups):
         log.error("Very strange, new file %s is corrupt", tmpname)
         sys.exit(1)
 
-    # Overwrite the backup with a simply copy operation
-    shutil.copy2(QUOTA_FILE, QUOTA_BACK)
+    # Overwrite the backup with a simple copy operation
+    if os.path.exists(QUOTA_FILE):
+        shutil.copy2(QUOTA_FILE, QUOTA_BACK)
 
     # Replace (atomically) the actual file with the new version
     os.rename(tmpname, QUOTA_FILE)
@@ -176,7 +177,6 @@ def parse_options():
                       help="Issue a condor_reconfig after a change is detected")
     # No args!
     return parser.parse_args()[0]
-# **************************************************************************************
 
 
 if __name__ == '__main__':
