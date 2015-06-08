@@ -20,7 +20,8 @@ def get_db_demand(con, name, window=c.demand_lookback):
     where = 'query_time >= DATE_SUB(NOW(), INTERVAL %d MINUTE) AND group_name="%s"' % \
             (window, name)
 
-    query = "SELECT amount_in_queue FROM atlas_queue_log WHERE %s" % where
+    query = "SELECT amount_in_queue FROM atlas_queue_log NATURAL JOIN " + \
+            "atlas_group_quotas WHERE %s" % where
     cur = con.cursor()
     count = cur.execute(query)
     data = cur.fetchall()

@@ -4,6 +4,7 @@
 
 DROP TABLE IF EXISTS `atlas_group_quotas`;
 CREATE TABLE `atlas_group_quotas` (
+      `id` int AUTO_INCREMENT not null,
       `group_name` varchar(128) NOT NULL,
       `quota` int(12) NOT NULL DEFAULT 0,
       `priority` double NOT NULL DEFAULT 10.0,
@@ -13,18 +14,21 @@ CREATE TABLE `atlas_group_quotas` (
       `surplus_threshold` int(10) unsigned NOT NULL DEFAULT 0,
       `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
       `last_surplus_update` timestamp NULL DEFAULT NULL,
-      PRIMARY KEY (`group_name`)
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `gr_grp_name` (`group_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 DROP TABLE IF EXISTS `atlas_queue_log`;
 CREATE TABLE `atlas_queue_log` (
-  `group_name` varchar(128) NOT NULL DEFAULT '',
+  `id` int DEFAULT NULL,
   `amount_in_queue` int(10) unsigned NOT NULL DEFAULT '0',
   `query_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY `ts_idx` (`query_time`),
-  KEY `group_name_idx` (`group_name`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+  CONSTRAINT FK_qlog_gq_id FOREIGN KEY
+    (`id`) REFERENCES `atlas_group_quotas` (`id`)
+    ON DELETE CASCADE,
+  KEY `ts_idx` (`query_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE USER 'atlas_update'@'%' IDENTIFIED BY 'xxx';
 CREATE USER 'atlas_edit'@'%' IDENTIFIED BY 'xxx';

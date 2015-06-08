@@ -23,8 +23,8 @@ keep_days = 30
 def insert_to_db(data):
     try:
         con, cur = config.dbconn.get()
-        cur.executemany('INSERT INTO atlas_queue_log '
-                        '(`group_name`, `amount_in_queue`) VALUES (%s, %s)',
+        cur.executemany('INSERT INTO atlas_queue_log (`id`, `amount_in_queue`) '
+                        'SELECT id, %s FROM atlas_group_quotas WHERE group_name=%s',
                         statements)
         cur.execute('DELETE FROM atlas_queue_log WHERE '
                     'query_time < DATE_SUB(NOW(), INTERVAL %d DAY)' % keep_days)
@@ -40,6 +40,6 @@ if __name__ == '__main__':
     # For each module, generate a list of tuples of group_name,#idle by
     # calling the get_jobs() method of each module in jobquery/*.py
     for module in modules:
-        statements.extend(module.get_jobs().items())
-
+        statements.extend([tuple(reversed(x)) for x in module.get_jobs().items()])
+    # print statements
     insert_to_db(statements)
