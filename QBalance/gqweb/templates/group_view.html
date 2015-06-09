@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Rack Layout Viewer</h2>
+  <div>
+  {%- for room, racklist in racks %}
+    <table>
+      <tr><th colspan="1000">{{room}}</th></tr>
+    {%- for num, row in racklist|dictsort %}
+      <tr><td><a href="{{url_for('show_row', row=num)}}">Row {{num}}</a></td>
+      {%- for rack in row %}
+        <td><a href="{{url_for('show_rack', rack=rack)}}">{{rack}}</a></td>
+      {%- endfor %}
+      </tr>
+    {%- endfor %}
+    </table>
+  {%- endfor %}
+  </div>
+{% endblock %}
