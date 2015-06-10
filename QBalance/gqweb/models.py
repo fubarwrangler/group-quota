@@ -16,6 +16,7 @@ from database import Base
 class Group(Base):
     __table__ = Table('atlas_group_quotas', Base.metadata, autoload=True)
 
+    # WTF IS THIS!
     @orm.reconstructor
     def on_load(self):
         AbstractGroup.__init__(self, self.group_name.split('.')[-1])
