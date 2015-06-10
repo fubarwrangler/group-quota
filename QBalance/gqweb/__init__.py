@@ -24,11 +24,5 @@ def shutdown_session(exception=None):
 
 
 @app.route('/')
-def menu():
-    groups = Group.query.all()
-    print groups
-
-    return render_template('group_view.html', groups=groups)
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
+def show_menu():
+    return render_template('group_view.html', groups=Group.query.all())

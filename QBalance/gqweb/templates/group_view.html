@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
 {% block body %}
-  <h2>Rack Layout Viewer</h2>
+  <h2>ATLAS Group Quotas</h2>
   <div>
   {%- for grp in groups %}
 
-    <p>{{ grp }}</p>
+    <p>{{ grp.group_name }}</p>
   {%- endfor %}
   </div>
 {% endblock %}
