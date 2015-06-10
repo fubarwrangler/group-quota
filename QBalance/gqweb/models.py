@@ -1,26 +1,21 @@
 # *****************************************************************************
 
-from gqweb import app
+# from gqweb import app
 
 from group.group import AbstractGroup
-
+# from group.db import _build_groups_db
 # from flask import request
 
+import sys
 
-from sqlalchemy import create_engine, Table
-from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy.sql import select, cast
-# from sqlalchemy import func
+from sqlalchemy import Table, orm
 
-
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'],
-                       echo=app.config.get('SQLALCHEMY_ECHO', True))
-
-# engine = create_engine('mysql://willsk@localhost/group_quotas', echo=True)
-
-Base = declarative_base(engine)
+from database import Base
 
 
-class Group(AbstractGroup, Base):
-    __table__ = Table('atlas_group_quotas', Base.metadata,
-                      autoload=True)
+class Group(Base):
+    __table__ = Table('atlas_group_quotas', Base.metadata, autoload=True)
+
+    @orm.reconstructor
+    def on_load(self):
+        AbstractGroup.__init__(self, self.group_name.split('.')[-1])

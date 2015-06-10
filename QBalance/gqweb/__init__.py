@@ -14,9 +14,21 @@ app.config.from_object(__name__)
 app.config.from_envvar('CCFGDIST_CFG', silent=True)
 app.config['APPLICATION_ROOT'] = '/farmapp/'
 
-import models
+from database import db_session
+from models import Group
 
-a = models.Group('foo')
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
+
+
+@app.route('/')
+def menu():
+    groups = Group.query.all()
+    print groups
+
+    return render_template('group_view.html', groups=groups)
 
 # if __name__ == '__main__':
 #     app.run(debug=True)

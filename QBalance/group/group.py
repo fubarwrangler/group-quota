@@ -85,11 +85,6 @@ class AbstractGroup(object):
     def __getitem__(self, key):
         return self.children[key]
 
-    def __getattr__(self, name):
-        if name in self.children:
-            return self.children[name]
-        raise AttributeError
-
     def __repr__(self):
         return '<0x%x> %s' % (id(self), self.full_name)
 
