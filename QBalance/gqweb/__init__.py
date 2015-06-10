@@ -26,3 +26,8 @@ def shutdown_session(exception=None):
 @app.route('/')
 def show_menu():
     return render_template('group_view.html', groups=Group.query.all())
+
+
+@app.route('/edit')
+def edit_groups():
+    return render_template('edit_group.html', groups=Group.query.all())

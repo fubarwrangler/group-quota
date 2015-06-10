@@ -2,9 +2,11 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   <meta http-equiv="cache-control" content="no-cache" />
-  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+  <link href="{{ url_for('static', filename='css/bootstrap-switch.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
+  <script src="{{ url_for('static', filename='js/jquery.min.js')}}"></script>
+  <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
+  <script src="{{ url_for('static', filename='js/bootstrap-switch.min.js')}}"></script>
   <title>Group Quota Editor</title>
 </head>
 <body>
