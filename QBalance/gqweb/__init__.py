@@ -15,7 +15,7 @@ app.config.from_envvar('CCFGDIST_CFG', silent=True)
 app.config['APPLICATION_ROOT'] = '/farmapp/'
 
 from database import db_session
-from models import Group
+from models import Group, build_group_tree
 
 
 @app.teardown_appcontext
@@ -28,6 +28,10 @@ def show_menu():
     return render_template('group_view.html', groups=Group.query.all())
 
 
-@app.route('/edit')
+@app.route('/edit', methods=['GET', 'POST'])
 def edit_groups():
-    return render_template('edit_group.html', groups=Group.query.all())
+    if request.method == "POST":
+        return "Posted " + str(request)
+    root = build_group_tree(Group.query.all())
+
+    return render_template('edit_group.html', groups=reversed(list(root)))

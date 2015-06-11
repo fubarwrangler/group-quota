@@ -1,36 +1,46 @@
 {% extends "layout.html" %}
 {% block body %}
 
-
-<form class="form-inline" role="form">
-
-
-    <div class="container">
-    <div class="form-group row">
-        <div class="col-md-6">
-      <table class="table table-bordered table-striped">
-        <!-- <colgroup>
-          <col class="col-md-4">
-          <col class="col-sm-1">
-          <col class="col-sm-2">
-          <col class="col-sm-3">
-          <col class="col-md-2">
-        </colgroup> -->
-        <tbody>
-        <th><td>Qutoa</td><td>Prio</td><td>Weight</td><td>Surplus</td></th>
-    {%- for grp in groups %}
-        <tr>
-        <td>{{grp.group_name}}</td>
-        <td><input type="text" class="form-control " value="{{grp.quota}}"/></td>
-        <td><input type="text" class="form-control " value="{{grp.priority}}"/></td>
-        <td><input type="text" class="form-control " value="{{grp.weight}}"/></td>
-        <td><input type="checkbox" class="truefalse" {{ 'checked' if grp.accept_surplus else '' }}></td>
-        </tr>
-
+<h3>Edit Quotas</h3>
+<form class="form-inline container" role="form" method="POST">
+<div class="row">
+  <table class="table table-bordered table-striped table-hover table-condenced">
+    <colgroup>
+      <col class="col-md-2">
+      <col class="col-md-1">
+      <col class="col-md-1">
+      <col class="col-md-1">
+      <col class="col-md-1">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Quota</th>
+        <th>Prio</th>
+        <th>Weight</th>
+        <th>Surplus</th>
+      </tr>
+    </thead>
+    <tbody>
+    {%- for group in groups %}
+    <tr>
+        <td><strong>{{group.full_html|safe}}</strong></td>
+        <td><input type="text" class="form-control sm-box" value="{{group.quota}}"
+        {{ 'disabled title="Disabled because non-leaf node"'|safe if not group.is_leaf else ''}}
+        /></td>
+        <td><input type="text" class="form-control sm-box" value="{{group.priority|round(1)}}"/></td>
+        <td><input type="text" class="form-control sm-box" value="{{group.weight|round(1)}}"/></td>
+        <td><input type="checkbox" class="truefalse"
+            {{ 'checked' if group.accept_surplus else '' }}>
+        </td>
+    </tr>
     {%- endfor %}
     </tbody>
-    </table>
-    <br>
+  </table>
+  <br>
+</div>
+
+
 <button type="submit" class="btn btn-default">Submit</button>
 </form>
 
