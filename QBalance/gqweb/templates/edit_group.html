@@ -1,12 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<h3>Edit Quotas</h3>
-<form class="form-inline container" role="form" method="POST">
-<div class="row">
+<h3>Edit Group Parameters</h3>
+<div class="container">
+<form class="form-inline" role="form" method="POST">
   <table class="table table-bordered table-striped table-hover table-condenced">
     <colgroup>
       <col class="col-md-2">
+      <col class="col-md-1">
       <col class="col-md-1">
       <col class="col-md-1">
       <col class="col-md-1">
@@ -18,6 +19,7 @@
         <th>Quota</th>
         <th>Prio</th>
         <th>Weight</th>
+        <th>Threshold</th>
         <th>Surplus</th>
       </tr>
     </thead>
@@ -25,24 +27,31 @@
     {%- for group in groups %}
     <tr>
         <td><strong>{{group.full_html|safe}}</strong></td>
-        <td><input type="text" class="form-control sm-box" value="{{group.quota}}"
+        <td><input type="text" name="{{group.full_name + '+quota'}}" class="form-control sm-box" value="{{group.quota}}"
         {{ 'disabled title="Disabled because non-leaf node"'|safe if not group.is_leaf else ''}}
         /></td>
-        <td><input type="text" class="form-control sm-box" value="{{group.priority|round(1)}}"/></td>
-        <td><input type="text" class="form-control sm-box" value="{{group.weight|round(1)}}"/></td>
-        <td><input type="checkbox" class="truefalse"
-            {{ 'checked' if group.accept_surplus else '' }}>
+        <td><input type="text" name="{{group.full_name + '+priority'}}"
+            class="form-control sm-box" value="{{group.priority|round(1)}}"/></td>
+        <td><input type="text" name="{{group.full_name + '+weight'}}"
+            class="form-control sm-box" value="{{group.weight|round(1)}}"/></td>
+        <td><input type="text" name="{{group.full_name + '+surplus_threshold'}}" class="form-control sm-box"
+            {% if group.is_leaf %}
+                value="{{group.surplus_threshold}}"/>
+            {% else %}
+                value="" disabled title="Disabled because non-leaf node"/>
+            {% endif %}
         </td>
+        <td><input type="checkbox" name="{{group.full_name + '+accept_surplus'}}"
+            class="truefalse" {{ 'checked' if group.accept_surplus else '' }}> </td>
     </tr>
     {%- endfor %}
     </tbody>
   </table>
   <br>
-</div>
 
 
 <button type="submit" class="btn btn-default">Submit</button>
 </form>
-
+</div>
 <script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
 {% endblock %}

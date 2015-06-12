@@ -4,7 +4,8 @@
   <div>
   {%- for grp in groups %}
 
-    <p>{{ grp.group_name }}</p>
+    <p>{{ grp.full_html|safe }}</p>
   {%- endfor %}
   </div>
+  <a href="/edit">Edit Quotas</a>
 {% endblock %}

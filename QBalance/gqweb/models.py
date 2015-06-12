@@ -12,7 +12,7 @@ class Group(Base):
     __table__ = Table('atlas_group_quotas', Base.metadata, autoload=True)
 
 
-class GroupTree(AbstractGroup):
+class GroupTree(AbstractGroup, Group):
     def __init__(self, name, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
