@@ -1,6 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
-
+<div class="container">
+{% if errors %}
+    <ul class="alert alert-danger dismissible">
+    {% for group, field, typemsg in errors -%}
+      <li>{{ "Error in %s, %s needs to be a %s" % (group, field, typemsg) }}</li>
+    {% endfor -%}
+    </ul>
+{% endif %}
+</div>
 <h3>Edit Group Parameters</h3>
 <div class="container">
 <form class="form-inline" role="form" method="POST">
@@ -40,6 +48,7 @@
             {% else %}
                 value="" disabled title="Disabled because non-leaf node"/>
             {% endif %}
+        <input type="hidden" name="{{group.full_name + '+group_name'}}" value="{{group.full_name}}"/>
         </td>
         <td><input type="checkbox" name="{{group.full_name + '+accept_surplus'}}"
             class="truefalse" {{ 'checked' if group.accept_surplus else '' }}> </td>

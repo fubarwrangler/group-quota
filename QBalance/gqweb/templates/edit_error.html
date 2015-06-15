@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block body %}
+  <div class="container">
+    <h3>Errors in Quota From</h3>
+      <ul class="alert alert-danger">
+      {% for group, field, typemsg in errors -%}
+        <ol>{{ "Error in <b>%s</b>, %s needs to be a %s"|format(group, field, typemsg)|safe }}</ol>
+      {% endfor -%}
+      </ul>
+  </div>
+  <button onclick="window.history.back();">Go Back</button>
+{% endblock %}

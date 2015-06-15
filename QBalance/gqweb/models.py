@@ -24,6 +24,15 @@ class GroupTree(AbstractGroup, Group):
         first, last = '.'.join(s[:-1]) + "." if len(s) > 1 else '', s[-1]
         return "%s<u>%s</u>" % (first, last)
 
+type_map = {
+    'priority': (float, 'floating point value greater than zero'),
+    'weight': (float, 'floating point value greater than zero'),
+    'quota': (int, 'positive integer'),
+    'group_name': (str, 'string'),
+    'surplus_threshold': (int, 'positive integer'),
+    'accept_surplus': (str, 'boolean'),  # XXX: Shouldn't matter, not present if not checked!
+}
+
 
 def build_group_tree(db_groups):
     def group_process(f):

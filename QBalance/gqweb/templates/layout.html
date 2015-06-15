@@ -11,5 +11,19 @@
   <title>Group Quota Editor</title>
 </head>
 <body>
+{% with messages = get_flashed_messages(True) -%}
+  {% if messages -%}
+    {% for cat, message in messages -%}
+    {% if cat == "message" %}
+        <div class="alert alert-success"> {{message}} </div>
+    {% endif -%}
+    {% endfor -%}
+  {% endif -%}
+  <script>
+    $(".alert-success").delay(2500).slideUp(200, function() {
+      $(this).alert('close');
+    });
+  </script>
+{% endwith -%}
 {% block body %}{% endblock %}
 </body>
