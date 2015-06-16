@@ -2,11 +2,12 @@
 {% block body %}
   <div class="container">
     <h3>Errors in Quota From</h3>
-      <ul class="alert alert-danger">
       {% for group, field, typemsg in errors -%}
-        <ol>{{ "Error in <b>%s</b>, %s needs to be a %s"|format(group, field, typemsg)|safe }}</ol>
-      {% endfor -%}
+      <ul class="alert alert-danger">
+        <ol>{{ "<strong>Error</strong> in <b>%s</b>, <u>%s</u> needs to be a %s"|format(group, field, typemsg)|safe }}</ol>
       </ul>
+      {% endfor -%}
+  <button class="btn btn-default" onclick="window.history.back();">
+  Go Back and Fix!</button>
   </div>
-  <button onclick="window.history.back();">Go Back</button>
 {% endblock %}

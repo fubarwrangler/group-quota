@@ -1,4 +1,5 @@
 # *****************************************************************************
+import re
 
 from group.group import AbstractGroup
 from group.db import _build_groups_db
@@ -24,17 +25,21 @@ class GroupTree(AbstractGroup, Group):
         first, last = '.'.join(s[:-1]) + "." if len(s) > 1 else '', s[-1]
         return "%s<u>%s</u>" % (first, last)
 
+
+def name_validate(name):
+    return re.match(r'^[a-z_\.]+$', name) and len([x for x in name.split('.') if x]) > 0
+
 type_map = {
-    'priority': (float, 'floating point value greater than zero'),
-    'weight': (float, 'floating point value greater than zero'),
-    'quota': (int, 'positive integer'),
-    'group_name': (str, 'string'),
-    'surplus_threshold': (int, 'positive integer'),
-    'accept_surplus': (str, 'boolean'),  # XXX: Shouldn't matter, not present if not checked!
+    'priority': (float, lambda x: x > 0.0, 'floating point value greater than zero'),
+    'weight': (float, lambda x: x >= 0.0, 'non-negative floating point value'),
+    'quota': (int, lambda x: x > 1, 'integer greater than 0'),
+    'group_name': (str, name_validate, 'string matching [a-z_].[a-z_]+'),
+    'surplus_threshold': (int, lambda x: x >= 0, 'integer >= 0'),
+    'accept_surplus': (lambda x: x == 'on', lambda x: True, 'boolean'),
 }
 
 
-def build_group_tree(db_groups):
+def build_group_tree_db(db_groups):
     def group_process(f):
         for grp in db_groups:
             yield grp.__dict__

@@ -1,11 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
   <h2>ATLAS Group Quotas</h2>
-  <div>
+  <div class="container">
   {%- for grp in groups %}
 
     <p>{{ grp.full_html|safe }}</p>
   {%- endfor %}
-  </div>
   <a href="/edit">Edit Quotas</a>
+  </div>
 {% endblock %}
