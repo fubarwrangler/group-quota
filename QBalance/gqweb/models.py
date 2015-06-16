@@ -4,6 +4,8 @@ import re
 from group.group import AbstractGroup
 from group.db import _build_groups_db
 
+from gqweb import app
+
 from sqlalchemy import Table
 
 from database import Base
@@ -13,7 +15,7 @@ class Group(Base):
     __table__ = Table('atlas_group_quotas', Base.metadata, autoload=True)
 
 
-class GroupTree(AbstractGroup, Group):
+class GroupTree(AbstractGroup):
     def __init__(self, name, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -42,5 +44,6 @@ type_map = {
 def build_group_tree_db(db_groups):
     def group_process(f):
         for grp in db_groups:
-            yield grp.__dict__
+            # app.logger.info("%s: %s", grp, grp.__dict__)
+            yield grp.__dict__.copy()
     return _build_groups_db(GroupTree, None, group_builder=group_process)

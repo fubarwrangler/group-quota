@@ -15,3 +15,13 @@ input.form-control.xs-box {
     width: 100%;
     display: inline;
 }
+
+#main_head strong {
+    border-bottom: solid thin blue;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.row:last-child {
+    margin-top: 10px;
+}

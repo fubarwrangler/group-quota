@@ -28,7 +28,7 @@ def shutdown_session(exception=None):
 @app.route('/')
 def main_menu():
     root = build_group_tree_db(Group.query.all())
-    return render_template('group_view.html', groups=root)
+    return render_template('group_view.html', groups=reversed(list(root)))
 
 
 @app.route('/edit')
@@ -68,9 +68,10 @@ def edit_groups_form():
     if errors:
         return render_template('edit_error.html', errors=errors)
 
-    root = build_group_tree_db(Group.query.all())
+    db_groups = Group.query.all()
+
     for name, params in data.iteritems():
-        dbobj = next(x for x in root if x.full_name == name)
+        dbobj = next(x for x in db_groups if x.group_name == name)
         for param, val in params.iteritems():
             if param == 'group_name':
                 continue
@@ -80,13 +81,18 @@ def edit_groups_form():
                                 name, param, val, db_val)
                 setattr(dbobj, param, val)
 
-            old = dbobj.quota
-            new = sum(x.quota for x in dbobj.get_children())
-            app.logger.info("Intermediate group sum %s: %d->%d", dbobj.full_name, old, new)
+    root = build_group_tree_db(db_groups)
+    for group in root:
+        if not group.is_leaf:
+            newquota = sum(x.quota for x in group.get_children())
 
             # FIXME: and not user_sum_change_auth
-            if new != old and True:
-                dbobj.quota = new
+            if newquota != group.quota and True:
+                app.logger.info("Intermediate group sum %s: %d->%d",
+                                group.full_name, group.quota, newquota)
+                dbobj = next(x for x in db_groups if x.group_name == group.full_name)
+                dbobj.quota = newquota
+                group.quota = newquota
 
     db_session.commit()
     flash("Everything OK, changes committed!")
