@@ -3,17 +3,15 @@
   <div class="container-fluid">
   <h2>ATLAS Group Quotas</h2>
   <div class="row" id="main_head">
-          <strong class="col-xs-1">Id</strong>
-          <strong class="col-xs-4">Name</strong>
+          <strong class="col-xs-3">Name</strong>
           <strong class="col-xs-1">Quota</strong>
           <strong class="col-xs-1">Prio</strong>
           <strong class="col-xs-1">Weight</strong>
           <strong class="col-xs-2">Surplus</strong>
   </div>
       {%- for group in groups %}
-      <div class="row">
-          <span class="col-xs-1">{{group.id}}</span>
-          <span class="col-xs-4"><strong>{{group.full_name}}</strong></span>
+      <div class="row main-row">
+          <span class="col-xs-3"><strong>{{group.full_name}}</strong></span>
           <span class="col-xs-1">{{group.quota}}</span>
           <span class="col-xs-1">{{group.priority|round(1)}}</span>
           <span class="col-xs-1">{{group.weight|round(1)}}</span>

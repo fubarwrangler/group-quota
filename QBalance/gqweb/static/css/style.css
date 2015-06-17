@@ -23,5 +23,13 @@ input.form-control.xs-box {
 }
 
 .row:last-child {
-    margin-top: 10px;
+    margin-top: 30px;
+}
+
+.main-row span {
+    border-bottom: dotted thin gray;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    padding-bottom: 25px;
+    height: 20px;
 }
