@@ -33,3 +33,8 @@ input.form-control.xs-box {
     padding-bottom: 25px;
     height: 20px;
 }
+
+input.sm-box.namebox {
+    width: 40%;
+    padding: 1px 3px;
+}

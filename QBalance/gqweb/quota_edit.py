@@ -1,14 +1,20 @@
 # ===========================================================================
 # Methods to validate edited quota info from form data and trees
 # ===========================================================================
-import models
+from collections import defaultdict
 from . import app
+
+from flask import request, render_template, redirect, url_for, flash
+from database import db_session
+from models import Group, build_group_tree_db, type_map, build_group_tree_formdata
 
 
 def validate_form_types(data):
     errors = list()
     for k, v in data.items():
-        fn, valid, msg = models.type_map[k]
+        if k == 'group_name':
+            continue
+        fn, valid, msg = type_map[k]
         try:
             data[k] = fn(v)
             if not valid(data[k]):
@@ -23,7 +29,7 @@ def set_params(db, formdata):
     for name, params in formdata.iteritems():
         dbobj = next(x for x in db if x.group_name == name)
         for param, val in params.iteritems():
-            if param == 'group_name':
+            if param == 'group_name' or param == 'new_name':
                 continue
             setattr(dbobj, param, val)
 
@@ -43,3 +49,67 @@ def set_quota_sums(db, root):
                 dbobj = next(x for x in db if x.group_name == group.full_name)
                 dbobj.quota = newquota
                 group.quota = newquota
+
+
+def set_renames(db, formdata):
+    orig_root = build_group_tree_formdata(formdata)
+    root = build_group_tree_formdata(formdata)
+    changed = set()
+    for group in root:
+        if group in changed:
+            app.logger.info("%s already changed", group.full_name)
+            continue
+        params = formdata[group.full_name]
+
+        old = group.full_name.split('.')[-1]
+        new = params.get('new_name', old)
+        if old != new:
+            to_change = [x for x in group.all()]
+            for grp in group.all():
+                grp.f
+            changed.add(group)
+
+            # group.rename(new)
+            # for obj in filter(lambda x: x.group_name.startswith(params['group_name']), db):
+            #     app.logger.warning("Group rename detected!: %s->%s",
+            #                        obj.group_name, group.full_name)
+            #     obj.group_name = orig_root.find(obj.group_name).full_name
+
+    app.logger.info("\n".join(map(str, root)))
+
+
+@app.route('/edit', methods=['POST'])
+def edit_groups_form():
+    data = defaultdict(dict)
+    for k, value in request.form.iteritems():
+        group, parameter = k.split('+')
+        data[group][parameter] = value
+
+    errors = list()
+    for grpname in data:
+        data[grpname], e = validate_form_types(data[grpname])
+        errors.extend(e)
+
+    if errors:
+        return render_template('edit_group.html', errors=errors)
+
+    db_groups = Group.query.all()
+
+    set_params(db_groups, data)
+
+    root = build_group_tree_db(db_groups)
+
+    set_quota_sums(db_groups, root)
+
+    set_renames(db_groups, data)
+
+    # Objects in session.dirty are not necessarily modified if the set-attribute
+    # is not different than the current one
+    if any(x for x in db_session.dirty if db_session.is_modified(x)):
+        flash("Everything OK, changes committed!")
+    else:
+        flash("No changes were made!", "nochange")
+
+    db_session.commit()
+
+    return redirect(url_for('main_menu'))

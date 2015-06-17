@@ -1,8 +1,5 @@
 
-from collections import defaultdict
-
-from flask import (Flask, request, render_template, redirect, url_for,
-                   flash)
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
@@ -11,9 +8,10 @@ app.config.from_object('gqweb.default_settings')
 app.config.from_envvar('GQEDITCFG', silent=True)
 # app.config['APPLICATION_ROOT'] = '/farmapp/'
 
-import quota_edit as qe
 from database import db_session
 from models import Group, build_group_tree_db
+
+import quota_edit  # flake8: noqa -- this unused import has views
 
 
 @app.teardown_appcontext
@@ -24,45 +22,16 @@ def shutdown_session(exception=None):
 @app.route('/')
 def main_menu():
     root = build_group_tree_db(Group.query.all())
-    return render_template('group_view.html', groups=reversed(list(root)))
+    return render_template('main_view.html', groups=sorted(list(root), key=lambda x: x.full_name))
 
 
 @app.route('/edit')
 def edit_groups():
-
     root = build_group_tree_db(Group.query.all())
-
-    return render_template('edit_group.html', groups=reversed(list(root)))
-
-
-@app.route('/edit', methods=['POST'])
-def edit_groups_form():
-    data = defaultdict(dict)
-    for k, value in request.form.iteritems():
-        group, parameter = k.split('+')
-        data[group][parameter] = value
-
-    errors = list()
-    for grpname in data:
-        data[grpname], e = qe.validate_form_types(data[grpname])
-        errors.extend(e)
-
-    if errors:
-        return render_template('edit_error.html', errors=errors)
-
-    db_groups = Group.query.all()
-
-    qe.set_params(db_groups, data)
-
-    root = build_group_tree_db(db_groups)
-
-    qe.set_quota_sums(db_groups, root)
-
-    db_session.commit()
-    flash("Everything OK, changes committed!")
-    return redirect(url_for('main_menu'))
+    return render_template('edit_group.html', groups=sorted(list(root), key=lambda x: x.full_name))
 
 
-@app.route('/add', methods=['GET', 'POST'])
+@app.route('/addrm')
 def add_groups():
-    return "Add group"
+    root = build_group_tree_db(Group.query.all())
+    return render_template('group_add_rm.html', groups=sorted(list(root), key=lambda x: x.full_name))

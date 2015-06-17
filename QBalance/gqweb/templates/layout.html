@@ -15,12 +15,14 @@
   {% if messages -%}
     {% for cat, message in messages -%}
     {% if cat == "message" %}
-        <div class="alert alert-success"> {{message}} </div>
+        <div class="alert alert-success closeme"> {{message}} </div>
+    {% elif cat == "nochange" %}
+        <div class="alert alert-info closeme"> {{message}} </div>
     {% endif -%}
     {% endfor -%}
   {% endif -%}
   <script>
-    $(".alert-success").delay(2500).slideUp(200, function() {
+    $(".closeme").delay(2500).slideUp(200, function() {
       $(this).alert('close');
     });
   </script>

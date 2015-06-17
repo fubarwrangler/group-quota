@@ -1,21 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
 <div class="container">
-{% if errors -%}
-  <h3>Errors in Quota From</h3>
-    {% for group, field, typemsg in errors -%}
-    <ul class="alert alert-danger">
-      <ol>
-        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  <span class="sr-only">Error:</span>
-          {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
-      </ol>
-    </ul>
-    {% endfor -%}
-<button class="btn btn-default" onclick="window.history.back();">
-Go Back and Fix!</button>
-{% else -%}
-<h3>Edit Group Parameters</h3>
+<h3>Add, Remove, or Rename Groups</h3>
 <form class="form-inline" role="form" method="POST">
   <table class="table table-bordered table-striped table-hover table-condenced">
     <colgroup>
@@ -38,11 +24,8 @@ Go Back and Fix!</button>
     </thead>
     <tbody>
     {%- for group in groups %}
-    {% set parent = '.'.join(group.full_name.split('.')[:-1]) %}
     <tr>
-        <td>{{parent + ("<u>.</u>"|safe if parent else '')}}
-            <input type="text" value="{{group.full_name.split('.')[-1]}}" class="form-control sm-box namebox"
-            name="{{group.full_name + '+new_name'}}"/></td>
+        <td><strong>{{group.full_html|safe}}</strong></td>
         <td><input type="text" name="{{group.full_name + '+quota'}}" class="form-control sm-box" value="{{group.quota}}"
         {{ 'disabled title="Disabled because non-leaf node"'|safe if not group.is_leaf else ''}}
         /></td>
@@ -65,9 +48,10 @@ Go Back and Fix!</button>
     </tbody>
   </table>
   <br>
+
+
 <button type="submit" class="btn btn-default">Submit</button>
 </form>
-{% endif -%}
 </div>
 <script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
 {% endblock %}
