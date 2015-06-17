@@ -2,7 +2,7 @@
 # Methods to validate edited quota info from form data and trees
 # ===========================================================================
 import models
-from gqweb import app
+from . import app
 
 
 def validate_form_types(data):

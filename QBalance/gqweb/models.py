@@ -4,7 +4,7 @@ import re
 from group.group import AbstractGroup
 from group.db import _build_groups_db
 
-from gqweb import app
+from . import app
 
 from sqlalchemy import Table
 
@@ -12,7 +12,7 @@ from database import Base
 
 
 class Group(Base):
-    __table__ = Table('atlas_group_quotas', Base.metadata, autoload=True)
+    __table__ = Table(app.config['TABLE_NAME'], Base.metadata, autoload=True)
 
 
 class GroupTree(AbstractGroup):

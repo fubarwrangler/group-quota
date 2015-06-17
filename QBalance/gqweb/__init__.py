@@ -7,14 +7,9 @@ from flask import (Flask, request, render_template, redirect, url_for,
 app = Flask(__name__)
 
 app.config.from_object(__name__)
+app.config.from_object('gqweb.default_settings')
 app.config.from_envvar('GQEDITCFG', silent=True)
 # app.config['APPLICATION_ROOT'] = '/farmapp/'
-
-# XXX: NOT REALLY USED IN PROD: Do the following and put in environs
-#
-#   $ tr -c -d '[:alnum:][!#$%&*.,]' < /dev/urandom | head -c 20
-#
-app.secret_key = 'U.iQ4!%&qvn$OzFrmBkz'
 
 import quota_edit as qe
 from database import db_session
@@ -66,3 +61,8 @@ def edit_groups_form():
     db_session.commit()
     flash("Everything OK, changes committed!")
     return redirect(url_for('main_menu'))
+
+
+@app.route('/add', methods=['GET', 'POST'])
+def add_groups():
+    return "Add group"

@@ -1,13 +1,12 @@
-
+from . import app
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 
-# SQLALCHEMY_DATABASE_URI = 'mysql://willsk@localhost/group_quotas'
-SQLALCHEMY_DATABASE_URI = 'sqlite:////home/willsk/this.db'
-
-engine = create_engine(SQLALCHEMY_DATABASE_URI, convert_unicode=True, echo=True)
+engine = create_engine(app.config['DATABASE_URI'],
+                       echo=app.config['DEBUG'],
+                       convert_unicode=True)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
