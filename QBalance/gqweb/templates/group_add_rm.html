@@ -1,57 +1,91 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class="container">
-<h3>Add, Remove, or Rename Groups</h3>
+{% if typeerrors -%}
+  <h3>Errors in Quota From</h3>
+    {% for group, field, typemsg in typeerrors -%}
+    <ul class="alert alert-danger">
+      <ol>
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+  <span class="sr-only">Error:</span>
+          {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
+      </ol>
+    </ul>
+    {% endfor -%}
+<button class="btn btn-default" onclick="window.history.back();">
+Go Back and Fix!</button>
+{% elif rmerrors -%}
+  {% for msg in rmerrors -%}
+  <ul class="alert alert-danger">
+    <ol>
+      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+<span class="sr-only">Error:</span>
+        {{ msg }}
+    </ol>
+  </ul>
+  {% endfor -%}
+<button class="btn btn-default" onclick="window.history.back();">
+Go Back and Fix!</button>
+{% else -%}
 <form class="form-inline" role="form" method="POST">
-  <table class="table table-bordered table-striped table-hover table-condenced">
-    <colgroup>
-      <col class="col-md-2">
-      <col class="col-md-1">
-      <col class="col-md-1">
-      <col class="col-md-1">
-      <col class="col-md-1">
-      <col class="col-md-1">
-    </colgroup>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Quota</th>
-        <th>Prio</th>
-        <th>Weight</th>
-        <th>Threshold</th>
-        <th>Surplus</th>
-      </tr>
-    </thead>
-    <tbody>
-    {%- for group in groups %}
-    <tr>
-        <td><strong>{{group.full_html|safe}}</strong></td>
-        <td><input type="text" name="{{group.full_name + '+quota'}}" class="form-control sm-box" value="{{group.quota}}"
-        {{ 'disabled title="Disabled because non-leaf node"'|safe if not group.is_leaf else ''}}
-        /></td>
-        <td><input type="text" name="{{group.full_name + '+priority'}}"
-            class="form-control sm-box" value="{{group.priority|round(1)}}"/></td>
-        <td><input type="text" name="{{group.full_name + '+weight'}}"
-            class="form-control sm-box" value="{{group.weight|round(1)}}"/></td>
-        <td><input type="text" name="{{group.full_name + '+surplus_threshold'}}" class="form-control sm-box"
-            {% if group.is_leaf %}
-                value="{{group.surplus_threshold}}"/>
-            {% else %}
-                value="" disabled title="Disabled because non-leaf node"/>
-            {% endif %}
-        <input type="hidden" name="{{group.full_name + '+group_name'}}" value="{{group.full_name}}"/>
-        </td>
-        <td><input type="checkbox" name="{{group.full_name + '+accept_surplus'}}"
-            class="truefalse" {{ 'checked' if group.accept_surplus else '' }}> </td>
-    </tr>
-    {%- endfor %}
-    </tbody>
-  </table>
-  <br>
+<div class="container-fluid">
+<h3>Add or Remove Groups</h3>
+<div class="row" id="main_head">
+  <strong class="col-xs-1">Delete?</strong>
+  <strong class="col-xs-3">Name</strong>
+  <strong class="col-xs-1">Quota</strong>
+  <strong class="col-xs-1">Prio</strong>
+  <strong class="col-xs-1">Weight</strong>
+  <strong class="col-xs-1">Threshold</strong>
+  <strong class="col-xs-1">Surplus</strong>
+</div>
+{%- for group in groups %}
+<div class="row main-row">
+  <span class="col-xs-1">
+    <input type="checkbox" name="rm_me" value="{{group.full_name}}"/>
+  </span>
+  <span class="col-xs-3">{{ group.full_name }}</span>
+  <span class="col-xs-1">{{ group.quota }}</span>
+  <span class="col-xs-1">{{ group.priority|round(1) }}</span>
+  <span class="col-xs-1">{{ group.weight|round(1) }}</span>
+  <span class="col-xs-1">{{ group.surplus_threshold }}</span>
 
+  <span class="col-xs-1">
+    <span class="glyphicon {{ 'glyphicon-ok text-success' if group.accept_surplus else 'glyphicon-remove text-danger' }}" aria-hidden="true">
+    </span>
+  </span>
+</div>
+{%- endfor %}
+<div class="container-fluid">
+  <div class="row">
+  <div class="col-xs-3">
+    <label for="">Group Name</label>
+    <input type="text" name="new+group_name" class="form-control sm-box addbox"/>
+  </div>
+  <div class="col-xs-2">
+    <label for="">Quota</label>
+    <input type="text" name="new+quota" class="form-control sm-box addbox"/>
+  </div>
+  <div class="col-xs-1">
+    <label for="">Priority</label>
+    <input type="text" name="new+prio" class="form-control sm-box addbox"/>
+  </div>
+  <div class="col-xs-1">
+    <label for="">Weight</label>
+    <input type="text" name="new+weight" class="form-control sm-box addbox"/>
+  </div>
+  <div class="col-xs-2">
+    <label for="">Threshold</label>
+    <input type="text" name="new+surplus_threshold" class="form-control sm-box addbox"/>
+  </div>
+  <div class="col-xs-1">
+    <label for="">Surplus?</label>
+    <input type="checkbox" name="new+accept_surplus" class="form-control"/>
+  </div>
+  </div>
+</div>
 
 <button type="submit" class="btn btn-default">Submit</button>
 </form>
 </div>
-<script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
+{%- endif %}
 {% endblock %}

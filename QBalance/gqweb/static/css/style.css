@@ -26,7 +26,7 @@ input.form-control.xs-box {
     margin-top: 30px;
 }
 
-.main-row span {
+.main-row>span {
     border-bottom: dotted thin gray;
     border-collapse: collapse;
     margin-bottom: 10px;
@@ -35,6 +35,10 @@ input.form-control.xs-box {
 }
 
 input.sm-box.namebox {
-    width: 40%;
+    width: 37%;
     padding: 1px 3px;
+}
+
+input.sm-box.addbox {
+    padding: 2px 3px;
 }
