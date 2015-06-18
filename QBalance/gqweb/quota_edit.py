@@ -52,28 +52,21 @@ def set_quota_sums(db, root):
 
 
 def set_renames(db, formdata):
-    orig_root = build_group_tree_formdata(formdata)
-    root = build_group_tree_formdata(formdata)
-    changed = set()
-    for group in root:
-        if group in changed:
-            app.logger.info("%s already changed", group.full_name)
-            continue
-        params = formdata[group.full_name]
+    root = sorted(list(build_group_tree_formdata(formdata)), key=lambda x: x.full_name)
+    clean_root = sorted(list(build_group_tree_formdata(formdata)), key=lambda x: x.full_name)
+    for group, orig_grp in zip(root, clean_root):
+        params = formdata[orig_grp.full_name]
 
-        old = group.full_name.split('.')[-1]
+        old = orig_grp.full_name.split('.')[-1]
         new = params.get('new_name', old)
+        # app.logger.debug("Old->New: %s->%s", old, new)
         if old != new:
-            to_change = [x for x in group.all()]
-            for grp in group.all():
-                grp.f
-            changed.add(group)
-
-            # group.rename(new)
-            # for obj in filter(lambda x: x.group_name.startswith(params['group_name']), db):
-            #     app.logger.warning("Group rename detected!: %s->%s",
-            #                        obj.group_name, group.full_name)
-            #     obj.group_name = orig_root.find(obj.group_name).full_name
+            group.rename(new)
+        obj = next(x for x in db if x.group_name == orig_grp.full_name)
+        if obj.group_name != group.full_name:
+            app.logger.info("Group rename detected!: %s->%s",
+                            obj.group_name, group.full_name)
+            obj.group_name = group.full_name
 
     app.logger.info("\n".join(map(str, root)))
 

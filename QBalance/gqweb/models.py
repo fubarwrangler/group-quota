@@ -32,11 +32,11 @@ class GroupTree(AbstractGroup):
 
 
 def name_validate(name):
-    return re.match(r'^[a-z_\.]+$', name) and len([x for x in name.split('.') if x]) > 0
+    return re.match(r'^[a-z0-9_\.]+$', name)
 
 
 def new_name_validate(name):
-    return bool(re.match(r'^[a-z_]+$', name))
+    return bool(re.match(r'^[a-z0-9_]+$', name))
 
 
 type_map = {
