@@ -1,0 +1,17 @@
+<h2>{{ title }}</h2>
+<div class="row" id="main_head">
+  <strong class="col-xs-3">Name</strong>
+  <strong class="col-xs-1">Quota</strong>
+  <strong class="col-xs-1">Prio</strong>
+  <strong class="col-xs-1">Weight</strong>
+  <strong class="col-xs-2">Surplus</strong>
+</div>
+{%- for group in groups %}
+<div class="row main-row">
+  <span class="col-xs-3"><strong>{{group.full_name}}</strong></span>
+  <span class="col-xs-1">{{group.quota}}</span>
+  <span class="col-xs-1">{{group.priority|round(1)}}</span>
+  <span class="col-xs-1">{{group.weight|round(1)}}</span>
+  <span class="col-xs-2">{{ 'True' if group.accept_surplus else 'False' }}</span>
+</div>
+{%- endfor %}

@@ -11,7 +11,8 @@ app.config.from_envvar('GQEDITCFG', silent=True)
 from database import db_session
 from models import Group, build_group_tree_db
 
-import quota_edit  # flake8: noqa -- this unused import has views
+import quota_edit       # flake8: noqa -- this unused import has views
+import group_modify     # flake8: noqa -- this unused import has views
 
 
 @app.teardown_appcontext

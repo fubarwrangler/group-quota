@@ -1,6 +1,9 @@
 # ===========================================================================
-# Methods to validate edited quota info from form data and trees
+# Methods to validate edited quota info from form data and make changes
+#
+# (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
+
 from collections import defaultdict
 from . import app
 
@@ -52,8 +55,14 @@ def set_quota_sums(db, root):
 
 
 def set_renames(db, formdata):
-    root = sorted(list(build_group_tree_formdata(formdata)), key=lambda x: x.full_name)
-    clean_root = sorted(list(build_group_tree_formdata(formdata)), key=lambda x: x.full_name)
+
+    def gen_tree_list(form):
+        treelist = list(build_group_tree_formdata(formdata))
+        return sorted(treelist, key=lambda x: x.full_name)
+
+    root = gen_tree_list(formdata)
+    clean_root = gen_tree_list(formdata)
+
     for group, orig_grp in zip(root, clean_root):
         params = formdata[orig_grp.full_name]
 
