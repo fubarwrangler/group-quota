@@ -18,8 +18,9 @@ def validate_form_types(data):
 
     errors = list()
     for k, v in data.items():
-        if k == 'group_name':
-            continue
+        # XXX: Remove me?
+        # if k == 'group_name':
+        #     continue
         fn, valid, msg = type_map[k]
         try:
             data[k] = fn(v)

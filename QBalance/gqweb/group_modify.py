@@ -7,7 +7,7 @@ from flask import render_template, redirect, url_for, flash, request
 from . import app
 
 from database import db_session
-from models import Group, build_group_tree_db, type_map, build_group_tree_formdata
+from models import Group, build_group_tree_db, type_map
 
 
 def remove_groups(candidates, tree):
@@ -28,6 +28,7 @@ group_defaults = {
     'surplus_threshold': 0,
 }
 
+
 def new_group_fits(data, tree):
 
     newname = data['group_name']
@@ -37,7 +38,9 @@ def new_group_fits(data, tree):
     if newname.count('.') >= 1:
         parent = ".".join(newname.split('.')[:-1])
         if not tree.find(parent):
-            return "New group must have a parent who exists in the tree"
+            return "New group <strong>%s</strong> must have" \
+                   " a parent in the tree (<u>%s</u>)" % \
+                   (newname, parent)
 
     missing_fields = set(group_defaults) - set(data)
     if missing_fields:
@@ -62,20 +65,17 @@ def add_groups_post():
         # TODO: REMOVE DB OBJECTS HERE
         flash("Successfully removed %d group(s)" % len(to_remove))
 
-
-    newgrp = dict([(k.split('+')[1],v) for k,v in request.form.iteritems()
+    newgrp = dict([(k.split('+')[1], v) for k, v in request.form.iteritems()
                    if v and k.startswith('new+')])
     if 'group_name' in newgrp:
-        errors = new_group_fits(newgrp, root)
-        if errors:
-            return render_template('group_add_rm.html', treeerror=errors)
         group, errors = quota_edit.validate_form_types(newgrp)
         if errors:
             return render_template('group_add_rm.html', typeerrors=errors)
+        errors = new_group_fits(newgrp, root)
+        if errors:
+            return render_template('group_add_rm.html', treeerror=errors)
 
         flash("New group added: %s" % newgrp)
 
-
     db_session.commit()
     return redirect(url_for('main_menu'))
-

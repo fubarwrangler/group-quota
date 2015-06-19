@@ -8,7 +8,7 @@
       <ol>
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
           <span class="sr-only">Error:</span>
-          {{ treeerror }}
+          {{ treeerror|safe }}
       </ol>
     </ul>
     {% endif %}
@@ -56,7 +56,10 @@ Go Back and Fix!</button>
 {%- for group in groups %}
 <div class="row main-row"> <!-- Row for group {{group.full_name}} -->
   <span class="col-xs-1">
-    <input type="checkbox" name="rm_me" value="{{group.full_name}}"/>
+    <div class="checkbox checkbox-danger">
+      <input type="checkbox" name="rm_me" value="{{group.full_name}}"/>
+      <label></label>
+    </div>
   </span>
   <span class="col-xs-3"><strong>{{ group.full_name }}</strong></span>
   <span class="col-xs-1">{{ group.quota }}</span>
