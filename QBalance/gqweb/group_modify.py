@@ -68,7 +68,9 @@ def add_groups_post():
         if bad_removes:
             return render_template('group_add_rm.html', rmerrors=bad_removes)
         elif to_remove:
-            # TODO: REMOVE DB OBJECTS HERE
+            for obj in db_groups:
+                if obj.group_name in to_remove:
+                    db_session.delete(obj)
             flash("Successfully removed %d group(s)" % len(to_remove))
 
     elif button_hit == 'add':
@@ -78,16 +80,17 @@ def add_groups_post():
             group, errors = quota_edit.validate_form_types(newgrp)
             if errors:
                 return render_template('group_add_rm.html', typeerrors=errors)
-            errors = new_group_fits(newgrp, root)
+            errors = new_group_fits(group, root)
             if errors:
                 return render_template('group_add_rm.html', gen_err=errors)
 
-            # TODO: ADD DB OBJECT HERE
+            new_in_db = Group(**group)
+            db_session.add(new_in_db)
+
             flash("New group added: %s" % newgrp)
         else:
             return render_template('group_add_rm.html',
                                    gen_err="Nothing to add, no group-name defined!")
-
 
     db_session.commit()
     return redirect(url_for('main_menu'))
