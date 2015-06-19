@@ -1,14 +1,28 @@
 {% extends "layout.html" %}
+{% block navbar %}
+{% if typeerrors or gen_err or rmerrors %}
+<ol class="breadcrumb">
+  <li><a href="/">Home</a></li>
+  <li><a href="/addrm">Modify Groups</a></li>
+  <li class="active">Error</li>
+</ol>
+{% else %}
+<ol class="breadcrumb">
+  <li><a href="/">Home</a></li>
+  <li calss="active">Modify Groups</li>
+</ol>
+{% endif %}
+{% endblock %}
 {% block body %}
 <div class="container maxw">
-{% if typeerrors or treeerror -%}
+{% if typeerrors or gen_err -%}
   <h3>Error Adding Group</h3>
-    {% if treeerror %}
+    {% if gen_err %}
     <ul class="alert alert-danger">
       <ol>
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
           <span class="sr-only">Error:</span>
-          {{ treeerror|safe }}
+          {{ gen_err|safe }}
       </ol>
     </ul>
     {% endif %}
@@ -21,7 +35,7 @@
       </ol>
     </ul>
     {% endfor -%}
-<button class="btn btn-default" onclick="window.history.back();">
+<button class="btn btn-default btn-sm" onclick="window.history.back();">
 Go Back and Fix!</button>
 {% elif rmerrors -%}
   <h3>Error Removing Group(s)</h3>
@@ -39,7 +53,7 @@ Go Back and Fix!</button>
     </ol>
   </ul>
   {% endfor -%}
-<button class="btn btn-default" onclick="window.history.back();">
+<button class="btn btn-default btn-sm" onclick="window.history.back();">
 Go Back and Fix!</button>
 {% else -%}
 <form class="form-inline" role="form" method="POST">
@@ -102,10 +116,13 @@ Go Back and Fix!</button>
   </div>
 </div> <!-- End add-form fluid-container -->
 <br/>
-<button type="submit" class="btn btn-default">Submit</button>
+<button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
+<!-- <button type="submit" class="btn btn-default btn-sm" name="bAct" value="back">Back</button> -->
+<button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
+<button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Groups</button>
 </form>
 </div> <!-- End entire form container -->
-</div>
 <script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
 {%- endif %}
+</div>
 {% endblock %}

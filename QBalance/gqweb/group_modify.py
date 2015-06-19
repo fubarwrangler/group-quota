@@ -7,7 +7,7 @@ from flask import render_template, redirect, url_for, flash, request
 from . import app
 
 from database import db_session
-from models import Group, build_group_tree_db, type_map
+from models import Group, build_group_tree_db
 
 
 def remove_groups(candidates, tree):
@@ -53,29 +53,41 @@ import quota_edit
 @app.route('/addrm', methods=['POST'])
 def add_groups_post():
 
+    button_hit = request.form.get('bAct')
+
     db_groups = Group.query.all()
     root = build_group_tree_db(db_groups)
 
-    to_remove = set(request.form.getlist('rm_me'))
-    bad_removes = remove_groups(to_remove, root)
+    if button_hit == 'rm':
+        to_remove = set(request.form.getlist('rm_me'))
+        if not to_remove:
+            return render_template('group_add_rm.html', gen_err="Nothing selected to be removed")
 
-    if bad_removes:
-        return render_template('group_add_rm.html', rmerrors=bad_removes)
-    elif to_remove:
-        # TODO: REMOVE DB OBJECTS HERE
-        flash("Successfully removed %d group(s)" % len(to_remove))
+        bad_removes = remove_groups(to_remove, root)
 
-    newgrp = dict([(k.split('+')[1], v) for k, v in request.form.iteritems()
-                   if v and k.startswith('new+')])
-    if 'group_name' in newgrp:
-        group, errors = quota_edit.validate_form_types(newgrp)
-        if errors:
-            return render_template('group_add_rm.html', typeerrors=errors)
-        errors = new_group_fits(newgrp, root)
-        if errors:
-            return render_template('group_add_rm.html', treeerror=errors)
+        if bad_removes:
+            return render_template('group_add_rm.html', rmerrors=bad_removes)
+        elif to_remove:
+            # TODO: REMOVE DB OBJECTS HERE
+            flash("Successfully removed %d group(s)" % len(to_remove))
 
-        flash("New group added: %s" % newgrp)
+    elif button_hit == 'add':
+        newgrp = dict([(k.split('+')[1], v) for k, v in request.form.iteritems()
+                       if v and k.startswith('new+')])
+        if 'group_name' in newgrp:
+            group, errors = quota_edit.validate_form_types(newgrp)
+            if errors:
+                return render_template('group_add_rm.html', typeerrors=errors)
+            errors = new_group_fits(newgrp, root)
+            if errors:
+                return render_template('group_add_rm.html', gen_err=errors)
+
+            # TODO: ADD DB OBJECT HERE
+            flash("New group added: %s" % newgrp)
+        else:
+            return render_template('group_add_rm.html',
+                                   gen_err="Nothing to add, no group-name defined!")
+
 
     db_session.commit()
     return redirect(url_for('main_menu'))

@@ -1,4 +1,9 @@
 {% extends "layout.html" %}
+{% block navbar %}
+<ol class="breadcrumb">
+  <li class="active">Home</li>
+</ol>
+{% endblock %}
 {% block body %}
 <div class="container-fluid">
   {% set title = "ATLAS Group Editor" %}
@@ -6,8 +11,8 @@
   <div class="row">
     <div class="col-xs-12">
       <a href="/edit" class="btn btn-primary btn-sm" role="button">Edit Groups</a>
-      <a href="/addrm" class="btn btn-danger btn-sm" role="button">Add/Remove Groups</a>
       <a href="/ezq" class="btn btn-success btn-sm" role="button">Quotas EZ-Edit</a>
+      <a href="/addrm" class="btn btn-danger btn-sm" role="button">Add/Remove Groups</a>
     </div>
   </div>
 </div>

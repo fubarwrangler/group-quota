@@ -15,6 +15,9 @@ import quota_edit       # flake8: noqa -- this unused import has views
 import group_modify     # flake8: noqa -- this unused import has views
 
 
+namesort = lambda root: sorted(list(root), key=lambda x: x.full_name)
+
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db_session.remove()
@@ -23,18 +26,21 @@ def shutdown_session(exception=None):
 @app.route('/')
 def main_menu():
     root = build_group_tree_db(Group.query.all())
-    return render_template('main_view.html', groups=sorted(list(root), key=lambda x: x.full_name))
+    return render_template('main_view.html', groups=namesort(root))
 
 
 @app.route('/edit')
 def edit_groups():
     root = build_group_tree_db(Group.query.all())
-    return render_template('edit_group.html', groups=sorted(list(root), key=lambda x: x.full_name))
+    return render_template('edit_group.html', groups=namesort(root))
 
 
 @app.route('/addrm')
 def add_groups():
     root = build_group_tree_db(Group.query.all())
-    return render_template('group_add_rm.html',
-                           groups=sorted(list(root), key=lambda x: x.full_name),
+    return render_template('group_add_rm.html', groups=namesort(root),
                            defaults=group_modify.group_defaults)
+
+@app.route('/ezq')
+def ez_quota_edit():
+    return render_template('quota_edit.html')

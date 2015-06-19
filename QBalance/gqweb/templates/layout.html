@@ -12,6 +12,7 @@
   <title>Group Quota Editor</title>
 </head>
 <body>
+{% block navbar %}{% endblock %}
 {% with messages = get_flashed_messages(True) -%}
   {% if messages -%}
     {% for cat, message in messages -%}
@@ -23,7 +24,7 @@
     {% endfor -%}
   {% endif -%}
   <script>
-    $(".closeme").delay(12500).slideUp(200, function() {
+    $(".closeme").delay(2500).slideUp(200, function() {
       $(this).alert('close');
     });
   </script>
