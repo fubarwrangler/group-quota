@@ -1,4 +1,9 @@
-# *****************************************************************************
+# ===========================================================================
+# Database model and tree-object with HTML hooks from group-class and info
+# about field-types and validation methods used for form data
+#
+# (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
+# ===========================================================================
 import re
 
 from group.group import AbstractGroup
@@ -31,25 +36,6 @@ class GroupTree(AbstractGroup):
         self.name = new
 
 
-def name_validate(name):
-    return re.match(r'^[a-z0-9_\.]+$', name)
-
-
-def new_name_validate(name):
-    return bool(re.match(r'^[a-z0-9_]+$', name))
-
-
-type_map = {
-    'priority': (float, lambda x: x > 0.0, 'floating point value greater than zero'),
-    'weight': (float, lambda x: x >= 0.0, 'non-negative floating point value'),
-    'quota': (int, lambda x: x > 1, 'integer greater than 0'),
-    'new_name': (str, new_name_validate, 'string matching [a-z_]+'),
-    'group_name': (str, name_validate, 'string matching [a-z_](.[a-z_])*'),
-    'surplus_threshold': (int, lambda x: x >= 0, 'integer >= 0'),
-    'accept_surplus': (lambda x: x == 'on', lambda x: True, 'boolean'),
-}
-
-
 def build_group_tree_db(db_groups):
     def group_process(f):
         for grp in db_groups:
@@ -64,3 +50,24 @@ def build_group_tree_formdata(formdata):
             # app.logger.info("%s: %s", grp, grp.__dict__)
             yield formdata[grp].copy()
     return _build_groups_db(GroupTree, None, group_builder=group_process)
+
+
+# *****************************************************************************
+# The following is all for form validation of the user-input data
+# *****************************************************************************
+
+name_validate = lambda name: bool(re.match(r'^group_[a-z0-9_\.]+$', name))
+new_name_validate = lambda name: bool(re.match(r'^[a-z0-9_]+$', name))
+positive_int = lambda x: x > 0.0
+non_zero_int = lambda x: x > 1
+non_negative = lambda x: x >= 0.0
+
+type_map = {
+    'priority': (float, positive_int, 'floating point value greater than zero'),
+    'weight': (float, non_negative, 'non-negative floating point value'),
+    'quota': (int, non_zero_int, 'integer greater than 0'),
+    'new_name': (str, new_name_validate, 'string matching [a-z_]+'),
+    'group_name': (str, name_validate, 'string matching [a-z_](.[a-z_])*'),
+    'surplus_threshold': (int, non_negative, 'integer >= 0'),
+    'accept_surplus': (lambda x: x == 'on', lambda x: True, 'boolean'),
+}

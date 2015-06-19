@@ -1,4 +1,10 @@
-
+# ===========================================================================
+# Application to allow users to modify the group-quota tree used by ATLAS
+#   Allows different classes of users to modify group quotas and parameters
+#   and the tree itself in the database
+#
+# (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
+# ===========================================================================
 from flask import Flask, render_template
 
 app = Flask(__name__)

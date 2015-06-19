@@ -1,23 +1,23 @@
-{% extends "layout.html" %}
-{% block navbar %}
-{% if typeerrors or gen_err or rmerrors %}
+{%- extends "layout.html" %}
+{%- block navbar %}
+{%- if typeerrors or gen_err or rmerrors %}
 <ol class="breadcrumb">
   <li><a href="/">Home</a></li>
   <li><a href="/addrm">Modify Groups</a></li>
   <li class="active">Error</li>
 </ol>
-{% else %}
+{%- else %}
 <ol class="breadcrumb">
   <li><a href="/">Home</a></li>
   <li calss="active">Modify Groups</li>
 </ol>
-{% endif %}
-{% endblock %}
-{% block body %}
+{%- endif %}
+{%- endblock %}
+{%- block body %}
 <div class="container maxw">
 {% if typeerrors or gen_err -%}
   <h3>Error Adding Group</h3>
-    {% if gen_err %}
+    {%- if gen_err %}
     <ul class="alert alert-danger">
       <ol>
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
@@ -25,7 +25,7 @@
           {{ gen_err|safe }}
       </ol>
     </ul>
-    {% endif %}
+    {%- endif %}
     {% for group, field, typemsg in typeerrors -%}
     <ul class="alert alert-danger">
       <ol>
@@ -46,9 +46,9 @@ Go Back and Fix!</button>
 <span class="sr-only">Error:</span>
         Cannot remove <b>{{ group }}</b> because it would strand the following groups with no parent:
         <ul>
-        {% for name in strands %}
+        {%- for name in strands %}
           <li>{{name}}</li>
-        {% endfor %}
+        {%- endfor %}
         </ul>
     </ol>
   </ul>
@@ -125,4 +125,4 @@ Go Back and Fix!</button>
 <script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
 {%- endif %}
 </div>
-{% endblock %}
+{%- endblock %}
