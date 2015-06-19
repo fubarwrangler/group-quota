@@ -35,4 +35,6 @@ def edit_groups():
 @app.route('/addrm')
 def add_groups():
     root = build_group_tree_db(Group.query.all())
-    return render_template('group_add_rm.html', groups=sorted(list(root), key=lambda x: x.full_name))
+    return render_template('group_add_rm.html',
+                           groups=sorted(list(root), key=lambda x: x.full_name),
+                           defaults=group_modify.group_defaults)

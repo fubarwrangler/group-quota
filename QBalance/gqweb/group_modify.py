@@ -13,23 +13,39 @@ from models import Group, build_group_tree_db, type_map, build_group_tree_formda
 def remove_groups(candidates, tree):
     bad_removes = list()
     warned = set()
-    flash("TO remove: %s" % candidates)
     for group in (tree.find(x) for x in candidates):
         stranded = set(x.full_name for x in group) - candidates
         if stranded - warned:
-            bad_removes.append("Cannot remove intermediate group %s" % group.full_name +
-                               " unless all its children are selected too because"
-                               "it strands %s" % ", ".join(stranded - warned))
+            bad_removes.append((group.full_name, stranded - warned))
         warned |= stranded
     return bad_removes
 
+group_defaults = {
+    'group_name': None,
+    'quota': None,
+    'priority': 10.0,
+    'weight': 0.0,
+    'surplus_threshold': 0,
+}
 
-def check_new_grp(formdata, tree):
+def new_group_fits(data, tree):
 
-    newname = formdata['']
-    parent = ".".join(newname.split('.')[:-1])
-    if not tree.find(parent):
-        return "New group must have a parent who exists in the tree"
+    newname = data['group_name']
+    if tree.find(newname):
+        return "Group %s already exists" % newname
+
+    if newname.count('.') >= 1:
+        parent = ".".join(newname.split('.')[:-1])
+        if not tree.find(parent):
+            return "New group must have a parent who exists in the tree"
+
+    missing_fields = set(group_defaults) - set(data)
+    if missing_fields:
+        misslist = ", ".join(sorted(missing_fields))
+        return "New group needs the following fields defined: %s" % misslist
+
+import quota_edit
+
 
 @app.route('/addrm', methods=['POST'])
 def add_groups_post():
@@ -39,17 +55,27 @@ def add_groups_post():
 
     to_remove = set(request.form.getlist('rm_me'))
     bad_removes = remove_groups(to_remove, root)
-    # flash("Got %s" % request.form.items())
 
-    for x in request.form.iteritems():
-        pass
+    if bad_removes:
+        return render_template('group_add_rm.html', rmerrors=bad_removes)
+    elif to_remove:
+        # TODO: REMOVE DB OBJECTS HERE
+        flash("Successfully removed %d group(s)" % len(to_remove))
 
-    # errors = (('a', 'b', 'c'),)
-    errors = None
 
-    if False:
-        db_session.commit()
+    newgrp = dict([(k.split('+')[1],v) for k,v in request.form.iteritems()
+                   if v and k.startswith('new+')])
+    if 'group_name' in newgrp:
+        errors = new_group_fits(newgrp, root)
+        if errors:
+            return render_template('group_add_rm.html', treeerror=errors)
+        group, errors = quota_edit.validate_form_types(newgrp)
+        if errors:
+            return render_template('group_add_rm.html', typeerrors=errors)
 
-    return render_template('group_add_rm.html', typeerrors=errors, rmerrors=bad_removes, groups=root)
+        flash("New group added: %s" % newgrp)
 
-    #return redirect(url_for('main_menu'))
+
+    db_session.commit()
+    return redirect(url_for('main_menu'))
+

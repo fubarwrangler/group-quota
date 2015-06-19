@@ -1,7 +1,5 @@
 @charset "utf-8";
 
-
-
 input.form-control.sm-box {
     min-width: 20px;
     max-width: 200px;
@@ -41,4 +39,8 @@ input.sm-box.namebox {
 
 input.sm-box.addbox {
     padding: 2px 3px;
+}
+
+.container.maxw {
+    margin-left: unset;
 }

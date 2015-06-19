@@ -1,3 +1,6 @@
 Website TODO
 
 * On edit page, make the box to edit group-leaf name toggle-able with JS
+* Add form, default value greyed out until clicked on
+* Confirm if quota-sum will change
+* List changes made after edit in flash() or something

@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
-<div class="container">
+<div class="container maxw">
 {% if errors -%}
   <h3>Errors in Quota From</h3>
     {% for group, field, typemsg in errors -%}
@@ -69,4 +69,5 @@ Go Back and Fix!</button>
 </form>
 {% endif -%}
 </div>
+<script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
 {% endblock %}
