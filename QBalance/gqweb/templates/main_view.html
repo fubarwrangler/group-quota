@@ -6,8 +6,26 @@
 {% endblock %}
 {% block body %}
 <div class="container-fluid">
-  {% set title = "ATLAS Group Editor" %}
-  {% include 'gview.html' %}
+  <h2>ATLAS Group Editor</h2>
+    <div class="row" id="main_head">
+      <strong class="col-xs-3">Name</strong>
+      <strong class="col-xs-1">Quota</strong>
+      <strong class="col-xs-1">Prio</strong>
+      <strong class="col-xs-1">Weight</strong>
+      <strong class="col-xs-1">Surplus</strong>
+    </div>
+    {%- for group in groups %}
+    <div class="row main-row">
+      <span class="col-xs-3"><strong>{{group.full_name}}</strong></span>
+      <span class="col-xs-1">{{group.quota}}</span>
+      <span class="col-xs-1">{{group.priority|round(1)}}</span>
+      <span class="col-xs-1">{{group.weight|round(1)}}</span>
+      <span class="col-xs-1">
+        <span class="glyphicon {{ 'glyphicon-ok text-success' if group.accept_surplus else 'glyphicon-remove text-danger' }}" aria-hidden="true">
+        </span>
+      </span>
+    </div>
+{%- endfor %}
   <div class="row">
     <div class="col-xs-12">
       <a href="/edit" class="btn btn-primary btn-sm" role="button">Edit Groups</a>

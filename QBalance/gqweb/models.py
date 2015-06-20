@@ -71,3 +71,30 @@ type_map = {
     'surplus_threshold': (int, non_negative, 'integer >= 0'),
     'accept_surplus': (lambda x: x == 'on', lambda x: True, 'boolean'),
 }
+
+
+group_defaults = {
+    'group_name': None,
+    'quota': None,
+    'priority': 10.0,
+    'weight': 0.0,
+    'surplus_threshold': 0,
+}
+
+def validate_form_types(data):
+    """ Take raw form data (@data) and validate & convert types of each """
+
+    errors = list()
+    for k, v in data.items():
+        # XXX: Remove me?
+        # if k == 'group_name':
+        #     continue
+        fn, valid, msg = type_map[k]
+        try:
+            data[k] = fn(v)
+            if not valid(data[k]):
+                raise ValueError
+        except ValueError:
+            errors.append((data['group_name'], k, msg))
+
+    return data, errors

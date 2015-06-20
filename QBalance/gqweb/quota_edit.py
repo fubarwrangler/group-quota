@@ -9,27 +9,8 @@ from . import app
 
 from flask import request, render_template, redirect, url_for, flash
 from database import db_session
-from models import (Group, build_group_tree_db, type_map,
+from models import (Group, build_group_tree_db, type_map, validate_form_types,
                     build_group_tree_formdata)
-
-
-def validate_form_types(data):
-    """ Take raw form data (@data) and validate & convert types of each """
-
-    errors = list()
-    for k, v in data.items():
-        # XXX: Remove me?
-        # if k == 'group_name':
-        #     continue
-        fn, valid, msg = type_map[k]
-        try:
-            data[k] = fn(v)
-            if not valid(data[k]):
-                raise ValueError
-        except ValueError:
-            errors.append((data['group_name'], k, msg))
-
-    return data, errors
 
 
 def set_params(db, formdata):

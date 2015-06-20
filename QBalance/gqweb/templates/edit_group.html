@@ -1,31 +1,29 @@
-{% extends "layout.html" %}
-{% block navbar %}
+{%- extends "layout.html" %}
+{%- block navbar %}
 <ol class="breadcrumb">
   <li><a href="/">Home</a></li>
-{% if errors %}
+{%- if errors %}
   <li><a href="/edit">Edit Groups</a></li>
   <li class="active">Error</li>
+{%- else %}
+  <li class="active">Edit Groups</li>
+{%- endif %}
 </ol>
-{% else %}
-  <li calss="active">Edit Groups</li>
-{% endif %}
-</ol>
-{% endblock %}
-{% block body %}
+{%- endblock %}
+{%- block body %}
 <div class="container maxw">
 {% if errors -%}
   <h3>Errors in Quota From</h3>
     {% for group, field, typemsg in errors -%}
-    <ul class="alert alert-danger">
-      <ol>
+    <ul class="alert alert-danger list-unstyled">
+      <li>
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  <span class="sr-only">Error:</span>
-          {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
-      </ol>
+        <span class="sr-only">Error:</span>
+        {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
+      </li>
     </ul>
     {% endfor -%}
-<button class="btn btn-default" onclick="window.history.back();">
-Go Back and Fix!</button>
+<button class="btn btn-default" onclick="window.history.back();">Go Back and Fix!</button>
 {% else -%}
 <h3>Edit Group Parameters</h3>
 <form class="form-inline" role="form" method="POST">
@@ -50,28 +48,39 @@ Go Back and Fix!</button>
     </thead>
     <tbody>
     {%- for group in groups %}
-    {% set parent = '.'.join(group.full_name.split('.')[:-1]) %}
+    {%- set parent = '.'.join(group.full_name.split('.')[:-1]) %}
     <tr>
-        <td>{{parent + ("<u>.</u>"|safe if parent else '')}}
-            <input type="text" value="{{group.full_name.split('.')[-1]}}" class="form-control sm-box namebox"
-            name="{{group.full_name + '+new_name'}}"/></td>
-        <td><input type="text" name="{{group.full_name + '+quota'}}" class="form-control sm-box" value="{{group.quota}}"
-        {{ 'disabled title="Disabled because non-leaf node"'|safe if not group.is_leaf else ''}}
-        /></td>
-        <td><input type="text" name="{{group.full_name + '+priority'}}"
-            class="form-control sm-box" value="{{group.priority|round(1)}}"/></td>
-        <td><input type="text" name="{{group.full_name + '+weight'}}"
-            class="form-control sm-box" value="{{group.weight|round(1)}}"/></td>
-        <td><input type="text" name="{{group.full_name + '+surplus_threshold'}}" class="form-control sm-box"
-            {% if group.is_leaf %}
-                value="{{group.surplus_threshold}}"/>
-            {% else %}
-                value="" disabled title="Disabled because non-leaf node"/>
-            {% endif %}
+      <td>
+        {{parent + ("<u>.</u>"|safe if parent else '')}}
+        <input type="text" value="{{group.full_name.split('.')[-1]}}" class="form-control sm-box namebox"
+                name="{{group.full_name + '+new_name'}}"/>
+      </td>
+      <td>
+        <input type="text" name="{{group.full_name + '+quota'}}" class="form-control sm-box" value="{{group.quota}}"
+             {{ 'disabled title="Disabled because non-leaf node"'|safe if not group.is_leaf else ''}} />
+      </td>
+      <td>
+        <input type="text" name="{{group.full_name + '+priority'}}"
+               class="form-control sm-box" value="{{group.priority|round(1)}}"/>
+      </td>
+      <td>
+        <input type="text" name="{{group.full_name + '+weight'}}"
+               class="form-control sm-box" value="{{group.weight|round(1)}}"/>
+      </td>
+      <td>
+        <input type="text" name="{{group.full_name + '+surplus_threshold'}}"
+               class="form-control sm-box"
+          {%- if group.is_leaf %}
+               value="{{group.surplus_threshold}}"/>
+          {%- else %}
+               value="" disabled title="Disabled because non-leaf node"/>
+          {%- endif %}
         <input type="hidden" name="{{group.full_name + '+group_name'}}" value="{{group.full_name}}"/>
-        </td>
-        <td><input type="checkbox" name="{{group.full_name + '+accept_surplus'}}"
-            class="truefalse" {{ 'checked' if group.accept_surplus else '' }}> </td>
+      </td>
+      <td>
+        <input type="checkbox" name="{{group.full_name + '+accept_surplus'}}"
+               class="truefalse" {{ 'checked' if group.accept_surplus else '' }}>
+      </td>
     </tr>
     {%- endfor %}
     </tbody>
@@ -83,4 +92,4 @@ Go Back and Fix!</button>
 {% endif -%}
 </div>
 <script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
-{% endblock %}
+{%- endblock %}
