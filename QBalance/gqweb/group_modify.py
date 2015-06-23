@@ -63,12 +63,16 @@ def add_groups_post():
             for obj in db_groups:
                 if obj.group_name in to_remove:
                     db_session.delete(obj)
+            db_session.flush()
             flash("Successfully removed %d group(s)" % len(to_remove))
 
     elif button_hit == 'add':
         newgrp = dict([(k.split('+')[1], v) for k, v in request.form.iteritems()
                        if v and k.startswith('new+')])
-        if 'group_name' in newgrp:
+        if 'group_name' not in newgrp:
+            return render_template('group_add_rm.html',
+                                   gen_err="Nothing to add, no group-name defined!")
+        else:
             group, errors = validate_form_types(newgrp)
             if errors:
                 return render_template('group_add_rm.html', typeerrors=errors)
@@ -78,13 +82,13 @@ def add_groups_post():
 
             new_in_db = Group(**group)
             db_session.add(new_in_db)
+            db_session.flush()
 
             flash("New group added: %s" % newgrp)
-        else:
-            return render_template('group_add_rm.html',
-                                   gen_err="Nothing to add, no group-name defined!")
 
+    # Rebalance db and tree from inserted/deleted but-not-committed objects
+    new_db = Group.query.all()
+    set_quota_sums(new_db, build_group_tree_db(new_db))
 
-set_quota_sums(db_groups, build_group_tree_db(Group.query.all()))
     db_session.commit()
     return redirect(url_for('main_menu'))

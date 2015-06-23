@@ -66,6 +66,11 @@ def set_quota_sums(db, root):
                 dbobj.quota = newquota
                 group.quota = newquota
 
+            # If newly added group causes a former leaf that has non-zero
+            # threshold to become a non-leaf then set it to zero!
+            if group.surplus_threshold > 0:
+                dbobj.surplus_threshold = 0
+
 # *****************************************************************************
 # The following is all for form validation of the user-input data
 # *****************************************************************************
