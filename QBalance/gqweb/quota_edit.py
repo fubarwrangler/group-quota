@@ -9,27 +9,8 @@ from . import app
 
 from flask import request, render_template, redirect, url_for, flash
 from database import db_session
-from models import (Group, build_group_tree_db, type_map,
+from models import (Group, build_group_tree_db, type_map, validate_form_types,
                     build_group_tree_formdata, set_quota_sums)
-
-
-def validate_form_types(data):
-    """ Take raw form data (@data) and validate & convert types of each """
-
-    errors = list()
-    for k, v in data.items():
-        # XXX: Remove me?
-        # if k == 'group_name':
-        #     continue
-        fn, valid, msg = type_map[k]
-        try:
-            data[k] = fn(v)
-            if not valid(data[k]):
-                raise ValueError
-        except ValueError:
-            errors.append((data['group_name'], k, msg))
-
-    return data, errors
 
 
 def set_params(db, formdata):
@@ -40,7 +21,7 @@ def set_params(db, formdata):
         for param, val in params.iteritems():
             if param == 'group_name' or param == 'new_name':
                 continue
-            if (isinstance(val, float) and abs(val - (getattr(dbobj, param))) > 0.1) \
+            if (isinstance(val, float) and abs(val - float(getattr(dbobj, param))) > 0.1) \
                or not isinstance(val, float):
                 setattr(dbobj, param, val)
 

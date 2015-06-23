@@ -7,7 +7,8 @@ from flask import render_template, redirect, url_for, flash, request
 from . import app
 
 from database import db_session
-from models import Group, build_group_tree_db, set_quota_sums
+from models import (Group, build_group_tree_db, validate_form_types,
+                    group_defaults, set_quota_sums)
 
 
 def remove_groups(candidates, tree):
@@ -19,14 +20,6 @@ def remove_groups(candidates, tree):
             bad_removes.append((group.full_name, stranded - warned))
         warned |= stranded
     return bad_removes
-
-group_defaults = {
-    'group_name': None,
-    'quota': None,
-    'priority': 10.0,
-    'weight': 0.0,
-    'surplus_threshold': 0,
-}
 
 
 def new_group_fits(data, tree):
@@ -76,7 +69,7 @@ def add_groups_post():
         newgrp = dict([(k.split('+')[1], v) for k, v in request.form.iteritems()
                        if v and k.startswith('new+')])
         if 'group_name' in newgrp:
-            group, errors = quota_edit.validate_form_types(newgrp)
+            group, errors = validate_form_types(newgrp)
             if errors:
                 return render_template('group_add_rm.html', typeerrors=errors)
             errors = new_group_fits(group, root)

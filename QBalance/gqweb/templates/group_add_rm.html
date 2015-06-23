@@ -9,52 +9,54 @@
 {%- else %}
 <ol class="breadcrumb">
   <li><a href="/">Home</a></li>
-  <li calss="active">Modify Groups</li>
+  <li class="active">Modify Groups</li>
 </ol>
 {%- endif %}
 {%- endblock %}
 {%- block body %}
-<div class="container maxw">
-{% if typeerrors or gen_err -%}
+<div class="container maxw"> <!-- Main page -->
+{%- if typeerrors or gen_err %}
   <h3>Error Adding Group</h3>
-    {%- if gen_err %}
-    <ul class="alert alert-danger">
-      <ol>
-        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-          <span class="sr-only">Error:</span>
-          {{ gen_err|safe }}
-      </ol>
-    </ul>
-    {%- endif %}
-    {% for group, field, typemsg in typeerrors -%}
-    <ul class="alert alert-danger">
-      <ol>
-        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  <span class="sr-only">Error:</span>
-          {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
-      </ol>
-    </ul>
-    {% endfor -%}
-<button class="btn btn-default btn-sm" onclick="window.history.back();">
-Go Back and Fix!</button>
-{% elif rmerrors -%}
-  <h3>Error Removing Group(s)</h3>
-  {% for group, strands in rmerrors -%}
-  <ul class="alert alert-danger">
-    <ol>
+  {%- if gen_err %}
+  <ul class="alert alert-danger list-unstyled">
+    <li>
       <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-<span class="sr-only">Error:</span>
-        Cannot remove <b>{{ group }}</b> because it would strand the following groups with no parent:
-        <ul>
-        {%- for name in strands %}
-          <li>{{name}}</li>
-        {%- endfor %}
-        </ul>
-    </ol>
+        <span class="sr-only">Error:</span>
+        {{ gen_err|safe }}
+    </li>
+  </ul>
+  {%- endif %}
+  {% for group, field, typemsg in typeerrors -%}
+  <ul class="alert alert-danger list-unstyled">
+    <li>
+      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+      <span class="sr-only">Error:</span>
+      {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
+    </li>
   </ul>
   {% endfor -%}
-<button class="btn btn-default btn-sm" onclick="window.history.back();">
-Go Back and Fix!</button>
+  <button class="btn btn-default btn-sm" onclick="window.history.back();">
+    Go Back and Fix!
+  </button>
+{%- elif rmerrors %}
+  <h3>Error Removing Group(s)</h3>
+  {% for group, strands in rmerrors -%}
+  <ul class="alert alert-danger list-unstyled"> <!-- Errors from removing {{ group }} -->
+    <li>
+      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+      <span class="sr-only">Error:</span>
+        Cannot remove <b>{{ group }}</b> because it would strand the following groups with no parent:
+      <ul>
+      {%- for name in strands %}
+        <li>{{name}}</li>
+      {%- endfor %}
+      </ul>
+    </li>
+  </ul> <!-- End for {{ group }} -->
+  {% endfor -%}
+  <button class="btn btn-default btn-sm" onclick="window.history.back();">
+    Go Back and Fix!
+  </button>
 {% else -%}
 <form class="form-inline" role="form" method="POST">
 <h3>Add or Remove Groups</h3>
@@ -70,10 +72,10 @@ Go Back and Fix!</button>
 {%- for group in groups %}
 <div class="row main-row"> <!-- Row for group {{group.full_name}} -->
   <span class="col-xs-1">
-    <div class="checkbox checkbox-danger">
+    <span class="checkbox checkbox-danger">
       <input type="checkbox" name="rm_me" value="{{group.full_name}}"/>
       <label></label>
-    </div>
+    </span>
   </span>
   <span class="col-xs-3"><strong>{{ group.full_name }}</strong></span>
   <span class="col-xs-1">{{ group.quota }}</span>
@@ -89,40 +91,38 @@ Go Back and Fix!</button>
 {%- endfor %}
 <div class="container-fluid">
   <div class="row">
-  <div class="col-xs-3">
-    <label for="">Group Name</label>
-    <input type="text" name="new+group_name" class="form-control sm-box"/>
-  </div>
-  <div class="col-xs-2">
-    <label for="">Quota</label>
-    <input type="text" name="new+quota" class="form-control sm-box"/>
-  </div>
-  <div class="col-xs-1">
-    <label for="">Priority</label>
-    <input type="text" name="new+priority" value="{{ defaults['priority'] }}" class="form-control sm-box addbox"/>
-  </div>
-  <div class="col-xs-1">
-    <label for="">Weight</label>
-    <input type="text" name="new+weight" value="{{ defaults['weight'] }}" class="form-control sm-box addbox"/>
-  </div>
-  <div class="col-xs-2">
-    <label for="">Threshold</label>
-    <input type="text" name="new+surplus_threshold" value="{{ defaults['surplus_threshold'] }}" class="form-control sm-box addbox"/>
-  </div>
-  <div class="col-xs-1">
-    <label for="">Surplus</label>
-    <input type="checkbox" name="new+accept_surplus" class="form-control truefalse"/>
-  </div>
+    <div class="col-xs-3">
+      <label>Group Name</label>
+      <input type="text" name="new+group_name" class="form-control sm-box"/>
+    </div>
+    <div class="col-xs-2">
+      <label>Quota</label>
+      <input type="text" name="new+quota" class="form-control sm-box"/>
+    </div>
+    <div class="col-xs-1">
+      <label>Priority</label>
+      <input type="text" name="new+priority" value="{{ defaults['priority'] }}" class="form-control sm-box addbox"/>
+    </div>
+    <div class="col-xs-1">
+      <label>Weight</label>
+      <input type="text" name="new+weight" value="{{ defaults['weight'] }}" class="form-control sm-box addbox"/>
+    </div>
+    <div class="col-xs-2">
+      <label>Threshold</label>
+      <input type="text" name="new+surplus_threshold" value="{{ defaults['surplus_threshold'] }}" class="form-control sm-box addbox"/>
+    </div>
+    <div class="col-xs-1">
+      <label>Surplus</label>
+      <input type="checkbox" name="new+accept_surplus" class="form-control truefalse"/>
+    </div>
   </div>
 </div> <!-- End add-form fluid-container -->
 <br/>
 <button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
-<!-- <button type="submit" class="btn btn-default btn-sm" name="bAct" value="back">Back</button> -->
 <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
 <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Groups</button>
 </form>
-</div> <!-- End entire form container -->
 <script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
-{%- endif %}
-</div>
+{%- endif -%}
+</div> <!-- End entire page -->
 {%- endblock %}
