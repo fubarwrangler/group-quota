@@ -7,7 +7,7 @@ from flask import render_template, redirect, url_for, flash, request
 from . import app
 
 from database import db_session
-from models import Group, build_group_tree_db
+from models import Group, build_group_tree_db, set_quota_sums
 
 
 def remove_groups(candidates, tree):
@@ -48,7 +48,6 @@ def new_group_fits(data, tree):
         return "New group needs the following fields defined: %s" % misslist
 
 import quota_edit
-
 
 @app.route('/addrm', methods=['POST'])
 def add_groups_post():
@@ -92,5 +91,7 @@ def add_groups_post():
             return render_template('group_add_rm.html',
                                    gen_err="Nothing to add, no group-name defined!")
 
+
+set_quota_sums(db_groups, build_group_tree_db(Group.query.all()))
     db_session.commit()
     return redirect(url_for('main_menu'))

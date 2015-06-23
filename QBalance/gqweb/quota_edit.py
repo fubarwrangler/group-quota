@@ -10,7 +10,7 @@ from . import app
 from flask import request, render_template, redirect, url_for, flash
 from database import db_session
 from models import (Group, build_group_tree_db, type_map,
-                    build_group_tree_formdata)
+                    build_group_tree_formdata, set_quota_sums)
 
 
 def validate_form_types(data):
@@ -40,27 +40,12 @@ def set_params(db, formdata):
         for param, val in params.iteritems():
             if param == 'group_name' or param == 'new_name':
                 continue
-            if (isinstance(val, float) and abs(val - getattr(dbobj, param)) > 0.1) \
+            if (isinstance(val, float) and abs(val - (getattr(dbobj, param))) > 0.1) \
                or not isinstance(val, float):
                 setattr(dbobj, param, val)
 
         # NOTE: Since form value isn't present if not checked!
         dbobj.accept_surplus = 'accept_surplus' in params
-
-
-def set_quota_sums(db, root):
-    """ Renormalize the sums in the group-tree (@root) of non-leaf nodes """
-    for group in root:
-        if not group.is_leaf:
-            newquota = sum(x.quota for x in group.get_children())
-
-# !! FIXME: and not user_sum_change_auth
-            if newquota != group.quota and True:
-                app.logger.info("Intermediate group sum %s: %d->%d",
-                                group.full_name, group.quota, newquota)
-                dbobj = next(x for x in db if x.group_name == group.full_name)
-                dbobj.quota = newquota
-                group.quota = newquota
 
 
 def set_renames(db, formdata):

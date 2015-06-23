@@ -52,6 +52,20 @@ def build_group_tree_formdata(formdata):
     return _build_groups_db(GroupTree, None, group_builder=group_process)
 
 
+def set_quota_sums(db, root):
+    """ Renormalize the sums in the group-tree (@root) of non-leaf nodes """
+    for group in root:
+        if not group.is_leaf:
+            newquota = sum(x.quota for x in group.get_children())
+
+# !! FIXME: and not user_sum_change_auth
+            if newquota != group.quota and True:
+                app.logger.info("Intermediate group sum %s: %d->%d",
+                                group.full_name, group.quota, newquota)
+                dbobj = next(x for x in db if x.group_name == group.full_name)
+                dbobj.quota = newquota
+                group.quota = newquota
+
 # *****************************************************************************
 # The following is all for form validation of the user-input data
 # *****************************************************************************
