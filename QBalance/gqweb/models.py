@@ -91,7 +91,6 @@ type_map = {
     'accept_surplus': (lambda x: x == 'on', lambda x: True, 'boolean'),
 }
 
-
 group_defaults = {
     'group_name': None,
     'quota': None,
@@ -99,6 +98,7 @@ group_defaults = {
     'weight': 0.0,
     'surplus_threshold': 0,
 }
+
 
 def validate_form_types(data):
     """ Take raw form data (@data) and validate & convert types of each """

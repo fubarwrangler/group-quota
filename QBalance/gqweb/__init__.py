@@ -49,4 +49,5 @@ def add_groups():
 
 @app.route('/ezq')
 def ez_quota_edit():
-    return render_template('quota_edit.html')
+    root = build_group_tree_db(Group.query.all())
+    return render_template('quota_edit.html', groups=namesort(root))

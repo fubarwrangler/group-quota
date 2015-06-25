@@ -40,7 +40,6 @@ def new_group_fits(data, tree):
         misslist = ", ".join(sorted(missing_fields))
         return "New group needs the following fields defined: %s" % misslist
 
-import quota_edit
 
 @app.route('/addrm', methods=['POST'])
 def add_groups_post():

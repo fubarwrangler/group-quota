@@ -1,23 +1,21 @@
-{% extends "layout.html" %}
-{% block navbar %}
+{%- extends "layout.html" %}
+{%- block navbar %}
 <ol class="breadcrumb">
   <li><a href="/">Home</a></li>
-{% if errors %}
+{%- if errors %}
   <li><a href="/ezq">Quota-EZ</a></li>
   <li class="active">Error</li>
 </ol>
-{% else %}
+{%- else %}
   <li calss="active">Quota-EZ</li>
-{% endif %}
+{%- endif %}
 </ol>
-{% endblock %}
-
-
-{% block body %}
-<div class="container maxw">
-{% if errors -%}
+{%- endblock %}
+{%- block body %}
+<div class="container-fluid maxw">
+{%- if errors %}
   <h3>Errors in Quota From</h3>
-    {% for group, field, typemsg in errors -%}
+    {%- for group, field, typemsg in errors %}
     <ul class="alert alert-danger">
       <ol>
         <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
@@ -25,14 +23,28 @@
           {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
       </ol>
     </ul>
-    {% endfor -%}
+    {%- endfor %}
 <button class="btn btn-default" onclick="window.history.back();">
 Go Back and Fix!</button>
-{% else -%}
-
-<h3 class="text-danger">EZ Quota Editor is Under Construction</h3>
-
-<button type="button" class="btn btn-default btn-sm" onclick="window.history.back();">Back</button>
+{%- else %}
+<div class="row" id="main_head">
+  <strong class="col-xs-3">Name</strong>
+  <strong class="col-xs-3">Slider</strong>
+  <strong class="col-xs-2">Quota</strong>
+  <strong class="col-xs-2">Take From</strong>
 </div>
-{% endif %}
-{% endblock %}
+{%- for group in groups %}
+<div class="row main-row">
+  <span class="col-xs-3"> {{ group.full_name.count(".")+1 }}. {{group.full_name}}</span>
+  <span class="col-xs-3">...</span>
+  <span class="col-xs-2">{{group.quota}}</span>
+  <span class="col-xs-2">
+    <span class="glyphicon {{ 'glyphicon-ok text-success' if group.accept_surplus else 'glyphicon-remove text-danger' }}" aria-hidden="true">
+    </span>
+  </span>
+</div>
+{%- endfor %}
+<button type="button" class="btn btn-default btn-sm" onclick="window.history.back();">Back</button>
+{%- endif %}
+</div>
+{%- endblock %}
