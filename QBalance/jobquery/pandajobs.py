@@ -9,7 +9,7 @@
 #
 # *****************************************************************************
 
-import urllib2
+import requests
 import cPickle
 import logging
 
@@ -50,12 +50,12 @@ def get_num_activated(queue, data):
 def get_jobs():
     log.info("Accessing panda at %s", url)
     try:
-        webservice = urllib2.urlopen(url, timeout=30)
+        webreq = requests.get(url, verify=False, stream=True)
         # This is so horribly insecure, I can't believe it!
-        webdata = cPickle.load(webservice)
+        webdata = cPickle.load(webreq.raw)
 
-    except urllib2.URLError:
-        log.error("Timeout accessing PANDA webservice, exit...")
+    except requests.exceptions.RequestException:
+        log.exception("Timeout accessing PANDA webservice, exit...")
         return None
 
     idle = {}

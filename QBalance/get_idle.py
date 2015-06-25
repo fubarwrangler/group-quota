@@ -2,6 +2,7 @@
 
 import MySQLdb
 import logging
+import sys
 
 import config.dbconn
 import config as c
@@ -40,6 +41,9 @@ if __name__ == '__main__':
     # For each module, generate a list of tuples of group_name,#idle by
     # calling the get_jobs() method of each module in jobquery/*.py
     for module in modules:
-        statements.extend([tuple(reversed(x)) for x in module.get_jobs().items()])
+        data = module.get_jobs()
+        if data is None:
+            sys.exit(1)
+        statements.extend([tuple(reversed(x)) for x in data.items()])
     # print statements
     insert_to_db(statements)
