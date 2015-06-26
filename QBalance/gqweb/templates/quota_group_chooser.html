@@ -1,0 +1,31 @@
+{%- extends "layout.html" %}
+{%- block navbar %}
+<ol class="breadcrumb">
+  <li><a href="/">Home</a></li>
+  <li class="active">Quota-EZ Chooser</li>
+</ol>                  <!-- End navbar block -->
+{%- endblock -%}
+{%- block body -%}
+<div class="container-fluid maxw">
+{%- for groupgroup in groupgroups %}
+<div class="row" id="main_head"> <!-- Start Title bar -->
+  <strong class="col-xs-5">Sibling Group for {{groupgroup[0].parent}}</strong>
+</div>
+<div class="row">
+  <span class="col-sm-5">
+  <ul>
+    <li>{{groupgroup[0].parent}}</li>
+    <ul>
+{%- for group in groupgroup %}
+      <li>{{group}}</li>
+{%- endfor %}
+    </ul>
+  </ul>
+  </span>
+</div>
+<div class="row">
+  <button type="button" class="btn btn-default btn-xs" target="/foo/">Edit</button>
+</div>
+{%- endfor %}
+</div>
+{%- endblock %}

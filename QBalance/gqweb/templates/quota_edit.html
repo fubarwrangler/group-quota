@@ -1,20 +1,24 @@
 {%- extends "layout.html" %}
+{%- block extraheaders %}
+  <script src="{{ url_for('static', filename='js/ezedit.js')}}"></script>
+{%- endblock %}
 {%- block navbar %}
 <ol class="breadcrumb">
   <li><a href="/">Home</a></li>
+  <li><a href="/ezq">Quota-EZ Chooser</a></li>
 {%- if errors %}
-  <li><a href="/ezq">Quota-EZ</a></li>
+  <li><a href="/ezq/1">EZ Edit</a></li>
   <li class="active">Error</li>
 </ol>
 {%- else %}
-  <li calss="active">Quota-EZ</li>
+  <li class="active">EZ Edit</li>
 {%- endif %}
-</ol>
-{%- endblock %}
-{%- block body %}
+</ol>                  <!-- End navbar block -->
+{%- endblock -%}
+{%- block body -%}
 <div class="container-fluid maxw">
-{%- if errors %}
-  <h3>Errors in Quota From</h3>
+{%- if errors -%}
+  <h3>Errors in Quota From</h3>   What
     {%- for group, field, typemsg in errors %}
     <ul class="alert alert-danger">
       <ol>
@@ -27,22 +31,32 @@
 <button class="btn btn-default" onclick="window.history.back();">
 Go Back and Fix!</button>
 {%- else %}
-<div class="row" id="main_head">
+<div class="row" id="main_head"> <!-- Start Title bar -->
   <strong class="col-xs-3">Name</strong>
-  <strong class="col-xs-3">Slider</strong>
-  <strong class="col-xs-2">Quota</strong>
-  <strong class="col-xs-2">Take From</strong>
+  <strong class="col-xs-1">Fix</strong>
+  <strong class="col-xs-1">Quota</strong>
+  <strong class="col-xs-5">Slider</strong>
 </div>
 {%- for group in groups %}
+<!-- Start of {{group.full_name}} row -->
 <div class="row main-row">
   <span class="col-xs-3"> {{ group.full_name.count(".")+1 }}. {{group.full_name}}</span>
-  <span class="col-xs-3">...</span>
-  <span class="col-xs-2">{{group.quota}}</span>
-  <span class="col-xs-2">
-    <span class="glyphicon {{ 'glyphicon-ok text-success' if group.accept_surplus else 'glyphicon-remove text-danger' }}" aria-hidden="true">
-    </span>
+  <span class="col-xs-1">
+    <span class="checkbox checkbox-danger" style="margin-top: 0px;">
+        <input type="checkbox" name="take_from"/>
+        <label></label>
+      </span>
   </span>
-</div>
+  <span class="col-xs-1" id="{{group.uniq_id('_quota')}}">{{group.quota}}</span>
+  <!-- <span class="col-xs-4"> -->
+    <span class="col-xs-1">0</span>
+    <span class="col-xs-3">
+      <input type="range" name="points" value="{{group.quota}}"
+             min="0" max="{{group.parent.quota}}"/>
+    </span>
+    <span class="col-xs-1">{{group.parent.quota}}</span>
+  <!-- </span> -->
+</div> <!-- End for {{group.full_name}} block -->
 {%- endfor %}
 <button type="button" class="btn btn-default btn-sm" onclick="window.history.back();">Back</button>
 {%- endif %}

@@ -4,6 +4,7 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
+import hashlib
 import re
 
 from group.group import AbstractGroup
@@ -32,8 +33,17 @@ class GroupTree(AbstractGroup):
         first, last = '.'.join(s[:-1]) + "." if len(s) > 1 else '', s[-1]
         return "%s<u>%s</u>" % (first, last)
 
+    def group_order(self):
+        for x in (x for x in self.all() if not x.is_leaf):
+            yield x.children.values()
+
     def rename(self, new):
         self.name = new
+
+    def uniq_id(self, val=''):
+        m = hashlib.md5()
+        m.update(self.full_name)
+        return m.hexdigest()[:8] + val
 
 
 def build_group_tree_db(db_groups):

@@ -9,11 +9,12 @@
   <script src="{{ url_for('static', filename='js/jquery.min.js')}}"></script>
   <script src="{{ url_for('static', filename='js/bootstrap.min.js')}}"></script>
   <script src="{{ url_for('static', filename='js/bootstrap-switch.min.js')}}"></script>
+  {%- block extraheaders %}{% endblock %}
   <title>Group Quota Editor</title>
 </head>
 <body>
-{% block navbar %}{% endblock %}
-{% with messages = get_flashed_messages(True) -%}
+{%- block navbar %}{%- endblock %}
+{%- with messages = get_flashed_messages(True) %}
   {% if messages -%}
     {% for cat, message in messages -%}
     {% if cat == "message" %}
@@ -28,7 +29,7 @@
     });
   </script>
   {% endif -%}
-{% endwith -%}
-{% block body %}{% endblock %}
+{%- endwith %}
+{%- block body %}{%- endblock %}
 </body>
 </html>
