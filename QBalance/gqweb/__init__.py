@@ -19,6 +19,7 @@ from models import Group, build_group_tree_db
 
 import quota_edit       # flake8: noqa -- this unused import has views
 import group_modify     # flake8: noqa -- this unused import has views
+import ezedit           # flake8: noqa -- this unused import has views
 
 
 namesort = lambda root: sorted(list(root), key=lambda x: x.full_name)

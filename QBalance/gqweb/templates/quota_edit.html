@@ -1,6 +1,5 @@
 {%- extends "layout.html" %}
 {%- block extraheaders %}
-  <script src="{{ url_for('static', filename='js/ezedit.js')}}"></script>
 {%- endblock %}
 {%- block navbar %}
 <ol class="breadcrumb">
@@ -31,6 +30,7 @@
 <button class="btn btn-default" onclick="window.history.back();">
 Go Back and Fix!</button>
 {%- else %}
+<form class="form-inline" role="form" method="POST">
 <div class="row" id="main_head"> <!-- Start Title bar -->
   <strong class="col-xs-3">Name</strong>
   <strong class="col-xs-1">Fix</strong>
@@ -43,31 +43,36 @@ Go Back and Fix!</button>
   <span class="col-xs-3"> {{group}}</span>
   <span class="col-xs-1">
     <span class="checkbox checkbox-danger" style="margin-top: 0px;">
-        <input type="checkbox" name="take_from"/>
+        <input type="checkbox" name="{{group}}+take" class="ckbx"/>
         <label></label>
       </span>
   </span>
-  <span class="col-xs-1" id="{{group.uniq_id('_quota')}}">{{group.quota}}</span>
-  <!-- <span class="col-xs-4"> -->
-    <span class="col-xs-1">0</span>
-    <span class="col-xs-3">
-      <input type="range" name="points" value="{{group.quota}}"
-             min="0" max="{{group.parent.quota}}"/>
-    </span>
-    <span class="col-xs-1">{{group.parent.quota}}</span>
-  <!-- </span> -->
+  <span class="col-xs-1" id="{{group}}+disp_quota">NULL</span>
+  <span class="col-xs-1">0</span>
+  <span class="col-xs-3">
+    <input type="range" class="slider" name="{{group}}" value="{{group.quota}}"
+           min="0" max="{{group.parent.quota}}"/>
+  </span>
+  <span class="col-xs-1">{{group.parent.quota}}</span>
 </div>
 {%- for child in group %}
 <div class="row grey-row {% if loop.last -%}last-grey{%- endif -%}">
     <span class="col-xs-1"></span>
     <span class="col-xs-3">{{child}}</span>
-    <span class="col-xs-1" id="{{child}}_disp_quota">{{child.quota}}</span>
+    <span class="col-xs-1" id="{{child}}+child_disp_quota">{{child.quota}}</span>
     <span class="col-xs-4"></span>
-    <input type="hidden" name="{{child}}_quota" value="{{child.quota}}">
+    <input type="hidden" name="{{child}}+child_quota" value="{{child.quota}}">
 </div>
 {%- endfor %}
 {%- endfor %}
-<button type="button" class="btn btn-default btn-sm" onclick="window.history.back();">Back</button>
+<div class="row">
+  <div class="col-xs-12">
+    <button type="button" class="btn btn-default btn-sm" onclick="window.history.back();">Back</button>
+    <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+  </div>
+</div>
+</form>
 {%- endif %}
 </div>
+<script src="{{ url_for('static', filename='js/ezedit.js')}}"></script>
 {%- endblock %}
