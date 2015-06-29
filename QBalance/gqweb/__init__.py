@@ -59,4 +59,9 @@ def ez_quota_edit(parent):
 
      # NOTE: Could narrow the db-query down some but this is easiest for now
     subtree = build_group_tree_db(Group.query.all()).find(parent).children.values()
+
+    # Special case for root node, set it's quota here -- must be a better way!
+    if subtree[0].parent.parent is None:
+        subtree[0].parent.quota = sum(x.quota for x in subtree)
+
     return render_template('quota_edit.html', groups=subtree)

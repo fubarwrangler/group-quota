@@ -44,3 +44,15 @@ input.sm-box.addbox {
 .container.maxw {
     margin-left: unset;
 }
+
+.row.spacer-below {
+    margin-bottom: 30px;
+}
+
+div.grey-row {
+    color: #999;
+}
+
+div.last-grey {
+    margin-bottom: 30px;
+}

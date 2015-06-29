@@ -8,13 +8,14 @@
 {%- block body -%}
 <div class="container-fluid maxw">
 {%- for groupgroup in groupgroups %}
+{%- set parent = groupgroup[0].parent %}
 <div class="row" id="main_head"> <!-- Start Title bar -->
-  <strong class="col-xs-5">Sibling Group for {{groupgroup[0].parent}}</strong>
+  <strong class="col-xs-5">Sibling Group for {{parent}}</strong>
 </div>
 <div class="row">
   <span class="col-sm-5">
-  <ul>
-    <li>{{groupgroup[0].parent}}</li>
+  <ul class="list-unstyled">
+    <li>{{parent}}</li>
     <ul>
 {%- for group in groupgroup %}
       <li>{{group}}</li>
@@ -23,9 +24,12 @@
   </ul>
   </span>
 </div>
-<div class="row">
-  <button type="button" class="btn btn-default btn-xs" target="/foo/">Edit</button>
+<div class="row spacer-below">
+  <span class="col-sm-5">
+    <a href="/ezq/{{parent}}" class="btn btn-primary btn-xs" role="button">Edit</a>
+  </span>
 </div>
 {%- endfor %}
+<button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
 </div>
 {%- endblock %}
