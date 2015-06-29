@@ -52,18 +52,19 @@ def add_groups_post():
     if button_hit == 'rm':
         to_remove = set(request.form.getlist('rm_me'))
         if not to_remove:
-            return render_template('group_add_rm.html', gen_err="Nothing selected to be removed")
+            return render_template('group_add_rm.html',
+                                   gen_err="Nothing selected to be removed")
 
         bad_removes = remove_groups(to_remove, root)
 
         if bad_removes:
             return render_template('group_add_rm.html', rmerrors=bad_removes)
-        elif to_remove:
-            for obj in db_groups:
-                if obj.group_name in to_remove:
-                    db_session.delete(obj)
-            db_session.flush()
-            flash("Successfully removed %d group(s)" % len(to_remove))
+
+        for obj in db_groups:
+            if obj.group_name in to_remove:
+                db_session.delete(obj)
+        db_session.flush()
+        flash("Successfully removed %d group(s)" % len(to_remove))
 
     elif button_hit == 'add':
         newgrp = dict([(k.split('+')[1], v) for k, v in request.form.iteritems()
@@ -71,23 +72,22 @@ def add_groups_post():
         if 'group_name' not in newgrp:
             return render_template('group_add_rm.html',
                                    gen_err="Nothing to add, no group-name defined!")
-        else:
-            group, errors = validate_form_types(newgrp)
-            if errors:
-                return render_template('group_add_rm.html', typeerrors=errors)
-            errors = new_group_fits(group, root)
-            if errors:
-                return render_template('group_add_rm.html', gen_err=errors)
+        group, errors = validate_form_types(newgrp)
+        if errors:
+            return render_template('group_add_rm.html', typeerrors=errors)
+        errors = new_group_fits(group, root)
+        if errors:
+            return render_template('group_add_rm.html', gen_err=errors)
 
-            new_in_db = Group(**group)
-            db_session.add(new_in_db)
-            db_session.flush()
+        new_in_db = Group(**group)
+        db_session.add(new_in_db)
+        db_session.flush()
 
-            flash("New group added: %s" % newgrp)
+        flash("New group added: %s" % newgrp['group_name'])
 
     # Rebalance db and tree from inserted/deleted but-not-committed objects
     new_db = Group.query.all()
     set_quota_sums(new_db, build_group_tree_db(new_db))
 
     db_session.commit()
-    return redirect(url_for('main_menu'))
+    return redirect(url_for('add_groups'))
