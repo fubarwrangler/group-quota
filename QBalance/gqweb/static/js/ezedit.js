@@ -1,10 +1,5 @@
 var $sliders = $('.slider');
 
-/* Escape selector string for jquery */
-function jq( myid ) {
-    return myid.replace( /(:|\.|\[|\]|,|\+)/g, "\\$1" );
-}
-
 function update_quotadisp() {
     var sum = 0;
     $sliders.each(function() {
@@ -14,14 +9,6 @@ function update_quotadisp() {
     $('#debugsum').text(sum);
 }
 
-// Extend jquery with sum function -- applied to sliders
-$.fn.sumValues = function() {
-	var sum = 0;
-	this.each(function() {
-		sum += this.valueAsNumber;
-	});
-	return sum;
-};
 
 function total_quota() {
     $('.tqdisp').text($('#totalQuota').text());
@@ -51,8 +38,14 @@ $sliders.on('input', function(event) {
         var proportion = (1 - change / othersum);
 
         console.log("..Adjust", this.name, this.valueAsNumber, '-*=>', proportion);
-        this.valueAsNumber *= proportion;
-        // this.valueAsNumber += (diff / ($sliders.length - 1));
+        newval = this.valueAsNumber * proportion;
+
+        // Avoid too small so we don't approach a div-by-zero jump
+        if(Math.abs(newval) < 0.00001)    {
+            newval = 0.00001;
+        }
+        this.valueAsNumber = newval;
+
         this.oldval = this.valueAsNumber;
 
     });
