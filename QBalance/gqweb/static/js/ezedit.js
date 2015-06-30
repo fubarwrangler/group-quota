@@ -14,13 +14,14 @@ function update_quotadisp() {
     $('#debugsum').text(sum);
 }
 
-function jqsumval($elements)  {
-    var sum = 0;
-    $elements.each(function() {
-        sum += this.valueAsNumber;
-    });
-    return sum;
-}
+// Extend jquery with sum function -- applied to sliders
+$.fn.sumValues = function() {
+	var sum = 0;
+	this.each(function() {
+		sum += this.valueAsNumber;
+	});
+	return sum;
+};
 
 function total_quota() {
     $('.tqdisp').text($('#totalQuota').text());
@@ -36,41 +37,25 @@ $sliders.on('input', function(event) {
         return;
     }
 
-    var change = this.oldval - this.valueAsNumber;
+    var change = this.valueAsNumber - this.oldval;
     var len = $sliders.length - 1;
     var extra = 0;
 
-    console.log(this.name, this.oldval, this.valueAsNumber, change);
-
     var $othersliders = $sliders.not(this);
+    var othersum = $othersliders.sumValues();
+
+    console.log(this.name, this.oldval, this.valueAsNumber, change, othersum);
 
     $othersliders.each(function() {
         var max = Number(this.max);
-        var diff = (change + extra) / len;
+        var proportion = (1 - change / othersum);
 
-        newval = this.valueAsNumber + diff;
-        console.log("..Adjust", this.name, 'by', diff, ':',
-                    this.valueAsNumber, '-->', newval);
-
-        // If would over/under-shoot
-        if (newval > max)  {
-            extra += newval - max;
-            console.log("....too large, extra for next is", extra);
-            this.valueAsNumber = max;
-        } else if (newval < 0) {
-            extra = newval - this.valueAsNumber;
-            console.log("....too small, extra for next is", extra);
-            this.valueAsNumber = 0;
-        } else {
-            extra = 0;
-            this.valueAsNumber = newval;
-        }
-
+        console.log("..Adjust", this.name, this.valueAsNumber, '-*=>', proportion);
+        this.valueAsNumber *= proportion;
         // this.valueAsNumber += (diff / ($sliders.length - 1));
         this.oldval = this.valueAsNumber;
 
     });
-    var othersum = jqsumval($sliders);
     this.oldval = this.valueAsNumber;
     update_quotadisp();
 });
