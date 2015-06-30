@@ -6,22 +6,36 @@ function jq( myid ) {
 }
 
 function update_quotadisp() {
+    var sum = 0;
     $sliders.each(function() {
-        var mysel = this.name + "+disp_quota";
-        $(document.getElementById(mysel)).text(this.valueAsNumber);
-        // console.log("Would update ", mydisp);
+        document.getElementById(this.name + "+disp_quota").innerHTML = Math.round(this.value);
+        sum += this.valueAsNumber;
     });
+    $('#debugsum').text(sum);
 };
 
-$(window).load(update_quotadisp);
+function total_quota() {
+    $('.tqdisp').text($('#totalQuota').text());
+}
 
-$sliders.on('input documentready', function(event) {
+$(document).ready(update_quotadisp);
+$(document).ready(total_quota);
 
-    console.log(this.name, this.valueAsNumber);
+$sliders.each(function() { this.oldval = this.valueAsNumber; });
 
-    update_quotadisp();
-
+$sliders.on('input', function(event) {
+    if(this.oldval === this.valueAsNumber) {
+        return;
+    }
+    var diff = this.oldval - this.valueAsNumber;
+    console.log(this.name, this.oldval, this.valueAsNumber, diff);
     $sliders.not(this).each(function() {
+        var change = diff / $sliders.length;
         // console.log($('#' + this.name + "+disp_quota"));
+        console.log("Adjust", this.name, 'by', change )
+        this.valueAsNumber += (diff / ($sliders.length - 1));
+        this.oldval = this.valueAsNumber;
     });
+    this.oldval = this.valueAsNumber;
+    update_quotadisp();
 });
