@@ -79,6 +79,7 @@ def set_quota_sums(db, root):
             # If newly added group causes a former leaf that has non-zero
             # threshold to become a non-leaf then set it to zero!
             if group.surplus_threshold > 0:
+                dbobj = next(x for x in db if x.group_name == group.full_name)
                 dbobj.surplus_threshold = 0
 
 # *****************************************************************************
