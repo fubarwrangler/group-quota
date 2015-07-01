@@ -55,7 +55,7 @@ Go Back and Fix!</button>
     <input type="range" class="slider" id="{{group}}" name="{{group}}"
            value="{{group.quota}}" min="0" max="{{group.parent.quota}}" step="any"/>
   </span>
-  <span class="col-xs-1 tqdisp">NIL</span>
+  <span class="col-xs-1 tqdisp" id="{{group}}+tq">NIL</span>
 </div>
 {%- for child in group %}
 <div class="row grey-row {% if loop.last -%}last-grey{%- endif -%}">

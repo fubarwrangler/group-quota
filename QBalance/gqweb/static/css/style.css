@@ -56,3 +56,7 @@ div.grey-row {
 div.last-grey {
     margin-bottom: 30px;
 }
+
+.fnt-bold {
+    font-weight: bold;
+}

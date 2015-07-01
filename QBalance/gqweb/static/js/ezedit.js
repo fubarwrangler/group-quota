@@ -1,37 +1,56 @@
+/******************************************************************************
+ * Global Variables
+ *****************************************************************************/
 var $sliders = $('.slider');
 var $boxes = $('.ckbx');
 
+/******************************************************************************
+ * Utility functions for use in event handlers
+ *****************************************************************************/
 /* Display live quota updates in row as slider changes */
 function update_quotadisp() {
     $sliders.each(function() {
         get_quota(this.name).innerHTML = Math.round(this.value);
+        max = get_max_disp(this.name);
+        if($(this).is( ":visible" ))    {
+            max.innerHTML = Math.round(this.max);
+        }
     });
+
     $('#debugsum').text($sliders.sumValues());
 }
 
-/* Update total-quota on RHS of sliders from hidden element */
-function total_quota() {
-    $('.tqdisp').text($('#totalQuota').text());
-}
-
-/* On page load dissapear sliders for checked boxes */
+/* On page (re)load run actions for already checked boxes */
 function check_checked()    {
     $boxes.each(function() {
         if(this.checked)    {
-            $(get_slider(this)).toggle();
+            checked_actions(this);
         }
     });
 }
 
-/* This syntax is same as $(document).ready(fn); */
-$(update_quotadisp);
-$(total_quota);
-$(check_checked);
+/* Actions when checkbox is clicked */
+function checked_actions(box)  {
+    $(get_slider(box)).toggle();
+    $(get_max_disp(box.name.split('+')[0])).toggle();
+    $(get_quota_from_checkbox(box)).toggleClass('fnt-bold');
 
-$sliders.each(function() { this.oldval = this.valueAsNumber; });
+    var $unchecked_sliders = $sliders.filter(function(idx, elem) {
+            return !get_checkbox(this.name).checked;
+        });
+    $unchecked_sliders.attr('max', $unchecked_sliders.sumValues());
+    update_quotadisp();
+}
 
+
+/******************************************************************************
+ * Event Handlers for form elements
+ *****************************************************************************/
+/* Handle checked box or warn on too many checkboxes */
 $boxes.change(function(event)   {
     var warning = 'Cannot leave fewer than 2 free sliders';
+
+    // Magic to make alert pop up and fade away
     if($('input[type="checkbox"]:checked').length >= $sliders.length - 1)    {
         $('<div class="alert alert-danger" role="alert">' +
             warning +
@@ -42,12 +61,12 @@ $boxes.change(function(event)   {
             .fadeOut('slow', function() { $(this).remove(); })
             ;
         this.checked = false;
-        return;
+    } else {
+        checked_actions(this);
     }
-    $(get_slider(this)).toggle();
-    console.log(get_slider(this));
 });
 
+/* Main algorithm for proportionally changing other sliders */
 $sliders.on('input', function(event) {
     if(this.oldval === this.valueAsNumber) {
         return;
@@ -55,9 +74,11 @@ $sliders.on('input', function(event) {
 
     var change = this.valueAsNumber - this.oldval;
     var len = $sliders.length - 1;
-    var extra = 0;
 
-    var $othersliders = $sliders.not(this);
+    // All other non-checked sliders
+    var $othersliders = $sliders.not(this).filter(function(idx, elem) {
+        return !get_checkbox(this.name).checked;
+    });
     var othersum = $othersliders.sumValues();
 
     console.log(this.name, this.oldval, this.valueAsNumber, change, othersum);
@@ -79,3 +100,15 @@ $sliders.on('input', function(event) {
     this.oldval = this.valueAsNumber;
     update_quotadisp();
 });
+
+
+
+/******************************************************************************
+ * Actions to take on page load/reload
+ *****************************************************************************/
+
+$sliders.each(function() { this.oldval = this.valueAsNumber; });
+
+// This syntax is same as $(document).ready(fn);
+$(update_quotadisp);
+$(check_checked);

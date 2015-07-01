@@ -13,13 +13,21 @@ function jq( myid ) {
 }
 
 function get_checkbox(groupname)    {
-    return document.getElementById(groupname + "+take");
+    return document.getElementsByName(groupname + "+take")[0];
 }
 
 function get_quota(groupname)    {
     return document.getElementById(groupname + "+disp_quota");
 }
 
+function get_max_disp(groupname)	{
+	return document.getElementById(groupname + "+tq");
+}
+
 function get_slider(elem)	{
 	return document.getElementById(elem.name.split('+', 1)[0]);
+}
+
+function get_quota_from_checkbox(box)	{
+	return get_quota(box.name.split('+', 1)[0]);
 }
