@@ -1,5 +1,7 @@
 var $sliders = $('.slider');
+var $boxes = $('.ckbx');
 
+/* Display live quota updates in row as slider changes */
 function update_quotadisp() {
     $sliders.each(function() {
         get_quota(this.name).innerHTML = Math.round(this.value);
@@ -7,14 +9,44 @@ function update_quotadisp() {
     $('#debugsum').text($sliders.sumValues());
 }
 
+/* Update total-quota on RHS of sliders from hidden element */
 function total_quota() {
     $('.tqdisp').text($('#totalQuota').text());
 }
 
-$(document).ready(update_quotadisp);
-$(document).ready(total_quota);
+/* On page load dissapear sliders for checked boxes */
+function check_checked()    {
+    $boxes.each(function() {
+        if(this.checked)    {
+            $(get_slider(this)).toggle();
+        }
+    });
+}
+
+/* This syntax is same as $(document).ready(fn); */
+$(update_quotadisp);
+$(total_quota);
+$(check_checked);
 
 $sliders.each(function() { this.oldval = this.valueAsNumber; });
+
+$boxes.change(function(event)   {
+    var warning = 'Cannot leave fewer than 2 free sliders';
+    if($('input[type="checkbox"]:checked').length >= $sliders.length - 1)    {
+        $('<div class="alert alert-danger" role="alert">' +
+            warning +
+            '</div>')
+            .insertAfter( $('.form-inline'))
+            .fadeIn('slow')
+            .animate({opacity: 1.0}, 2000)
+            .fadeOut('slow', function() { $(this).remove(); })
+            ;
+        this.checked = false;
+        return;
+    }
+    $(get_slider(this)).toggle();
+    console.log(get_slider(this));
+});
 
 $sliders.on('input', function(event) {
     if(this.oldval === this.valueAsNumber) {

@@ -16,7 +16,7 @@
 </ol>                  <!-- End navbar block -->
 {%- endblock -%}
 {%- block body -%}
-<div class="container-fluid maxw">
+<div id="maincont" class="container-fluid maxw">
 {%- if errors -%}
   <h3>Errors in Quota From</h3>   What
     {%- for group, field, typemsg in errors %}
@@ -52,8 +52,8 @@ Go Back and Fix!</button>
   <span class="col-xs-1" id="{{group}}+disp_quota">NULL</span>
   <span class="col-xs-1">0</span>
   <span class="col-xs-3">
-    <input type="range" class="slider" name="{{group}}" value="{{group.quota}}"
-           min="0" max="{{group.parent.quota}}" step="any"/>
+    <input type="range" class="slider" id="{{group}}" name="{{group}}"
+           value="{{group.quota}}" min="0" max="{{group.parent.quota}}" step="any"/>
   </span>
   <span class="col-xs-1 tqdisp">NIL</span>
 </div>

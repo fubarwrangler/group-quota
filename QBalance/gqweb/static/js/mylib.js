@@ -19,3 +19,7 @@ function get_checkbox(groupname)    {
 function get_quota(groupname)    {
     return document.getElementById(groupname + "+disp_quota");
 }
+
+function get_slider(elem)	{
+	return document.getElementById(elem.name.split('+', 1)[0]);
+}
