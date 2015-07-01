@@ -1,14 +1,11 @@
 var $sliders = $('.slider');
 
 function update_quotadisp() {
-    var sum = 0;
     $sliders.each(function() {
-        document.getElementById(this.name + "+disp_quota").innerHTML = Math.round(this.value);
-        sum += this.valueAsNumber;
+        get_quota(this.name).innerHTML = Math.round(this.value);
     });
-    $('#debugsum').text(sum);
+    $('#debugsum').text($sliders.sumValues());
 }
-
 
 function total_quota() {
     $('.tqdisp').text($('#totalQuota').text());
@@ -45,9 +42,7 @@ $sliders.on('input', function(event) {
             newval = 0.00001;
         }
         this.valueAsNumber = newval;
-
         this.oldval = this.valueAsNumber;
-
     });
     this.oldval = this.valueAsNumber;
     update_quotadisp();

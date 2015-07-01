@@ -11,3 +11,11 @@ $.fn.sumValues = function() {
 function jq( myid ) {
     return myid.replace( /(:|\.|\[|\]|,|\+)/g, "\\$1" );
 }
+
+function get_checkbox(groupname)    {
+    return document.getElementById(groupname + "+take");
+}
+
+function get_quota(groupname)    {
+    return document.getElementById(groupname + "+disp_quota");
+}
