@@ -7,7 +7,7 @@
 {%- endblock -%}
 {%- block body -%}
 <div class="container-fluid maxw">
-{%- for groupgroup in groupgroups %}
+{%- for groupgroup in groupgroups if groupgroup|length > 1 %}
 {%- set parent = groupgroup[0].parent %}
 <div class="row" id="main_head"> <!-- Start Title bar -->
   <strong class="col-xs-5">Sibling Group for {{parent}}</strong>

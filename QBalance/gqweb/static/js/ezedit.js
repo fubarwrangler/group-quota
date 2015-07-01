@@ -18,6 +18,7 @@ function update_quotadisp() {
     });
 
     $('#debugsum').text($sliders.sumValues());
+    $('#quotasum').text(Math.round($sliders.sumValues()));
 }
 
 /* On page (re)load run actions for already checked boxes */
@@ -52,14 +53,14 @@ $boxes.change(function(event)   {
 
     // Magic to make alert pop up and fade away
     if($('input[type="checkbox"]:checked').length >= $sliders.length - 1)    {
-        $('<div class="alert alert-danger" role="alert">' +
+        $('<div class="alert alert-danger my-popup-warn" role="alert">' +
             warning +
             '</div>')
-            .insertAfter( $('.form-inline'))
+            .insertAfter( $(this).parent())
             .fadeIn('slow')
-            .animate({opacity: 1.0}, 2000)
+            .animate({opacity: 1.0}, 1450)
             .fadeOut('slow', function() { $(this).remove(); })
-            ;
+        ;
         this.checked = false;
     } else {
         checked_actions(this);

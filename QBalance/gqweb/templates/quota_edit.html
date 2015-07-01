@@ -6,31 +6,11 @@
 <ol class="breadcrumb">
   <li><a href="/">Home</a></li>
   <li><a href="/ezq">Quota-EZ Chooser</a></li>
-{%- if errors %}
-  <li><a href="/ezq/1">EZ Edit</a></li>
-  <li class="active">Error</li>
-</ol>
-{%- else %}
   <li class="active">EZ Edit</li>
-{%- endif %}
 </ol>                  <!-- End navbar block -->
 {%- endblock -%}
 {%- block body -%}
 <div id="maincont" class="container-fluid maxw">
-{%- if errors -%}
-  <h3>Errors in Quota From</h3>   What
-    {%- for group, field, typemsg in errors %}
-    <ul class="alert alert-danger">
-      <ol>
-        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  <span class="sr-only">Error:</span>
-          {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
-      </ol>
-    </ul>
-    {%- endfor %}
-<button class="btn btn-default" onclick="window.history.back();">
-Go Back and Fix!</button>
-{%- else %}
 <form class="form-inline" role="form" method="POST">
 <div class="row" id="main_head"> <!-- Start Title bar -->
   <strong class="col-xs-3">Name</strong>
@@ -67,6 +47,11 @@ Go Back and Fix!</button>
 </div>
 {%- endfor %}
 {%- endfor %}
+<div class="row">
+<div class="col-xs-4"></div>
+<div class="col-xs-1" style="border-top: solid thin" id="quotasum">XXX</div>
+<div class="col-xs-5"></div>
+</div>
 <span id="debugsum">XX</span>
 <div class="row">
   <div class="col-xs-12">
@@ -75,7 +60,6 @@ Go Back and Fix!</button>
   </div>
 </div>
 </form>
-{%- endif %}
 </div>
 <script src="{{ url_for('static', filename='js/ezedit.js')}}"></script>
 {%- endblock %}

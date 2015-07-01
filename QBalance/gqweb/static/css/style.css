@@ -60,3 +60,11 @@ div.last-grey {
 .fnt-bold {
     font-weight: bold;
 }
+
+.my-popup-warn {
+    z-index: 2;
+    position: absolute;
+    top: -20px;
+    margin-left: 40px;
+    width: 280px;
+}
