@@ -68,3 +68,7 @@ div.last-grey {
     margin-left: 40px;
     width: 320px;
 }
+
+.noseeme    {
+    display: none !important;
+}

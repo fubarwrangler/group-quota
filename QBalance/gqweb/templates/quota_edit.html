@@ -19,6 +19,7 @@
   <strong class="col-xs-5">Slider</strong>
 </div>
 <span hidden id="totalQuota">{{groups[0].parent.quota}}</span>
+<div> <!-- For easy searching -->
 {%- for group in groups %}
 <!-- Start of {{group}} row -->
 <div class="row">
@@ -32,7 +33,7 @@
   <span class="col-xs-1" id="{{group}}+disp_quota">NULL</span>
   <span class="col-xs-1">0</span>
   <span class="col-xs-3">
-    <input type="range" class="slider" id="{{group}}" name="{{group}}"
+    <input type="range" class="slider" id="{{group}}" name="{{group}}" hash="{{group.uniq_id}}"
            value="{{group.quota}}" min="0" max="{{group.parent.quota}}" step="any"/>
   </span>
   <span class="col-xs-1 tqdisp" id="{{group}}+tq">NIL</span>
@@ -41,13 +42,14 @@
 <div class="row grey-row {% if loop.last -%}last-grey{%- endif -%}">
     <span class="col-xs-1"></span>
     <span class="col-xs-3">{{child}}</span>
-    <span class="col-xs-1" parent="{{group}}" id="{{child}}+disp_quota">{{child.quota}}</span>
+    <span class="col-xs-1" parent="{{group}}" id="{{child}}+disp_quota">FOO</span>
     <span class="col-xs-4"></span>
-    <input hidden="hidden" parent="{{group}}" type="number" name="{{child}}"
-           value="{{child.quota}}"/>
+    <input hidden="hidden" class="{{group.uniq_id}}_chld" type="number" name="{{child}}"
+           value="{{child.quota}}" proportion="{{child.quota/group.quota}}"/>
 </div>
 {%- endfor %}
 {%- endfor %}
+</div>
 <div class="row">
 <div class="col-xs-4"></div>
 <div class="col-xs-1" style="border-top: solid thin" id="quotasum">XXX</div>

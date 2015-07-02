@@ -17,5 +17,7 @@ function get_quota(groupname) 			{ return document.getElementById(groupname + "+
 function get_max_disp(groupname) 		{ return document.getElementById(groupname + "+tq"); }
 function get_slider(elem) 				{ return document.getElementById(elem.name.split('+', 1)[0]); }
 function get_quota_from_checkbox(box) 	{ return get_quota(box.name.split('+', 1)[0]); }
-function get_children_quotas_from_slider(slider) { return $("span[parent='" + jq(slider.name)  + "']"); }
-function get_children_inputs_from_slider(slider) { return $("input[parent='" + jq(slider.name)  + "']"); }
+// function get_children_inputs_from_slider(slider) { return $("input[parent='" + jq(slider.name)  + "']"); }
+function get_children_inputs_from_slider(slider) {
+	return $(document.getElementsByClassName(slider.getAttribute('hash') + '_chld'));
+}

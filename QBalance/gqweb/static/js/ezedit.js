@@ -3,7 +3,7 @@
  *****************************************************************************/
 var $sliders = $('.slider');
 var $boxes = $('.ckbx');
-const MIN_VAL = 0.00001;
+var MIN_VAL = 0.00001;
 
 /******************************************************************************
  * Utility functions for use in event handlers
@@ -15,7 +15,7 @@ function update_quotadisp() {
 
         max = get_max_disp(this.name);
 
-        if($(this).is( ":visible" ))    {
+        if(this.className.indexOf('noseeme') < 0)    {
             max.innerHTML = Math.round(this.max);
         }
 
@@ -39,8 +39,8 @@ function check_checked()    {
 
 /* Actions when checkbox is clicked */
 function checked_actions(box)  {
-    $(get_slider(box)).toggle();
-    $(get_max_disp(box.name.split('+')[0])).toggle();
+    $(get_slider(box)).toggleClass('noseeme');
+    $(get_max_disp(box.name.split('+')[0])).toggleClass('noseeme');
     $(get_quota_from_checkbox(box)).toggleClass('fnt-bold');
 
     var $unchecked_sliders = $sliders.filter(function(idx, elem) {
@@ -51,14 +51,13 @@ function checked_actions(box)  {
 }
 
 function adjust_children(slider) {
-    var factor = slider.last_proportion;
+    var pq = slider.valueAsNumber;  // parent quota
 
     get_children_inputs_from_slider(slider)
         .each(function() {
-            console.log("....child", this.name, this.valueAsNumber, '-*=>', factor);
-            var newval = this.valueAsNumber * factor;
-            this.valueAsNumber = newval;
-            // get_quota(this.name).innerHTML = Math.round(newval);
+            var proportion = this.getAttribute('proportion');
+            console.log("....child", this.name, proportion, '*', pq);
+            this.valueAsNumber = proportion * pq;
         });
 }
 

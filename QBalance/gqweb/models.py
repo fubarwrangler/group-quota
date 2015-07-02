@@ -40,6 +40,7 @@ class GroupTree(AbstractGroup):
     def rename(self, new):
         self.name = new
 
+    @property
     def uniq_id(self, val=''):
         m = hashlib.md5()
         m.update(self.full_name)
