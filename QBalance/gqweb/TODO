@@ -4,3 +4,6 @@ Website TODO
 * Add form, default value greyed out until clicked on
 * Confirm if quota-sum will change
 * List changes made after edit in flash() or something
+
+* Modify child-quotas in ez-editor!!
+* Popup textbox direct-input for quotas

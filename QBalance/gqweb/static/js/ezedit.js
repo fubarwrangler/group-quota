@@ -3,6 +3,7 @@
  *****************************************************************************/
 var $sliders = $('.slider');
 var $boxes = $('.ckbx');
+const MIN_VAL = 0.00001;
 
 /******************************************************************************
  * Utility functions for use in event handlers
@@ -11,10 +12,16 @@ var $boxes = $('.ckbx');
 function update_quotadisp() {
     $sliders.each(function() {
         get_quota(this.name).innerHTML = Math.round(this.value);
+
         max = get_max_disp(this.name);
+
         if($(this).is( ":visible" ))    {
             max.innerHTML = Math.round(this.max);
         }
+
+        get_children_inputs_from_slider(this).each(function() {
+            get_quota(this.name).innerHTML = Math.round(this.value);
+        });
     });
 
     $('#debugsum').text($sliders.sumValues());
@@ -43,21 +50,31 @@ function checked_actions(box)  {
     update_quotadisp();
 }
 
+function adjust_children(slider) {
+    var factor = slider.last_proportion;
+
+    get_children_inputs_from_slider(slider)
+        .each(function() {
+            console.log("....child", this.name, this.valueAsNumber, '-*=>', factor);
+            var newval = this.valueAsNumber * factor;
+            this.valueAsNumber = newval;
+            // get_quota(this.name).innerHTML = Math.round(newval);
+        });
+}
 
 /******************************************************************************
  * Event Handlers for form elements
  *****************************************************************************/
 /* Handle checked box or warn on too many checkboxes */
 $boxes.change(function(event)   {
-    var warning = 'Cannot leave fewer than 2 free sliders';
+    var warning = '&nbsp;Can\'t leave fewer than 2 free sliders';
 
     // Magic to make alert pop up and fade away
     if($('input[type="checkbox"]:checked').length >= $sliders.length - 1)    {
         $('<div class="alert alert-danger my-popup-warn" role="alert">' +
-            warning +
-            '</div>')
+            '<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>' +
+            '<span class="sr-only"></span>' + warning + '</div>')
             .insertAfter( $(this).parent())
-            .fadeIn('slow')
             .animate({opacity: 1.0}, 1450)
             .fadeOut('slow', function() { $(this).remove(); })
         ;
@@ -73,6 +90,8 @@ $sliders.on('input', function(event) {
         return;
     }
 
+    this.valueAsNumber = Math.max(MIN_VAL, this.valueAsNumber);
+
     var change = this.valueAsNumber - this.oldval;
     var len = $sliders.length - 1;
 
@@ -84,20 +103,25 @@ $sliders.on('input', function(event) {
 
     console.log(this.name, this.oldval, this.valueAsNumber, change, othersum);
 
+    this.last_proportion = (this.valueAsNumber / this.oldval);
+    adjust_children(this);
+
     $othersliders.each(function() {
         var max = Number(this.max);
         var proportion = (1 - change / othersum);
 
         console.log("..Adjust", this.name, this.valueAsNumber, '-*=>', proportion);
-        newval = this.valueAsNumber * proportion;
 
         // Avoid too small so we don't approach a div-by-zero jump
-        if(Math.abs(newval) < 0.00001)    {
-            newval = 0.00001;
-        }
+        newval = Math.max(MIN_VAL, this.valueAsNumber * proportion);
+
         this.valueAsNumber = newval;
         this.oldval = this.valueAsNumber;
+        this.last_proportion = proportion;
+        adjust_children(this);
     });
+
+
     this.oldval = this.valueAsNumber;
     update_quotadisp();
 });

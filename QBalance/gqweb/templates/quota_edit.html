@@ -41,9 +41,10 @@
 <div class="row grey-row {% if loop.last -%}last-grey{%- endif -%}">
     <span class="col-xs-1"></span>
     <span class="col-xs-3">{{child}}</span>
-    <span class="col-xs-1" id="{{child}}+child_disp_quota">{{child.quota}}</span>
+    <span class="col-xs-1" parent="{{group}}" id="{{child}}+disp_quota">{{child.quota}}</span>
     <span class="col-xs-4"></span>
-    <input type="hidden" name="{{child}}+child_quota" value="{{child.quota}}">
+    <input hidden="hidden" parent="{{group}}" type="number" name="{{child}}"
+           value="{{child.quota}}"/>
 </div>
 {%- endfor %}
 {%- endfor %}
