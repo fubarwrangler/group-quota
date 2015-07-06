@@ -97,3 +97,11 @@ def edit_groups_form():
     db_session.commit()
 
     return redirect(url_for('main_menu'))
+
+
+@app.route('/ezq/<parent>', methods=['POST'])
+def ezedit_chooser(parent):
+
+    flash(request.form, category="stay")
+
+    return redirect(url_for('main_menu'))
