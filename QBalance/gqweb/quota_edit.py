@@ -37,6 +37,7 @@ def set_renames(db, formdata):
         return sorted(treelist, key=lambda x: x.full_name)
 
     root = gen_tree_list(formdata)
+    existing_names = set(x.full_name for x in root)
     clean_root = gen_tree_list(formdata)
 
     # NOTE: Two copies needed for this traversal because we modify the first
@@ -51,6 +52,9 @@ def set_renames(db, formdata):
         if old != new:
             # This will propogate through the tree if the group has children
             group.rename(new)
+
+            if group.full_name in existing_names:
+                raise ValueError("Multiple groups named %s found!" % group.full_name)
 
         # Find db-object that matches old name and rename it to match the
         # possibly modified group-tree
@@ -84,17 +88,21 @@ def edit_groups_form():
 
     root = build_group_tree_db(db_groups)
 
-    set_quota_sums(db_groups, root)
-    set_renames(db_groups, data)
-
-    # Objects in session.dirty are not necessarily modified if the set-attribute
-    # is not different than the current one
-    if any(x for x in db_session.dirty if db_session.is_modified(x)):
-        flash("Everything OK, changes committed!")
+    try:
+        set_quota_sums(db_groups, root)
+        set_renames(db_groups, data)
+    except ValueError as e:
+        flash(str(e), 'error')
+        return redirect(url_for('edit_groups_form'))
     else:
-        flash("No changes were made!", "nochange")
+        # Objects in session.dirty are not necessarily modified if the set-attribute
+        # is not different than the current one
+        if any(x for x in db_session.dirty if db_session.is_modified(x)):
+            flash("Everything OK, changes committed!")
+        else:
+            flash("No changes were made!", "nochange")
 
-    db_session.commit()
+        db_session.commit()
 
     return redirect(url_for('main_menu'))
 
@@ -102,6 +110,21 @@ def edit_groups_form():
 @app.route('/ezq/<parent>', methods=['POST'])
 def ezedit_chooser(parent):
 
-    flash(request.form, category="stay")
+    new_quotas = dict(
+        map(lambda x: (x[0], float(x[1])),                # 3. and convert value to float.
+            filter(lambda x: not x[0].endswith('+take'),  # 2. filter non-quota inputs,
+                   request.form.iteritems())              # 1. For each form key-value pair,
+            )
+        )
+    app.logger.info(new_quotas)
+
+    db_groups = Group.query.all()
+    root = build_group_tree_db(db_groups)
+
+    # Rounding according to this algorithm: http://stackoverflow.com/questions/13483430/
+    root
+
+
+    flash(new_quotas, category="stay")
 
     return redirect(url_for('main_menu'))
