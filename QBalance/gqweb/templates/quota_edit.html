@@ -44,7 +44,7 @@
     <span class="col-xs-3">{{child}}</span>
     <span class="col-xs-1" parent="{{group}}" id="{{child}}+disp_quota">FOO</span>
     <span class="col-xs-4"></span>
-    <input hidden="hidden" class="{{group.uniq_id}}_chld" type="number" name="{{child}}"
+    <input class="{{group.uniq_id}}_chld" type="hidden" name="{{child}}"
            value="{{child.quota}}" proportion="{{child.quota/group.quota}}"/>
 </div>
 {%- endfor %}

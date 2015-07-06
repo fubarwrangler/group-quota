@@ -21,6 +21,8 @@
         <div class="alert alert-success closeme"> {{message}} </div>
     {% elif cat == "nochange" %}
         <div class="alert alert-info closeme"> {{message}} </div>
+    {% elif cat == "stay" %}
+        <div class="alert alert-info"> {{message}} </div>
     {% endif -%}
     {% endfor -%}
   <script>

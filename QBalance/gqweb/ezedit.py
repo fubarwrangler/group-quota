@@ -11,6 +11,6 @@ from flask import request, redirect, url_for, flash
 @app.route('/ezq/<parent>', methods=['POST'])
 def ezedit_chooser(parent):
 
-    flash(request.form)
+    flash(request.form, category="stay")
 
     return redirect(url_for('main_menu'))

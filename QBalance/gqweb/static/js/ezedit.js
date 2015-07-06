@@ -47,6 +47,7 @@ function checked_actions(box)  {
             return !get_checkbox(this.name).checked;
         });
     $unchecked_sliders.attr('max', $unchecked_sliders.sumValues());
+    $unchecked_sliders.redraw();
     update_quotadisp();
 }
 
@@ -57,7 +58,7 @@ function adjust_children(slider) {
         .each(function() {
             var proportion = this.getAttribute('proportion');
             console.log("....child", this.name, proportion, '*', pq);
-            this.valueAsNumber = proportion * pq;
+            this.value = proportion * pq;
         });
 }
 

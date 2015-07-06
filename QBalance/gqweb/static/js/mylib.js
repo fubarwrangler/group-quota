@@ -7,6 +7,17 @@ $.fn.sumValues = function() {
 	return sum;
 };
 
+// Function to force redraw of sliders because of a bug in Chrome, when max
+// property changes no redraw happens, see SO link here: http://goo.gl/WOHlnX
+$.fn.redraw = function(){
+    $(this).each(function(){
+        if (this.value && ! isNaN(parseInt(this.value, 10))) {
+            this.value++;
+            this.value--;
+        }
+    });
+};
+
 // Escape selector string for jquery
 function jq( myid ) {
     return myid.replace( /(:|\.|\[|\]|,|\+)/g, "\\$1" );
