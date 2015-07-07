@@ -41,7 +41,7 @@ function check_checked()    {
 function checked_actions(box)  {
     $(get_slider(box)).toggleClass('noseeme');
     $(get_max_disp(box.name.split('+')[0])).toggleClass('noseeme');
-    $(get_quota_from_checkbox(box)).toggleClass('fnt-bold');
+    $(get_quota_from_checkbox(box)).toggleClass('fnt-bold').next().toggleClass('noseeme');
 
     var $unchecked_sliders = $sliders.filter(function(idx, elem) {
             return !get_checkbox(this.name).checked;
@@ -62,6 +62,48 @@ function adjust_children(slider) {
         });
 }
 
+function validQuotaKey(event) {
+    var c = event.charCode;
+    var k = event.key;
+
+    if (k == "ArrowUp")    {
+        this.value++;
+        $(this).trigger('change');
+    } else if (k == "ArrowDown")    {
+        if(this.value > 0)  {
+            this.value--;
+        }
+        $(this).trigger('change');
+    } else if(k == "Enter") {
+        // event.preventDefault();
+        // event.stopPropagation();
+        // $(this).trigger('change');
+    // Non control (<31) and non-numeric (outside ASCII [48-57] are rejected)
+    } else if (c < 31 || (c >= 48 && c <= 57))    {
+        return;
+    } else {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    }
+}
+
+function manualQuotaEdit(txtbox)    {
+    console.log("ManQ", this, txtbox);
+    var myslider = get_slider(txtbox);
+    var newval = parseInt(txtbox.value);
+
+    if(isNaN(newval))    {
+        newval = 0;
+    } else if(newval > myslider.max)    {
+        newval = myslider.max;
+    }
+
+    txtbox.value = newval;
+    myslider.valueAsNumber = newval;
+    $(myslider).trigger('change');
+}
+
 $('span').on('click', '.editable+span', function () {
     var $jqthis = $(this);
     var txtval = $jqthis.prev().get(0);
@@ -74,7 +116,7 @@ $('span').on('click', '.editable+span', function () {
     });
 
     $input.keypress(validQuotaKey);
-    // $input.change(function() { console.log("change"); });
+    $input.on('change', manualQuotaEdit);
 
     $jqthis.parent().prepend($input);
     $(txtval).remove();
@@ -82,7 +124,7 @@ $('span').on('click', '.editable+span', function () {
 });
 
 $('span').on('blur', 'input.edited', function () {
-    manualQuotaEdit(this);
+    // manualQuotaEdit(this);
 
     var $jqthis = $(this);
     var span = $('<span/>', {
@@ -172,3 +214,9 @@ $sliders.each(function() { this.oldval = this.valueAsNumber; });
 // This syntax is same as $(document).ready(fn);
 $(update_quotadisp);
 $(check_checked);
+$('#f_ezedit').keypress(function(e){
+    if ( e.which == 13 ) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+});
