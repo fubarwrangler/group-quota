@@ -32,3 +32,31 @@ function get_quota_from_checkbox(box) 	{ return get_quota(box.name.split('+', 1)
 function get_children_inputs_from_slider(slider) {
 	return $(document.getElementsByClassName(slider.getAttribute('hash') + '_chld'));
 }
+
+function validQuotaKey(event) {
+	if (event.key == "ArrowUp")	{
+		this.value++;
+		$(this).trigger('change');
+	} else if (event.key == "ArrowDown")	{
+		this.value--;
+		$(this).trigger('change');
+	// Non control (<31) and non-numeric (outside ASCII [48-57] are rejected)
+	} else if (event.charCode < 31 || (event.charCode >= 48 && event.charCode <= 57))	{
+		return;
+	} else {
+		event.preventDefault();
+	}
+}
+
+function manualQuotaEdit(txtbox)	{
+	var myslider = get_slider(txtbox);
+	var newval = parseInt(txtbox.value);
+	var oldval = myslider.valueAsNumber;
+
+	if(newval > myslider.max)	{
+		newval = myslider.max;
+		txtbox.value = newval;
+	}
+	myslider.valueAsNumber = newval;
+	$(myslider).trigger('change');
+}

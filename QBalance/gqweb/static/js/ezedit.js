@@ -62,27 +62,39 @@ function adjust_children(slider) {
         });
 }
 
-$('span').on('click', '.editable', function () {
-    var input = $('<input/>', {
+$('span').on('click', '.editable+span', function () {
+    var $jqthis = $(this);
+    var txtval = $jqthis.prev().get(0);
+    var $input = $('<input/>', {
             // 'type': 'number',   // FIXME: This is broken from a focus-bug in FF
-            'id': this.id,
+            'id': txtval.id,
             'class': 'edited',
-            'onkeypress': 'return event.charCode >= 48 && event.charCode <= 57',
-            'value': $(this).html(),
+            'name': txtval.id + "_TMPEDIT",
+            'value': $(txtval).html(),
     });
-    $(this).parent().append(input);
-    $(this).remove();
-    input.focus();
+
+    $input.keypress(validQuotaKey);
+    // $input.change(function() { console.log("change"); });
+
+    $jqthis.parent().prepend($input);
+    $(txtval).remove();
+    $input.focus();
 });
 
-$('span').on('focusout', 'input.edited', function () {
+$('span').on('blur', 'input.edited', function () {
+    manualQuotaEdit(this);
+
+    var $jqthis = $(this);
     var span = $('<span/>', {
         'id': this.id,
         'class': 'editable',
-        'html': $(this).val(),
+        'html': this.value,
     });
-    $(this).parent().append(span);
-    $(this).remove();
+
+    // $jqthis.val()
+
+    $jqthis.parent().prepend(span);
+    $jqthis.remove();
 });
 
 /******************************************************************************

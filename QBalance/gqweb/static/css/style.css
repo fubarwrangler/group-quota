@@ -74,5 +74,9 @@ div.last-grey {
 }
 
 .edited {
-    width: 80px;
+    width: 60px;
+}
+
+span.editpencil {
+    cursor: pointer;
 }
