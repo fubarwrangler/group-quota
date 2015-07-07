@@ -62,6 +62,29 @@ function adjust_children(slider) {
         });
 }
 
+$('span').on('click', '.editable', function () {
+    var input = $('<input/>', {
+            // 'type': 'number',   // FIXME: This is broken from a focus-bug in FF
+            'id': this.id,
+            'class': 'edited',
+            'onkeypress': 'return event.charCode >= 48 && event.charCode <= 57',
+            'value': $(this).html(),
+    });
+    $(this).parent().append(input);
+    $(this).remove();
+    input.focus();
+});
+
+$('span').on('focusout', 'input.edited', function () {
+    var span = $('<span/>', {
+        'id': this.id,
+        'class': 'editable',
+        'html': $(this).val(),
+    });
+    $(this).parent().append(span);
+    $(this).remove();
+});
+
 /******************************************************************************
  * Event Handlers for form elements
  *****************************************************************************/

@@ -72,3 +72,7 @@ div.last-grey {
 .noseeme    {
     display: none !important;
 }
+
+.edited {
+    width: 80px;
+}
