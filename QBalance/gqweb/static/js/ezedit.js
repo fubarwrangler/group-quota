@@ -85,7 +85,7 @@ $boxes.change(function(event)   {
 });
 
 /* Main algorithm for proportionally changing other sliders */
-$sliders.on('input', function(event) {
+$sliders.on('input drag change', function(event) {
     if(this.oldval === this.valueAsNumber) {
         return;
     }
