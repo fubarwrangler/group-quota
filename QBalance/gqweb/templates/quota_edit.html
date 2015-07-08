@@ -10,12 +10,12 @@
 </ol>                  <!-- End navbar block -->
 {%- endblock -%}
 {%- block body -%}
-<div id="maincont" class="container-fluid maxw">
+<div id="maincont" class="containe-fluid maxw">
 <form class="form-inline" role="form" method="POST" id="f_ezedit">
 <div class="row" id="main_head"> <!-- Start Title bar -->
   <strong class="col-xs-3">Name</strong>
   <strong class="col-xs-1">Fix</strong>
-  <strong class="col-xs-1">Quota</strong>
+  <strong class="col-xs-2">Quota</strong>
   <strong class="col-xs-5">Slider</strong>
 </div>
 <span hidden id="totalQuota">{{groups[0].parent.quota}}</span>
@@ -29,7 +29,7 @@
         <label></label>
       </span>
   </span>
-  <span class="col-xs-1">
+  <span class="col-xs-2">
     <span id="{{group}}+disp_quota" class="editable">NULL</span>
     <span class="glyphicon glyphicon-pencil pull-right editpencil" aria-hidden="true"></span>
   </span>
@@ -44,7 +44,7 @@
 <div class="row grey-row {% if loop.last -%}last-grey{%- endif -%}">
     <span class="col-xs-1"></span>
     <span class="col-xs-3">{{child}}</span>
-    <span class="col-xs-1" parent="{{group}}" id="{{child}}+disp_quota">FOO</span>
+    <span class="col-xs-2" parent="{{group}}" id="{{child}}+disp_quota">FOO</span>
     <span class="col-xs-4"></span>
     <input class="{{group.uniq_id}}_chld" type="hidden" name="{{child}}"
            value="{{child.quota}}" proportion="{{child.quota/group.quota}}"/>
@@ -53,7 +53,7 @@
 {%- endfor %}
 <div class="row">
 <div class="col-xs-4"></div>
-<div class="col-xs-1" style="border-top: solid thin" id="quotasum">XXX</div>
+<div class="col-xs-2" style="border-top: solid thin" id="quotasum">XXX</div>
 <div class="col-xs-5"></div>
 </div>
 <span id="debugsum">XX</span>

@@ -67,7 +67,9 @@ function validQuotaKey(event) {
     var k = event.key;
 
     if (k == "ArrowUp")    {
-        this.value++;
+        if (this.value < parseInt(get_slider(this).max) - 1)  {
+            this.value++;
+        }
         $(this).trigger('change');
     } else if (k == "ArrowDown")    {
         if(this.value > 0)  {
@@ -75,9 +77,9 @@ function validQuotaKey(event) {
         }
         $(this).trigger('change');
     } else if(k == "Enter") {
-        // event.preventDefault();
-        // event.stopPropagation();
-        // $(this).trigger('change');
+        event.preventDefault();
+        event.stopPropagation();
+        $(this).trigger('blur');
     // Non control (<31) and non-numeric (outside ASCII [48-57] are rejected)
     } else if (c < 31 || (c >= 48 && c <= 57))    {
         return;
@@ -103,6 +105,7 @@ function manualQuotaEdit(txtbox)    {
     myslider.valueAsNumber = newval;
     $(myslider).trigger('change');
 }
+function ev_manualQuotaEdit()   { manualQuotaEdit(this); }
 
 $('span').on('click', '.editable+span', function () {
     var $jqthis = $(this);
@@ -116,7 +119,7 @@ $('span').on('click', '.editable+span', function () {
     });
 
     $input.keypress(validQuotaKey);
-    $input.on('change', manualQuotaEdit);
+    $input.on('change', ev_manualQuotaEdit);
 
     $jqthis.parent().prepend($input);
     $(txtval).remove();
@@ -124,13 +127,13 @@ $('span').on('click', '.editable+span', function () {
 });
 
 $('span').on('blur', 'input.edited', function () {
-    // manualQuotaEdit(this);
+    manualQuotaEdit(this);
 
     var $jqthis = $(this);
     var span = $('<span/>', {
         'id': this.id,
         'class': 'editable',
-        'html': this.value,
+        'html': Math.round(this.value),
     });
 
     // $jqthis.val()
@@ -214,9 +217,3 @@ $sliders.each(function() { this.oldval = this.valueAsNumber; });
 // This syntax is same as $(document).ready(fn);
 $(update_quotadisp);
 $(check_checked);
-$('#f_ezedit').keypress(function(e){
-    if ( e.which == 13 ) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-});
