@@ -79,4 +79,14 @@ div.last-grey {
 
 span.editpencil {
     cursor: pointer;
+    margin-left: -20px;
+    margin-top: 3px;
 }
+/* DEBUG
+div {
+    outline: red dashed thin;
+}
+
+span {
+    outline: green dotted thin;
+}*/

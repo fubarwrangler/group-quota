@@ -20,7 +20,7 @@
       <span class="col-xs-3">
         {%- if group.is_leaf %}<span class="glyphicon glyphicon-leaf text-success"></span>{%- endif %}
         <strong>{{group.full_name}}</strong></span>
-      <span class="col-xs-1">{{group.quota}}</span>
+      <span class="col-xs-1 {{'text-muted' if not group.is_leaf else ''}}">{{group.quota}}</span>
       <span class="col-xs-1">{{group.priority|round(1)}}</span>
       <span class="col-xs-1">{{group.weight|round(1)}}</span>
       <span class="col-xs-1">

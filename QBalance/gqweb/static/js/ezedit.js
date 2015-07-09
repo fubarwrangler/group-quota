@@ -39,9 +39,13 @@ function check_checked()    {
 
 /* Actions when checkbox is clicked */
 function checked_actions(box)  {
-    $(get_slider(box)).toggleClass('noseeme');
-    $(get_max_disp(box.name.split('+')[0])).toggleClass('noseeme');
-    $(get_quota_from_checkbox(box)).toggleClass('fnt-bold').next().toggleClass('noseeme');
+    $(box).parent().parent().next()                 // box -> neighbor span
+        .children(':first').toggleClass('fnt-bold') // Bold the quota
+        .toggleClass('editable')                    //  and make un-editable
+        .next().toggleClass('noseeme')              // Blank pencil icon
+        .parent().next().toggleClass('noseeme')     //  and slider-min
+        .next().toggleClass('noseeme')              //  and slider itself
+        .next().toggleClass('noseeme');             //  and max val!
 
     var $unchecked_sliders = $sliders.filter(function(idx, elem) {
             return !get_checkbox(this.name).checked;
@@ -51,6 +55,7 @@ function checked_actions(box)  {
     update_quotadisp();
 }
 
+/* Set children quotas according to the proportion constant */
 function adjust_children(slider) {
     var pq = slider.valueAsNumber;  // parent quota
 
@@ -62,21 +67,22 @@ function adjust_children(slider) {
         });
 }
 
+/* Is keypress on dynamic quota input valid? A special key? */
 function validQuotaKey(event) {
-    var c = event.charCode;
+    var c = (event.charCode ? event.charCode : (event.keyCode ? event.keyCode : 0));
     var k = event.key;
 
-    if (k == "ArrowUp")    {
+    if (k == "ArrowUp" || c == 38)    {
         if (this.value < parseInt(get_slider(this).max) - 1)  {
             this.value++;
         }
         $(this).trigger('change');
-    } else if (k == "ArrowDown")    {
+    } else if (k == "ArrowDown" || c == 40)    {
         if(this.value > 0)  {
             this.value--;
         }
         $(this).trigger('change');
-    } else if(k == "Enter") {
+    } else if(k == "Enter" || c == 13) {
         event.preventDefault();
         event.stopPropagation();
         $(this).trigger('blur');
@@ -90,8 +96,8 @@ function validQuotaKey(event) {
     }
 }
 
+/* Event handler for manual quota edit with dynamic box */
 function manualQuotaEdit(txtbox)    {
-    console.log("ManQ", this, txtbox);
     var myslider = get_slider(txtbox);
     var newval = parseInt(txtbox.value);
 
@@ -105,11 +111,24 @@ function manualQuotaEdit(txtbox)    {
     myslider.valueAsNumber = newval;
     $(myslider).trigger('change');
 }
+
+/* Wrapper for event handler */
 function ev_manualQuotaEdit()   { manualQuotaEdit(this); }
 
+/******************************************************************************
+ * Event Handlers for form elements
+ *****************************************************************************/
+
+/* Dynamic input (clicked number itself icon) */
+$('span').on('click', '.editable', function() { replace_input(this); });
+/* Dynamic input (clicked on pencil icon) */
 $('span').on('click', '.editable+span', function () {
-    var $jqthis = $(this);
-    var txtval = $jqthis.prev().get(0);
+    replace_input($(this).prev().get(0));
+});
+
+/* Replace a span @txtval with the input box on click */
+function replace_input(txtval)  {
+    console.log('replace called', txtval);
     var $input = $('<input/>', {
             // 'type': 'number',   // FIXME: This is broken from a focus-bug in FF
             'id': txtval.id,
@@ -118,13 +137,13 @@ $('span').on('click', '.editable+span', function () {
             'value': $(txtval).html(),
     });
 
-    $input.keypress(validQuotaKey);
+    $input.keydown(validQuotaKey);
     $input.on('change', ev_manualQuotaEdit);
 
-    $jqthis.parent().prepend($input);
+    $(txtval).parent().prepend($input);
     $(txtval).remove();
     $input.focus();
-});
+}
 
 $('span').on('blur', 'input.edited', function () {
     manualQuotaEdit(this);
@@ -136,15 +155,10 @@ $('span').on('blur', 'input.edited', function () {
         'html': Math.round(this.value),
     });
 
-    // $jqthis.val()
-
     $jqthis.parent().prepend(span);
     $jqthis.remove();
 });
 
-/******************************************************************************
- * Event Handlers for form elements
- *****************************************************************************/
 /* Handle checked box or warn on too many checkboxes */
 $boxes.change(function(event)   {
     var warning = '&nbsp;Can\'t leave fewer than 2 free sliders';
