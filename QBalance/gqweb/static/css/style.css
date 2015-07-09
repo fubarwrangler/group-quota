@@ -77,6 +77,10 @@ div.last-grey {
     width: 60px;
 }
 
+.editable {
+    cursor: pointer;
+}
+
 span.editpencil {
     cursor: pointer;
     margin-left: -20px;

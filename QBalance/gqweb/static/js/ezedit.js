@@ -115,19 +115,8 @@ function manualQuotaEdit(txtbox)    {
 /* Wrapper for event handler */
 function ev_manualQuotaEdit()   { manualQuotaEdit(this); }
 
-/******************************************************************************
- * Event Handlers for form elements
- *****************************************************************************/
-
-/* Dynamic input (clicked number itself icon) */
-$('span').on('click', '.editable', function() { replace_input(this); });
-/* Dynamic input (clicked on pencil icon) */
-$('span').on('click', '.editable+span', function () {
-    replace_input($(this).prev().get(0));
-});
-
 /* Replace a span @txtval with the input box on click */
-function replace_input(txtval)  {
+function replace_with_input(txtval)  {
     console.log('replace called', txtval);
     var $input = $('<input/>', {
             // 'type': 'number',   // FIXME: This is broken from a focus-bug in FF
@@ -145,19 +134,36 @@ function replace_input(txtval)  {
     $input.focus();
 }
 
-$('span').on('blur', 'input.edited', function () {
-    manualQuotaEdit(this);
+/* Replace input box with equivelant input span */
+function recreate_input_span(ev)  {
+    var input = ev.target;
 
-    var $jqthis = $(this);
+    manualQuotaEdit(input);
+
+    var $jqthis = $(input);
     var span = $('<span/>', {
-        'id': this.id,
+        'id': input.id,
         'class': 'editable',
-        'html': Math.round(this.value),
+        'html': Math.round(input.value),
     });
 
     $jqthis.parent().prepend(span);
     $jqthis.remove();
+}
+
+/******************************************************************************
+ * Event Handlers for form elements
+ *****************************************************************************/
+
+/* Dynamic input (clicked number itself icon) */
+$('div.row span').on('click', '.editable', function() { replace_with_input(this); });
+/* Dynamic input (clicked on pencil icon) */
+$('span').on('click', '.editable+span', function () {
+    replace_with_input($(this).prev().get(0));
 });
+
+/* Click off the dynamic textbox */
+$('span').on('blur', 'input.edited', recreate_input_span);
 
 /* Handle checked box or warn on too many checkboxes */
 $boxes.change(function(event)   {
