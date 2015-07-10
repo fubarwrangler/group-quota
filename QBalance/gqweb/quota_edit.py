@@ -105,26 +105,3 @@ def edit_groups_form():
         db_session.commit()
 
     return redirect(url_for('main_menu'))
-
-
-@app.route('/ezq/<parent>', methods=['POST'])
-def ezedit_chooser(parent):
-
-    new_quotas = dict(
-        map(lambda x: (x[0], float(x[1])),                # 3. and convert value to float.
-            filter(lambda x: not x[0].endswith('+take'),  # 2. filter non-quota inputs,
-                   request.form.iteritems())              # 1. For each form key-value pair,
-            )
-        )
-    app.logger.info(new_quotas)
-
-    db_groups = Group.query.all()
-    root = build_group_tree_db(db_groups)
-
-    # Rounding according to this algorithm: http://stackoverflow.com/questions/13483430/
-    root
-
-
-    flash(new_quotas, category="stay")
-
-    return redirect(url_for('main_menu'))

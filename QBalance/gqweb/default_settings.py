@@ -1,4 +1,4 @@
-DATABASE_URI = 'mysql:///group_quotas'
+DATABASE_URI = 'sqlite:////home/willsk/this.db'
 TABLE_NAME = 'atlas_group_quotas'
 DEBUG = True
 
