@@ -7,11 +7,10 @@
 from itertools import groupby
 from . import app
 
-from flask import request, render_template, redirect, url_for, flash
-from database import db_session
-from models import (Group, build_group_tree_db, validate_form_types,
-                    build_group_tree_formdata, set_quota_sums)
-from math import floor
+from flask import request, redirect, url_for, flash
+# from database import db_session
+from models import Group, build_group_tree_db
+from math import floor, ceil
 
 
 @app.route('/ezq/<parent>', methods=['POST'])
@@ -33,31 +32,28 @@ def ezedit_chooser(parent):
     for level, data in groupby(sorted(new_quotas, key=dotcount), dotcount):
         levels.append([x for x in data])
 
-
-    seen = set()
+    child_of = lambda c, p: c.startswith(p)
 
     # quota of parent of any member of "highest" level (no indexing on set)
     for level, groups in enumerate(levels):
         # level = len(levels) - idx
-        total_q = root.find(levels[level][0]).parent.quota
+        total_q = root.find(groups[0]).parent.quota
         app.logger.info("lvl %d: Groups %s -> Total q = %s", level, groups, total_q)
 
         # XXX: FIXME: NEED TO FIX GROUPING HERE
-        # largest_remainder([new_quotas[x] for x in groups])
+        grpgrp = list()
+        if level > 0:
+            for parent in levels[level - 1]:
+                grpgrp.append([x for x in groups if child_of(x, parent)])
+        else:
+            grpgrp.append(groups)
+        grpgrp = filter(bool, grpgrp)
 
-
-    # for group in (x for x in root if x.full_name in new_quotas):
-    #     app.logger.info("Set group %s quota %f -> %f", group.full_name, group.quota, new_quotas[group.full_name])
-    #     group.quota = new_quotas[group.full_name]
-    #     group.qchange = True
-    #
-    # seen = set()
-    # for group in filter(lambda x: hasattr(x, 'qchange') and x not in seen, root):
-    #     app.logger.debug('%s?????', group)
-    #     siblings = [x for x in group.siblings() if x not in seen]
-    #     app.logger.info("sib (%f): %s", group.parent.quota, siblings)
-    #     seen |= set(siblings)
-
+        app.logger.info("Child groupings: %s", grpgrp)
+        for childgroups in grpgrp:
+            adj_quotas = largest_remainder([new_quotas[x] for x in childgroups])
+            for i, x in enumerate(childgroups):
+                root.find(childgroups[i]).quota = adj_quotas[i]
 
     flash(new_quotas, category="stay")
 
@@ -65,24 +61,28 @@ def ezedit_chooser(parent):
 
 
 # Rounding according to this algorithm: http://stackoverflow.com/questions/13483430/
-def largest_remainder(data):
+def largest_remainder(data, total):
     ifloor = lambda x: int(floor(x))
 
     new_data = map(ifloor, data)
-    total = sum(data)
+    # total = sum(data)
     partial = sum(new_data)
 
+    # How many extra integers to give out
     extra = total - partial
 
     app.logger.debug("%s : %s : %f : %f", data, new_data, total, partial)
 
-    for idx, n in enumerate(sorted(data, key=lambda x: x - floor(x))):
-        extra -= 1
-        app.logger.debug("Give +1 to %f", new_data[idx])
-        new_data[idx] += 1
-        if extra <= 0.0:
-            break
+    # In largest decimal order
+    decimal_order = map(ifloor, sorted(data, key=lambda x: floor(x) - x))
+    app.logger.debug('dorder: %s', decimal_order)
 
-    app.logger.info('%s == %s', sum(new_data), total)
+    n = 0
+    while extra > 0.0:
+        new_data[new_data.index(decimal_order[n])] += 1
+        extra -= 1
+        n += 1
+
+    app.logger.info('%s == %s: %s', sum(new_data), total, new_data)
 
     return new_data
