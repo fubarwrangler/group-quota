@@ -59,8 +59,38 @@
   </button>
 {%- else %}
 <form class="form-inline" role="form" method="POST">
-<h3>Add Groups</h3>
 <div class="container-fluid">
+<h3>Remove Groups</h3>
+<div class="row" id="main_head"> <!-- Row of headers -->
+  <strong class="col-xs-1">Delete?</strong>
+  <strong class="col-xs-3">Name</strong>
+  <strong class="col-xs-1">Quota</strong>
+  <strong class="col-xs-1">Prio</strong>
+  <strong class="col-xs-1">Weight</strong>
+  <strong class="col-xs-1">Threshold</strong>
+  <strong class="col-xs-1">Surplus</strong>
+</div>
+{%- for group in groups %}
+<div class="row main-row"> <!-- Row for group {{group.full_name}} -->
+  <span class="col-xs-1">
+    <span class="checkbox checkbox-danger">
+      <input type="checkbox" name="rm_me" value="{{group.full_name}}"/>
+      <label></label>
+    </span>
+  </span>
+  <span class="col-xs-3"><strong>{{ group.full_name }}</strong></span>
+  <span class="col-xs-1">{{ group.quota }}</span>
+  <span class="col-xs-1">{{ group.priority|round(1) }}</span>
+  <span class="col-xs-1">{{ group.weight|round(1) }}</span>
+  <span class="col-xs-1">{{ group.surplus_threshold }}</span>
+  <span class="col-xs-1">
+    <span class="glyphicon {{ 'glyphicon-ok text-success' if group.accept_surplus else 'glyphicon-remove text-danger' }}" aria-hidden="true">
+    </span>
+  </span>
+</div> <!-- End {{group.full_name}} -->
+{%- endfor %}
+
+<h3 style="margin-top: 40px;">Add Groups</h3>
   <div class="row">
     <div class="col-xs-3">
       <label>Group Name</label>
@@ -90,41 +120,6 @@
   <div class="row">
     <button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
     <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
-  </div>
-</div>
-
-<h3 style="margin-top: 40px;">Remove Groups</h3>
-<div class="container-fluid">
-<div class="row" id="main_head"> <!-- Row of headers -->
-  <strong class="col-xs-1">Delete?</strong>
-  <strong class="col-xs-3">Name</strong>
-  <strong class="col-xs-1">Quota</strong>
-  <strong class="col-xs-1">Prio</strong>
-  <strong class="col-xs-1">Weight</strong>
-  <strong class="col-xs-1">Threshold</strong>
-  <strong class="col-xs-1">Surplus</strong>
-</div>
-{%- for group in groups %}
-<div class="row main-row"> <!-- Row for group {{group.full_name}} -->
-  <span class="col-xs-1">
-    <span class="checkbox checkbox-danger">
-      <input type="checkbox" name="rm_me" value="{{group.full_name}}"/>
-      <label></label>
-    </span>
-  </span>
-  <span class="col-xs-3"><strong>{{ group.full_name }}</strong></span>
-  <span class="col-xs-1">{{ group.quota }}</span>
-  <span class="col-xs-1">{{ group.priority|round(1) }}</span>
-  <span class="col-xs-1">{{ group.weight|round(1) }}</span>
-  <span class="col-xs-1">{{ group.surplus_threshold }}</span>
-  <span class="col-xs-1">
-    <span class="glyphicon {{ 'glyphicon-ok text-success' if group.accept_surplus else 'glyphicon-remove text-danger' }}" aria-hidden="true">
-    </span>
-  </span>
-</div> <!-- End {{group.full_name}} -->
-{%- endfor %}
-  <div class="row">
-    <button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
     <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Groups</button>
   </div>
 </div> <!-- End add-form fluid-container -->

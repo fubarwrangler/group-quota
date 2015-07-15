@@ -85,7 +85,7 @@ def ezedit_chooser(parent):
             app.logger.info("!! SET %s q=%d", g, g.quota)
 
     if validate_quotas(root):
-        flash(new_quotas, category="stay")
+        flash("Update quotas under: %s" % new_root)
         db_session.commit()
     else:
         db_session.rollback()
