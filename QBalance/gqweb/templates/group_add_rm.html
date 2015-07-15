@@ -8,49 +8,13 @@
 {%- endblock %}
 {%- block body %}
 <div class="container maxw"> <!-- Main page -->
-{%- if typeerrors or gen_err %}
-  <h3>Error Adding Group</h3>
-  {%- if gen_err %}
-  <ul class="alert alert-danger list-unstyled">
-    <li>
-      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-        <span class="sr-only">Error:</span>
-        {{ gen_err|safe }}
-    </li>
-  </ul>
-  {%- endif %}
-  {% for group, field, typemsg in typeerrors -%}
-  <ul class="alert alert-danger list-unstyled">
-    <li>
-      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-      <span class="sr-only">Error:</span>
-      {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
-    </li>
-  </ul>
-  {% endfor -%}
-  <button class="btn btn-default btn-sm" onclick="window.history.back();">
-    Go Back and Fix!
-  </button>
+{%- if errors %}
+{{ macros.showerror("Error Adding Group", errors)}}
+{%- elif error %}
+{{ macros.showerror("Error Adding Group", [error])}}
 {%- elif rmerrors %}
-  <h3>Error Removing Group(s)</h3>
-  {% for group, strands in rmerrors -%}
-  <ul class="alert alert-danger list-unstyled"> <!-- Errors from removing {{ group }} -->
-    <li>
-      <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-      <span class="sr-only">Error:</span>
-        Cannot remove <b>{{ group }}</b> because it would strand the following groups with no parent:
-      <ul>
-      {%- for name in strands %}
-        <li>{{name}}</li>
-      {%- endfor %}
-      </ul>
-    </li>
-  </ul> <!-- End for {{ group }} -->
-  {% endfor -%}
-  <button class="btn btn-default btn-sm" onclick="window.history.back();">
-    Go Back and Fix!
-  </button>
-{%- else %}
+{{ macros.rmerror(rmerrors) }}
+{%- else -%}
 <form class="form-inline" role="form" method="POST">
 <div class="container-fluid">
 <h3>Remove Groups</h3>

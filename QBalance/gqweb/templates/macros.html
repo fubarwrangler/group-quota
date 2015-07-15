@@ -6,6 +6,39 @@
   {%- else -%}
   <li class="active">{{name}}</li>
   {%- endif -%}
-{%- endfor -%}
+{% endfor %}
 </ol>
+{%- endmacro %}
+
+{% macro showerror(title="Error", errors) %}
+  <h3>{{ title }}</h3>
+    {% for errormsg in errors -%}
+    <ul class="alert alert-danger list-unstyled">
+      <li>
+        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+        <span class="sr-only">Error:</span>
+        {{ errormsg|safe }}
+      </li>
+    </ul>
+    {% endfor -%}
+  <button class="btn btn-default" onclick="window.history.back();">Go Back and Fix!</button>
+{%- endmacro %}
+
+{% macro rmerror(rmerrors) %}
+<h3>Error Removing Group(s)</h3>
+{% for group, strands in rmerrors -%}
+<ul class="alert alert-danger list-unstyled"> <!-- Errors from removing {{ group }} -->
+  <li>
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Error:</span>
+      Cannot remove <b>{{ group }}</b> because it would strand the following groups with no parent:
+    <ul>
+    {%- for name in strands %}
+      <li>{{name}}</li>
+    {%- endfor %}
+    </ul>
+  </li>
+</ul> <!-- End for {{ group }} -->
+{% endfor -%}
+<button class="btn btn-default btn-sm" onclick="window.history.back();">Go Back and Fix!</button>
 {%- endmacro %}

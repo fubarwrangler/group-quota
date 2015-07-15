@@ -53,7 +53,7 @@ def add_groups_post():
         to_remove = set(request.form.getlist('rm_me'))
         if not to_remove:
             return render_template('group_add_rm.html',
-                                   gen_err="Nothing selected to be removed")
+                                   error="Nothing selected to be removed")
 
         bad_removes = remove_groups(to_remove, root)
 
@@ -71,13 +71,13 @@ def add_groups_post():
                        if v and k.startswith('new+')])
         if 'group_name' not in newgrp:
             return render_template('group_add_rm.html',
-                                   gen_err="Nothing to add, no group-name defined!")
+                                   error="Nothing to add, no group-name defined!")
         group, errors = validate_form_types(newgrp)
         if errors:
-            return render_template('group_add_rm.html', typeerrors=errors)
-        errors = new_group_fits(group, root)
-        if errors:
-            return render_template('group_add_rm.html', gen_err=errors)
+            return render_template('group_add_rm.html', errors=errors)
+        error = new_group_fits(group, root)
+        if error:
+            return render_template('group_add_rm.html', error=error)
 
         new_in_db = Group(**group)
         db_session.add(new_in_db)

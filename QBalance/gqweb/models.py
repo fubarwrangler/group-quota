@@ -126,6 +126,8 @@ def validate_form_types(data):
             if not valid(data[k]):
                 raise ValueError
         except ValueError:
-            errors.append((data['group_name'], k, msg))
+            estr = "<u>%s</u>, <i>%s</i> needs to be a %s" % \
+                   (data['group_name'], k, msg)
+            errors.append(estr)
 
     return data, errors

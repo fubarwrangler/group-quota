@@ -9,17 +9,7 @@
 {%- block body %}
 <div class="container maxw">
 {% if errors -%}
-  <h3>Errors in Quota From</h3>
-    {% for group, field, typemsg in errors -%}
-    <ul class="alert alert-danger list-unstyled">
-      <li>
-        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-        <span class="sr-only">Error:</span>
-        {{ "<u>%s</u>, <i>%s</i> needs to be a %s"|format(group, field, typemsg)|safe }}
-      </li>
-    </ul>
-    {% endfor -%}
-<button class="btn btn-default" onclick="window.history.back();">Go Back and Fix!</button>
+{{ macros.showerror("Errors in Quota Form", errors)}}
 {% else -%}
 <h3>Edit Group Parameters</h3>
 <form class="form-inline" role="form" method="POST">
