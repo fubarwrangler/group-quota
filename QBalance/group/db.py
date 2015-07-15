@@ -46,12 +46,12 @@ def build_quota_groups_db(grpCLS=QuotaGroup):
     return _build_groups_db(grpCLS, fields)
 
 
-def _build_groups_db(grp_CLS, fields, group_builder=_get_groups):
+def _build_groups_db(grp_CLS, fields, group_builder=_get_groups, root='<root>'):
     """ Build group tree from database, instantiating the class passed in
         @grp_CLS and querying the db-fields in @fields
     """
 
-    root_group = grp_CLS('<root>')
+    root_group = grp_CLS(root)
 
     for data in group_builder(fields):
 

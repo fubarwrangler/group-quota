@@ -3,6 +3,7 @@
 # *****************************************************************************
 
 import logging
+from collections import deque
 
 log = logging.getLogger()
 
@@ -45,6 +46,18 @@ class AbstractGroup(object):
             return self.parent.get_children()
         else:
             return {}
+
+    def breadth_first(self):
+        """ Walk through tree breadth-first (all nodes on a level before descent) """
+        q = deque()
+        q.append(self)
+        while q:
+            result = q.popleft()
+            yield result
+
+            if not result.is_leaf:
+                for c in result.get_children():
+                    q.append(c)
 
     @property
     def full_name(self):
