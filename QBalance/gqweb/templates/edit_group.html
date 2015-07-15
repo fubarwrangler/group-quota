@@ -1,14 +1,10 @@
 {%- extends "layout.html" %}
 {%- block navbar %}
-<ol class="breadcrumb">
-  <li><a href="/">Home</a></li>
 {%- if errors %}
-  <li><a href="/edit">Edit Groups</a></li>
-  <li class="active">Error</li>
+{{ macros.navbar(('Home', '/'), ('Edit Groups', '/edit'), ('Error', '')) }}
 {%- else %}
-  <li class="active">Edit Groups</li>
+{{ macros.navbar(('Home', '/'), ('Edit Groups', '')) }}
 {%- endif %}
-</ol>
 {%- endblock %}
 {%- block body %}
 <div class="container maxw">

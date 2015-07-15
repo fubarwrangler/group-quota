@@ -13,6 +13,7 @@
   <title>Group Quota Editor</title>
 </head>
 <body>
+{% import 'macros.html' as macros %}
 {%- block navbar %}{%- endblock %}
 {%- with messages = get_flashed_messages(True) %}
   {% if messages -%}

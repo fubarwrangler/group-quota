@@ -1,0 +1,11 @@
+{% macro navbar() %}
+<ol class="breadcrumb">
+{%- for name, link in varargs -%}
+  {% if not loop.last %}
+  <li><a href="{{link}}">{{name}}</a></li>
+  {%- else -%}
+  <li class="active">{{name}}</li>
+  {%- endif -%}
+{%- endfor -%}
+</ol>
+{%- endmacro %}

@@ -3,11 +3,7 @@
   <script src="{{ url_for('static', filename='js/mylib.js')}}"></script>
 {%- endblock %}
 {%- block navbar %}
-<ol class="breadcrumb">
-  <li><a href="/">Home</a></li>
-  <li><a href="/ezq">Quota-EZ Chooser</a></li>
-  <li class="active">EZ Edit</li>
-</ol>                  <!-- End navbar block -->
+{{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', '/ezq'), ('EZ Edit', 'None')) }}
 {%- endblock -%}
 {%- block body -%}
 <div id="maincont" class="container-fluid maxw">

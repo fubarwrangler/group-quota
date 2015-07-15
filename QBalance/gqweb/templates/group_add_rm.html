@@ -1,16 +1,9 @@
 {%- extends "layout.html" %}
 {%- block navbar %}
 {%- if typeerrors or gen_err or rmerrors %}
-<ol class="breadcrumb">
-  <li><a href="/">Home</a></li>
-  <li><a href="/addrm">Modify Groups</a></li>
-  <li class="active">Error</li>
-</ol>
+{{ macros.navbar(('Home', '/'), ('Modify Groups', '/addrm'), ('Error', None)) }}
 {%- else %}
-<ol class="breadcrumb">
-  <li><a href="/">Home</a></li>
-  <li class="active">Modify Groups</li>
-</ol>
+{{ macros.navbar(('Home', '/'), ('Modify Groups', None)) }}
 {%- endif %}
 {%- endblock %}
 {%- block body %}

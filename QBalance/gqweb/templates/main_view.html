@@ -1,8 +1,6 @@
 {% extends "layout.html" %}
 {% block navbar %}
-<ol class="breadcrumb">
-  <li class="active">Home</li>
-</ol>
+{{ macros.navbar(('Home', '/')) }}
 {% endblock %}
 {% block body %}
 <div class="container-fluid">
