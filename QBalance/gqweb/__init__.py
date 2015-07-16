@@ -51,8 +51,7 @@ def add_groups():
 @app.route('/ezq')
 def ez_quota_chooser():
     root = build_group_tree_db(Group.query.all())
-    return render_template('quota_group_chooser.html',
-                           groupgroups=reversed(list(root.group_order())))
+    return render_template('quota_group_chooser.html', groups=namesort(root))
 
 
 @app.route('/ezq/<parent>')

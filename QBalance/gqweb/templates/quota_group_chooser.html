@@ -4,29 +4,23 @@
 {%- endblock -%}
 {%- block body -%}
 <div class="container-fluid maxw">
-{%- for groupgroup in groupgroups if groupgroup|length > 1 %}
-{%- set parent = groupgroup[0].parent %}
-<div class="row" id="main_head"> <!-- Start Title bar -->
-  <strong class="col-xs-5">Sibling Group for {{parent}}</strong>
-</div>
-<div class="row">
-  <span class="col-sm-5">
-  <ul class="list-unstyled">
-    <li>{{parent}}</li>
-    <ul>
-{%- for group in groupgroup %}
-      <li>{{group}}</li>
+  <div class="row">
+  <a href="/ezq/<root>">{{"Tree Root"}}</a>
+  <span class="small text-muted">(Edit {{ groups[0].parent.get_children()|join(', ') }} and their children)</span>
+  </div>
+{%- for group in groups %}
+  <div class="row">
+  {{ "&nbsp;"|safe * (4 + group.full_name.count('.') * 4)}}
+{%- if not group.is_leaf and group.children|length > 1 %}
+  <a href="/ezq/{{group}}">{{group}}</a>
+  <span class="small text-muted">(Edit {{ group.get_children()|join(', ') }} and their children)</span>
+{%- else %}
+  {{group}}
+{%- endif %}
+  </div>
 {%- endfor %}
-    </ul>
-  </ul>
-  </span>
-</div>
-<div class="row spacer-below">
-  <span class="col-sm-5">
-    <a href="/ezq/{{parent}}" class="btn btn-primary btn-xs" role="button">Edit</a>
-  </span>
-</div>
-{%- endfor %}
-<button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
+  <div class="row">
+    <button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
+  </div>
 </div>
 {%- endblock %}
