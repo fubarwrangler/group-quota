@@ -48,8 +48,8 @@ def validate_quotas(root):
     return True
 
 
-@app.route('/ezq/<parent>', methods=['POST'])
-def ezedit_chooser(parent):
+@app.route('/ezq/<groupparent>', methods=['POST'])
+def ezedit_chooser(groupparent):
 
     new_quotas = dict(
         map(lambda x: (x[0], float(x[1])),                # 3. and convert value to float.
@@ -90,4 +90,4 @@ def ezedit_chooser(parent):
     else:
         db_session.rollback()
 
-    return redirect(url_for('ez_quota_chooser'))
+    return redirect(url_for('ezedit_chooser', groupparent=groupparent))

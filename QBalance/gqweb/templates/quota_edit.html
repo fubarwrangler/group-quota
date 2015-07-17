@@ -19,7 +19,7 @@
 <!-- Start of {{group}} row -->
 <div class="row">
   <span class="col-xs-3">
-  {%- if not group.is_leaf %}
+  {%- if group.children|length > 1 %}
     <a href="/ezq/{{group}}">{{group}}</a>
   {%- else %}
     {{group}}

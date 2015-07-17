@@ -60,8 +60,8 @@ def ez_quota_edit(parent):
      # NOTE: Could narrow the db-query down some but this is easiest for now
     group = build_group_tree_db(Group.query.all()).find(parent)
 
-    if not group or not group.children:
-        flash('Group %s not an intermediate group!' % parent, category="error")
+    if not group or not group.children or len(group.children) <= 1:
+        flash('Group %s not an intermediate group with >1 children!' % parent, category="error")
         return redirect(url_for('main_menu'))
 
     subtree = group.children.values()
