@@ -94,10 +94,10 @@ body>div {
 }
 
 /* DEBUG
-div {
-    outline: red dashed thin;
+div.treediv {
+    outline: blue dashed thin;
 }
-
+/*
 span {
     outline: green dotted thin;
 }*/

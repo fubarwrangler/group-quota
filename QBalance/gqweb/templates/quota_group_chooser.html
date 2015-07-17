@@ -1,26 +1,46 @@
 {%- extends "layout.html" %}
+{%- block extraheaders %}
+  <link href="{{ url_for('static', filename='css/treeview.css')}}" rel="stylesheet">
+{%- endblock %}
 {%- block navbar %}
 {{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', None)) }}
 {%- endblock -%}
 {%- block body -%}
 <div class="container-fluid maxw">
-  <div class="row">
-  <a href="/ezq/<root>">{{"Tree Root"}}</a>
-  <span class="small text-muted">(Edit {{ groups[0].parent.get_children()|join(', ') }} and their children)</span>
-  </div>
+  <div class="treediv row"><!--- Down one lvl -->
+  <div class="parent"><a href="/ezq/%3croot%3e">{{"Tree Root"}}</a></div>
 {%- for group in groups %}
-  <div class="row">
-  {{ "&nbsp;"|safe * (4 + group.full_name.count('.') * 4)}}
-{%- if not group.is_leaf and group.children|length > 1 %}
-  <a href="/ezq/{{group}}">{{group}}</a>
-  <span class="small text-muted">(Edit {{ group.get_children()|join(', ') }} and their children)</span>
-{%- else %}
-  {{group}}
-{%- endif %}
+  {%- set prev_level = level if not loop.first else -1 %}
+  {%- set level = group.full_name.count('.') %}
+  {%- if level < prev_level %}
+    {%- for i in range(prev_level - level) %}
+  </div> <!--- UP one lvl -->
+    {%- endfor %}
+  {%- elif level > prev_level %}
+  <div class="treediv"> <!--- Down one lvl -->
+  {%- endif %}
+  {%- if not group.is_leaf and group.children|length > 1 %}
+  <div class="parent">
+    <a href="/ezq/{{group}}">{{group}}</a>
+  {%- else %}
+  <div class="nonparent">
+    <i>{{group}}</i>
+  {%- endif %}
+    <span class="quotaeztree text-muted">{{group.quota}}</span>
   </div>
 {%- endfor %}
-  <div class="row">
+</div><!--- UP one lvl -->
+</div><!--- UP one lvl -->
+  <div style="margin-top: 12px;">
     <button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
   </div>
-</div>
+  <div id="colorkey" class="noseeme row" style="margin-left: 10px;">
+    <div>Color Key:</div>
+    <div class="col-xs-1 pallet text-center editparent">Selected Group</div>
+    <div class="col-xs-1 pallet text-center willedit">Directly Edited</div>
+    <div class="col-xs-1 pallet text-center childedit">Child to Edit</div>
+  </div>
+</div> <!-- End Main Container -->
+
+<script src="{{ url_for('static', filename='js/treeview.js')}}"></script>
 {%- endblock %}

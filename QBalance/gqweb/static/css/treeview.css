@@ -1,0 +1,45 @@
+div.container-fluid>div.treediv {
+    padding-left: 0px;
+    border-left: none;
+}
+
+div.treediv {
+    margin-left: 0px;
+    padding-left: 24px;
+}
+
+div.treediv.sel {
+    margin-left: 0px;
+    padding-left: 24px;
+    border-left: red dotted thin;
+}
+
+div.parent, div.nonparent {
+    display: table;
+}
+
+div.parent {
+    margin-top: 8px;
+}
+
+.quotaeztree {
+    float: right;
+}
+
+div.childedit {
+    background-color: #feebd4;
+}
+div.willedit {
+    background-color: wheat;
+}
+div.editparent {
+    border: blue dotted thin;
+}
+
+div.pallet {
+    width: 90px;
+    height: 50px;
+    margin-left: 20px;
+    border-radius: 6px;
+    padding-top: 4px;
+}
