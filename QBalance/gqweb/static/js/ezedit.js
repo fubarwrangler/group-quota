@@ -23,8 +23,6 @@ function update_quotadisp() {
             get_quota(this.name).innerHTML = Math.round(this.value);
         });
     });
-
-    $('#debugsum').text($sliders.sumValues());
     $('#quotasum').text(Math.round($sliders.sumValues()));
 }
 
@@ -71,6 +69,7 @@ function adjust_children(slider) {
 function validQuotaKey(event) {
     var c = (event.charCode ? event.charCode : (event.keyCode ? event.keyCode : 0));
     var k = event.key;
+    console.log(event);
 
     if (k == "ArrowUp" || c == 38)    {
         if (this.value < parseInt(get_slider(this).max) - 1)  {
@@ -86,8 +85,8 @@ function validQuotaKey(event) {
         event.preventDefault();
         event.stopPropagation();
         $(this).trigger('blur');
-    // Non control (<31, 37-40) and non-numeric (outside ASCII [48-57] are rejected)
-    } else if (c < 31 || (c >= 48 && c <= 57) || (c >= 37 && c <= 40) || (c >= 96 && c <= 104))    {
+    // Non control (<31, 35-40) and non-numeric (outside ASCII [48-57] are rejected)
+    } else if (c < 31 || (c >= 48 && c <= 57) || (c >= 35 && c <= 40) || (c >= 96 && c <= 104))    {
         return;
     } else {
         event.preventDefault();
