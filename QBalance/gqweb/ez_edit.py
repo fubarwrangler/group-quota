@@ -90,4 +90,4 @@ def ezedit_chooser(parent):
     else:
         db_session.rollback()
 
-    return redirect(url_for('main_menu'))
+    return redirect(url_for('ez_quota_chooser'))
