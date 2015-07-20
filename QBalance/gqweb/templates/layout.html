@@ -3,13 +3,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  {{ macros.css('bootstrap-switch.min.css') }}
-  {{ macros.css('bootstrap.min.css') }}
-  {{ macros.css('awesome-bootstrap-checkbox.css') }}
-  {{ macros.css('style.css') }}
-  {{ macros.js('jquery.min.js') }}
-  {{ macros.js('bootstrap.min.js') }}
-  {{ macros.js('bootstrap-switch.min.js') }}
+  {{ macros.css('bootstrap-3.3.5.min.css') }}
+  {{ macros.css('bootstrap-switch-3.3.2.min.css') }}
+  {{ macros.js ('jquery-2.1.4.min.js') }}
+  {{ macros.js ('bootstrap-3.3.5.min.js') }}
+  {{ macros.js ('bootstrap-switch-3.3.2.min.js') }}
+
+  {{ macros.css('custom/awesome-bootstrap-checkbox.css') }}
+  {{ macros.css('custom/style.css') }}
 
   {%- block extraheaders %}{% endblock %}
   <title>Group Quota Editor</title>
@@ -20,14 +21,15 @@
   {% if messages -%}
     {% for cat, message in messages -%}
     {% if cat == "message" %}
-        <div class="alert alert-success flash closeme"> {{message}}
+        <div class="alert alert-success flash closeme">
     {% elif cat == "nochange" %}
-        <div class="alert alert-info flash closeme"> {{message}}
+        <div class="alert alert-info flash closeme">
     {% elif cat == "stay" %}
-        <div class="alert alert-info flash"> {{message}}
+        <div class="alert alert-info flash">
     {% elif cat == "error" %}
-        <div class="alert alert-danger flash"> {{message}}
+        <div class="alert alert-danger flash">
     {% endif -%}
+     {{message}}
     <button type="button" class="close" data-dismiss="alert">×</button>
     </div>
     {% endfor -%}

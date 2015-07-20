@@ -1,7 +1,7 @@
 {%- extends "layout.html" %}
 {%- block extraheaders %}
-  {{ macros.css('slider.css') }}
-  {{ macros.js('mylib.js') }}
+  {{ macros.css('custom/slider.css') }}
+  {{ macros.js ('custom/mylib.js') }}
 {%- endblock %}
 {%- block navbar %}
 {{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', '/ezq'), ('EZ Edit', 'None')) }}
@@ -67,5 +67,5 @@
 </div>
 </form>
 </div>
-{{ macros.js('ezedit.js') }}
+{{ macros.js('custom/ezedit.js') }}
 {%- endblock %}

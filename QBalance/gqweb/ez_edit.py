@@ -93,4 +93,4 @@ def ezedit_chooser(groupparent):
         flash("No changes made")
         db_session.rollback()
 
-    return redirect(url_for('ezedit_chooser', groupparent=groupparent))
+    return redirect(url_for('ez_quota_chooser'))
