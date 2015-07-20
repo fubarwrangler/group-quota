@@ -1,4 +1,9 @@
 {%- extends "layout.html" %}
+
+{% block endjs -%}
+<script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
+{%- endblock -%}
+
 {%- block navbar %}
 {%- if errors %}
 {{ macros.navbar(('Home', '/'), ('Edit Groups', '/edit'), ('Error', '')) }}
@@ -6,6 +11,7 @@
 {{ macros.navbar(('Home', '/'), ('Edit Groups', '')) }}
 {%- endif %}
 {%- endblock %}
+
 {%- block body %}
 <div class="container maxw">
 {% if errors -%}
@@ -42,7 +48,8 @@
                 name="{{group.full_name + '+new_name'}}"/>
       </td>
       <td>
-        <input type="text" name="{{group.full_name + '+quota'}}" class="form-control sm-box" value="{{group.quota}}"
+        <input type="text" name="{{group.full_name + '+quota'}}" class="form-control sm-box" \\
+            value="{{group.quota}}"
              {{ 'disabled title="Disabled because non-leaf node"'|safe if not group.is_leaf else ''}} />
       </td>
       <td>

@@ -1,4 +1,9 @@
 {%- extends "layout.html" %}
+
+{% block endjs -%}
+<script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
+{%- endblock -%}
+
 {%- block navbar %}
 {%- if typeerrors or gen_err or rmerrors %}
 {{ macros.navbar(('Home', '/'), ('Modify Groups', '/addrm'), ('Error', None)) }}
@@ -6,6 +11,7 @@
 {{ macros.navbar(('Home', '/'), ('Modify Groups', None)) }}
 {%- endif %}
 {%- endblock %}
+
 {%- block body %}
 <div class="container maxw"> <!-- Main page -->
 {%- if errors %}
@@ -81,7 +87,6 @@
   </div>
 </div> <!-- End add-form fluid-container -->
 </form>
-<script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
 {%- endif -%}
 </div> <!-- End entire page -->
 {%- endblock %}

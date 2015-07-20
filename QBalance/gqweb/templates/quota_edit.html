@@ -1,11 +1,17 @@
 {%- extends "layout.html" %}
 {%- block extraheaders %}
-  {{ macros.css('custom/slider.css') }}
-  {{ macros.js ('custom/mylib.js') }}
+  {{ macros.css('slider.css') }}
+  {{ macros.js ('mylib.js') }}
 {%- endblock %}
+
+{%- block endjs %}
+  {{ macros.js('ezedit.js') }}
+{%- endblock %}
+
 {%- block navbar %}
 {{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', '/ezq'), ('EZ Edit', 'None')) }}
 {%- endblock -%}
+
 {%- block body -%}
 <div id="maincont" class="container-fluid maxw">
 <form class="form-inline" role="form" method="POST" id="f_ezedit">
@@ -67,5 +73,4 @@
 </div>
 </form>
 </div>
-{{ macros.js('custom/ezedit.js') }}
 {%- endblock %}

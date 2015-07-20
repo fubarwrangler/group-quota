@@ -3,14 +3,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  {{ macros.css('bootstrap-3.3.5.min.css') }}
-  {{ macros.css('bootstrap-switch-3.3.2.min.css') }}
-  {{ macros.js ('jquery-2.1.4.min.js') }}
-  {{ macros.js ('bootstrap-3.3.5.min.js') }}
-  {{ macros.js ('bootstrap-switch-3.3.2.min.js') }}
+  {{ macros.css('vendor/bootstrap-3.3.5.css') }}
+  {{ macros.css('vendor/bootstrap-switch-3.3.2.css') }}
+  {{ macros.js ('vendor/jquery-2.1.4.js') }}
+  {{ macros.js ('vendor/bootstrap-3.3.5.js') }}
+  {{ macros.js ('vendor/bootstrap-switch-3.3.2.js') }}
 
-  {{ macros.css('custom/awesome-bootstrap-checkbox.css') }}
-  {{ macros.css('custom/style.css') }}
+  {{ macros.css('awesome-bootstrap-checkbox.css') }}
+  {{ macros.css('style.css') }}
 
   {%- block extraheaders %}{% endblock %}
   <title>Group Quota Editor</title>
@@ -41,5 +41,6 @@
   {% endif -%}
 {%- endwith %}
 {%- block body %}{%- endblock %}
+{%- block endjs %}{%- endblock %}
 </body>
 </html>

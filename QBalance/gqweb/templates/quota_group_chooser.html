@@ -1,6 +1,9 @@
 {%- extends "layout.html" %}
 {%- block extraheaders %}
-  {{ macros.css('custom/treeview.css') }}
+  {{ macros.css('treeview.css') }}
+{%- endblock %}
+{%- block endjs %}
+  {{ macros.js('treeview.js') }}
 {%- endblock %}
 {%- block navbar %}
 {{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', None)) }}
@@ -41,6 +44,4 @@
     <div class="col-xs-1 pallet text-center childedit">Child to Edit</div>
   </div>
 </div> <!-- End Main Container -->
-
-<script src="{{ url_for('static', filename='js/treeview.js')}}"></script>
 {%- endblock %}
