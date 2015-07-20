@@ -37,7 +37,7 @@
     {%- set parent = '.'.join(group.full_name.split('.')[:-1]) %}
     <tr>
       <td>
-        {{parent + ("<u>.</u>"|safe if parent else '')}}
+        {{parent + ("."|safe if parent else "")}}
         <input type="text" value="{{group.full_name.split('.')[-1]}}" class="form-control sm-box namebox"
                 name="{{group.full_name + '+new_name'}}"/>
       </td>
