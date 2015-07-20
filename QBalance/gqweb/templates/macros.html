@@ -42,3 +42,16 @@
 {% endfor -%}
 <button class="btn btn-default btn-sm" onclick="window.history.back();">Go Back and Fix!</button>
 {%- endmacro %}
+
+
+{%- macro css(path) -%}
+<link href="{{ _static_link(path, 'css') }}" rel="stylesheet">
+{%- endmacro %}
+
+{%- macro js(path) -%}
+<script src="{{ _static_link(path, 'js') }}"></script>
+{%- endmacro %}
+
+{%- macro _static_link(path, prefix) -%}
+{{ url_for('static', filename="%s/%s"|format(prefix, path)) }}
+{%- endmacro %}

@@ -1,6 +1,6 @@
 {%- extends "layout.html" %}
 {%- block extraheaders %}
-  <link href="{{ url_for('static', filename='css/treeview.css')}}" rel="stylesheet">
+  {{ macros.css('treeview.css') }}
 {%- endblock %}
 {%- block navbar %}
 {{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', None)) }}

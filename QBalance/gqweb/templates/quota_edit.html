@@ -1,6 +1,7 @@
 {%- extends "layout.html" %}
 {%- block extraheaders %}
-  <script src="{{ url_for('static', filename='js/mylib.js')}}"></script>
+  {{ macros.css('slider.css') }}
+  {{ macros.js('mylib.js') }}
 {%- endblock %}
 {%- block navbar %}
 {{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', '/ezq'), ('EZ Edit', 'None')) }}
@@ -66,5 +67,5 @@
 </div>
 </form>
 </div>
-<script src="{{ url_for('static', filename='js/ezedit.js')}}"></script>
+{{ macros.js('ezedit.js') }}
 {%- endblock %}

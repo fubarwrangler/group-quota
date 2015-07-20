@@ -71,6 +71,7 @@ def ezedit_chooser(groupparent):
     if new_root is root:
         root.quota = sum(x.quota for x in root.get_children())
 
+    changed = False
     seen = set()
     for parent in new_root.breadth_first():
         if parent.is_leaf:
@@ -81,13 +82,15 @@ def ezedit_chooser(groupparent):
         for g, q in zip(children, adj_q):
             g.quota = q
             dbobj = next(x for x in db_groups if x.group_name == g.full_name)
-            dbobj.quota = q
-            app.logger.info("!! SET %s q=%d", g, g.quota)
+            if dbobj.quota != q:
+                dbobj.quota = q
+                changed = True
 
-    if validate_quotas(root):
-        flash("Update quotas under: %s" % new_root)
+    if changed and validate_quotas(root):
+        flash("Updated quotas under: %s" % new_root)
         db_session.commit()
     else:
+        flash("No changes made")
         db_session.rollback()
 
     return redirect(url_for('ezedit_chooser', groupparent=groupparent))

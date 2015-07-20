@@ -86,7 +86,7 @@ function validQuotaKey(event) {
         event.stopPropagation();
         $(this).trigger('blur');
     // Non control (<31, 35-40) and non-numeric (outside ASCII [48-57] are rejected)
-    } else if (c < 31 || (c >= 48 && c <= 57) || (c >= 35 && c <= 40) || (c >= 96 && c <= 104))    {
+    } else if (c < 31 || (c >= 48 && c <= 57) || (c >= 35 && c <= 40) || (c >= 96 && c <= 105))    {
         return;
     } else {
         event.preventDefault();
