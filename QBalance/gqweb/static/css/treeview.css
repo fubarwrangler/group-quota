@@ -6,12 +6,11 @@ div.container-fluid>div.treediv {
 div.treediv {
     margin-left: 0px;
     padding-left: 24px;
+    border-left: gray dotted thin;
 }
 
 div.treediv.sel {
-    margin-left: 0px;
-    padding-left: 24px;
-    border-left: red dotted thin;
+    border-left: red solid thin;
 }
 
 div.parent, div.nonparent {

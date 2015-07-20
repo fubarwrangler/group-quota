@@ -19,14 +19,16 @@
   {% if messages -%}
     {% for cat, message in messages -%}
     {% if cat == "message" %}
-        <div class="alert alert-success closeme"> {{message}} </div>
+        <div class="alert alert-success flash closeme"> {{message}}
     {% elif cat == "nochange" %}
-        <div class="alert alert-info closeme"> {{message}} </div>
+        <div class="alert alert-info flash closeme"> {{message}}
     {% elif cat == "stay" %}
-        <div class="alert alert-info"> {{message}} </div>
+        <div class="alert alert-info flash"> {{message}}
     {% elif cat == "error" %}
-        <div class="alert alert-danger"> {{message}} </div>
+        <div class="alert alert-danger flash"> {{message}}
     {% endif -%}
+    <button type="button" class="close" data-dismiss="alert">×</button>
+    </div>
     {% endfor -%}
   <script>
     $(".closeme").delay(2500).slideUp(200, function() {

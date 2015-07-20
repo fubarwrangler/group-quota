@@ -93,6 +93,13 @@ body>div {
     margin-bottom: 20px;
 }
 
+div.flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
 /* DEBUG
 div.treediv {
     outline: blue dashed thin;
