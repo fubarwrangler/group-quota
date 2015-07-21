@@ -24,9 +24,15 @@ input.form-control.xs-box {
     margin-top: 20px;
 }
 
-
-
 .main-row>span {
+    border-bottom: dotted thin gray;
+    /*border-collapse: collapse;*/
+    margin-bottom: 8px;
+    padding-bottom: 21px;
+    height: 20px;
+}
+
+.main-row>div {
     border-bottom: dotted thin gray;
     border-collapse: collapse;
     margin-bottom: 10px;
@@ -76,7 +82,7 @@ div.last-grey {
 }
 
 .edited {
-    width: 60px;
+    width: 50px;
 }
 
 .editable {
@@ -95,9 +101,9 @@ body>div {
 
 div.flash {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+    top: 40px;
+    left: 25%;
+    width: 50%;
 }
 
 /* DEBUG

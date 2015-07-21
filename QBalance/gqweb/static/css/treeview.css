@@ -42,3 +42,8 @@ div.pallet {
     border-radius: 6px;
     padding-top: 4px;
 }
+
+.ulinerow {
+  border-bottom: black dotted thin;
+  padding-bottom: 10px;
+}

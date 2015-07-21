@@ -1,8 +1,24 @@
 {%- extends "layout.html" %}
 
 {% block endjs -%}
-<script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
+<script type="text/javascript">
+$(".truefalse").bootstrapSwitch();
+$(function () {
+  $('[data-toggle="popover"]').popover({'trigger': 'hover', 'placement': 'auto'})
+})
+</script>
 {%- endblock -%}
+
+{%- macro colhead(name, helptitle, helpbody) -%}
+<th>
+<div data-toggle="popover"
+    title="{{ helptitle }}"
+    data-content="{{ helpbody }}">
+  <span class="glyphicon glyphicon-question-sign" aria-hidden=""></span>
+  {{ name }}
+</div>
+</th>
+{%- endmacro -%}
 
 {%- block navbar %}
 {%- if errors %}
@@ -18,6 +34,16 @@
 {{ macros.showerror("Errors in Quota Form", errors)}}
 {% else -%}
 <h3>Edit Group Parameters</h3>
+<div class="row">
+  <p class="col-xs-9">
+    This table allows you to edit any property of a group. Only groups
+    that are leaf-nodes can have a threshold or quota set, but everything
+    else is unrestricted. <span class="text-danger">Be careful changing the
+    quotas,</span> because a change will filter "up" the tree to the
+    parents &mdash; adding 5 to a leaf will add 5 to each parent's quota up to the
+    root.
+  </p>
+</div>
 <form class="form-inline" role="form" method="POST">
   <table class="table table-bordered table-striped table-hover table-condenced">
     <colgroup>
@@ -30,12 +56,26 @@
     </colgroup>
     <thead>
       <tr>
-        <th>Name</th>
-        <th>Quota</th>
-        <th>Prio</th>
-        <th>Weight</th>
-        <th>Threshold</th>
-        <th>Surplus</th>
+          {{ colhead('Name', 'Group Name', "
+            The group's name can by any alphanumeric string, but root-groups
+            need to start with 'group_'") }}
+          {{ colhead('Quota', 'Absolute Quota', "
+            The number of CPUs (units of SlotWeight) the group can use") }}
+          {{ colhead('Prio', 'Group Priority', "
+            The default UserPrio Factor that members of the group will inherit
+            (not really useful unless you are doing auto-regroup)") }}
+          {{ colhead('Weight', 'Group Weight', "
+            A weight determined by how 'large' the jobs in this group will be,
+            ususally maps to the number of CPUs the jobs require, e.g. an
+            8-core group would have weight=8.0") }}
+          {{ colhead('Threshold', 'Demand Threshold', "
+            The number of idle jobs in the queue belonging to this group above
+            which the group will be considered to have sufficient demand for
+            the balancing algorithm") }}
+          {{ colhead('Surplus', 'Accept Surplus', "
+            The surplus flag toggle for this group. Normally this should not
+            need to be manually set, the balancing algorithm should toggle these
+             automatically based on demand &amp; weight") }}
       </tr>
     </thead>
     <tbody>
@@ -79,7 +119,7 @@
     </tbody>
   </table>
   <br>
-<button type="button" class="btn btn-default btn-sm" onclick="window.history.back();">Back</button>
+<a href="/" class="btn btn-default btn-sm" role="button">Back</a>
 <button type="submit" class="btn btn-primary btn-sm">Submit</button>
 </form>
 {% endif -%}

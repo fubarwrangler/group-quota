@@ -1,7 +1,16 @@
 {%- extends "layout.html" %}
 
 {% block endjs -%}
-<script type="text/javascript"> $(".truefalse").bootstrapSwitch(); </script>
+<script type="text/javascript">
+
+$(".truefalse").bootstrapSwitch();
+$('input[name="new+group_name"]').click(function() {
+    if(this.value == "")  {
+      this.value = "group_";
+    }
+});
+
+</script>
 {%- endblock -%}
 
 {%- block navbar %}
@@ -81,7 +90,7 @@
     </div>
   </div>
   <div class="row">
-    <button class="btn btn-default btn-sm" type="button" onclick="window.history.back();">Back</button>
+    <a href="/" class="btn btn-default btn-sm" role="button">Back</a>
     <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
     <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Groups</button>
   </div>

@@ -14,6 +14,7 @@
 
 {%- block body -%}
 <div id="maincont" class="container-fluid maxw">
+  <h3>EZEditor for {{groups[0].parent}}</h3>
 <form class="form-inline" role="form" method="POST" id="f_ezedit">
 <div class="row" id="main_head"> <!-- Start Title bar -->
   <strong class="col-xs-3">Name</strong>
@@ -72,5 +73,22 @@
   </div>
 </div>
 </form>
+</div>
+<div class="container maxw">
+  <div class="row">
+    <div class="col-sm-8">
+      <div class="panel panel-default">
+        <div class="panel-heading">Help</div>
+        <div class="panel-body">
+          Slide the sliders below to adjust the relative proportion of the total
+          quota each group gets. Select the <em>Fix</em> box to fix that group's
+          quota at the current value (you can't leave fewer than 2 free sliders).
+          Click on the quota field or the "edit" pencil next to it to manually
+          input a quota &mdash; the up and down arrows increment and decrement by
+          one while hitting enter or clicking off sets the value
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {%- endblock %}
