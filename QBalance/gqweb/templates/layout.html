@@ -32,13 +32,15 @@
         <div class="alert alert-info flash">
     {% elif cat == "error" %}
         <div class="alert alert-danger flash">
+    {% elif cat == "tmperror" %}
+        <div class="alert alert-danger flash closeme">
     {% endif -%}
      {{message}}
     <button type="button" class="close" data-dismiss="alert">×</button>
     </div>
     {% endfor -%}
   <script>
-    $(".closeme").delay(2500).slideUp(200, function() {
+    $(".closeme").delay(2500).fadeOut(200, function() {
       $(this).alert('close');
     });
   </script>

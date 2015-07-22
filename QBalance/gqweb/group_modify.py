@@ -52,8 +52,8 @@ def add_groups_post():
     if button_hit == 'rm':
         to_remove = set(request.form.getlist('rm_me'))
         if not to_remove:
-            return render_template('group_add_rm.html',
-                                   error="Nothing selected to be removed")
+            flash("Nothing selected to be removed", category='tmperror')
+            return redirect(url_for('add_groups'))
 
         bad_removes = remove_groups(to_remove, root)
 
@@ -70,8 +70,9 @@ def add_groups_post():
         newgrp = dict([(k.split('+')[1], v) for k, v in request.form.iteritems()
                        if v and k.startswith('new+')])
         if 'group_name' not in newgrp:
-            return render_template('group_add_rm.html',
-                                   error="Nothing to add, no group-name defined!")
+            flash("Nothing to add, no group-name defined", category='tmperror')
+            return redirect(url_for('add_groups'))
+
         group, errors = validate_form_types(newgrp)
         if errors:
             return render_template('group_add_rm.html', errors=errors)
