@@ -1,11 +1,13 @@
 # Parameters shared by QBalance software
 
-# Db Connection parameters
+import os
 
+
+# Db Connection parameters
 db = {
     'host': 'localhost',
     'db': 'group_quotas',
-    'passwd': 'CHANGEME',
+    'passwd': os.environ.get('GQ_DBPASS', 'xxx'),
     'user': 'gqu'
 }
 

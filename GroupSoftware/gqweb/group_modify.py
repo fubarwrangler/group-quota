@@ -6,9 +6,9 @@
 from flask import render_template, redirect, url_for, flash, request
 from . import app
 
-from database import db_session
-from models import (Group, build_group_tree_db, validate_form_types,
-                    group_defaults, set_quota_sums)
+from db import db_session
+from db.models import Group, build_group_tree_db, set_quota_sums
+from validation import validate_form_types, group_defaults
 
 
 def remove_groups(candidates, tree):

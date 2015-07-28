@@ -7,8 +7,8 @@
 from . import app
 
 from flask import request, redirect, url_for, flash
-from database import db_session
-from models import Group, build_group_tree_db
+from db import db_session
+from db.models import Group, build_group_tree_db
 from math import floor
 
 

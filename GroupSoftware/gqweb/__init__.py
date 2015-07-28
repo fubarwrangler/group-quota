@@ -14,8 +14,8 @@ app.config.from_object('gqweb.default_settings')
 app.config.from_envvar('GQEDITCFG', silent=True)
 # app.config['APPLICATION_ROOT'] = '/farmapp/'
 
-from database import db_session
-from models import Group, build_group_tree_db
+from db.database import db_session
+from db.models import Group, build_group_tree_db
 
 import quota_edit       # flake8: noqa -- this unused import has views
 import group_modify     # flake8: noqa -- this unused import has views

@@ -1,0 +1,13 @@
+= Accounging-Group Quota management for HTCondor
+William Strecker-Kellogg <https://github.com/fubarwrangler>
+
+An HTCondor Account Group manager, used by the US ATLAS Teir-1 at BNL.
+
+
+Test:
+
+[source,python]
+----
+def this():
+    pass
+----
