@@ -60,7 +60,6 @@ function adjust_children(slider) {
     get_children_inputs_from_slider(slider)
         .each(function() {
             var proportion = this.getAttribute('proportion');
-            console.log("....child", this.name, proportion, '*', pq);
             this.value = proportion * pq;
         });
 }
@@ -69,7 +68,6 @@ function adjust_children(slider) {
 function validQuotaKey(event) {
     var c = (event.charCode ? event.charCode : (event.keyCode ? event.keyCode : 0));
     var k = event.key;
-    console.log(event);
 
     if (k == "ArrowUp" || c == 38)    {
         if (this.value < parseInt(get_slider(this).max) - 1)  {
@@ -116,7 +114,6 @@ function ev_manualQuotaEdit()   { manualQuotaEdit(this); }
 
 /* Replace a span @txtval with the input box on click */
 function replace_with_input(txtval)  {
-    console.log('replace called', txtval);
     var $input = $('<input/>', {
             // 'type': 'number',   // FIXME: This is broken from a focus-bug in FF
             'id': txtval.id,
@@ -200,16 +197,12 @@ $sliders.on('input drag change', function(event) {
     });
     var othersum = $othersliders.sumValues();
 
-    console.log(this.name, this.oldval, this.valueAsNumber, change, othersum);
-
     this.last_proportion = (this.valueAsNumber / this.oldval);
     adjust_children(this);
 
     $othersliders.each(function() {
         var max = Number(this.max);
         var proportion = (1 - change / othersum);
-
-        console.log("..Adjust", this.name, this.valueAsNumber, '-*=>', proportion);
 
         // Avoid too small so we don't approach a div-by-zero jump
         newval = Math.max(MIN_VAL, this.valueAsNumber * proportion);
