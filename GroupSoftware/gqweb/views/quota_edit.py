@@ -5,12 +5,12 @@
 # ===========================================================================
 
 from collections import defaultdict
-from . import app
+from .. import app
 
 from flask import request, render_template, redirect, url_for, flash
-from db import db_session
-from db.models import Group, build_group_tree_db, build_group_tree_formdata, set_quota_sums
-from validation import validate_form_types
+from ..db import db_session
+from ..db.models import Group, build_group_tree_db, build_group_tree_formdata
+from ..validation import validate_form_types, set_quota_sums
 
 
 def set_params(db, formdata):

@@ -14,12 +14,12 @@ app.config.from_object('gqweb.default_settings')
 app.config.from_envvar('GQEDITCFG', silent=True)
 # app.config['APPLICATION_ROOT'] = '/farmapp/'
 
-from db.database import db_session
+from db import db_session
 from db.models import Group, build_group_tree_db
 
-import quota_edit       # flake8: noqa -- this unused import has views
-import group_modify     # flake8: noqa -- this unused import has views
-import ez_edit          # flake8: noqa -- this unused import has views
+import views.quota_edit       # flake8: noqa -- this unused import has views
+import views.group_modify     # flake8: noqa -- this unused import has views
+import views.ez_edit          # flake8: noqa -- this unused import has views
 
 
 namesort = lambda root: sorted(list(root), key=lambda x: x.full_name)

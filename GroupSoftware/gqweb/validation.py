@@ -3,6 +3,7 @@
 # *****************************************************************************
 
 import re
+from . import app
 
 name_validate = lambda name: bool(re.match(r'^group_[a-z0-9_\.]+$', name))
 new_name_validate = lambda name: bool(re.match(r'^[a-z0-9_]+$', name))
@@ -48,3 +49,24 @@ def validate_form_types(data):
             errors.append(estr)
 
     return data, errors
+
+
+def set_quota_sums(db, root):
+    """ Renormalize the sums in the group-tree (@root) of non-leaf nodes """
+    for group in root:
+        if not group.is_leaf:
+            newquota = sum(x.quota for x in group.get_children())
+
+# !! FIXME: and not user_sum_change_auth
+            if newquota != group.quota and True:
+                app.logger.info("Intermediate group sum %s: %d->%d",
+                                group.full_name, group.quota, newquota)
+                dbobj = next(x for x in db if x.group_name == group.full_name)
+                dbobj.quota = newquota
+                group.quota = newquota
+
+            # If newly added group causes a former leaf that has non-zero
+            # threshold to become a non-leaf then set it to zero!
+            if group.surplus_threshold > 0:
+                dbobj = next(x for x in db if x.group_name == group.full_name)
+                dbobj.surplus_threshold = 0

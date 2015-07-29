@@ -11,12 +11,41 @@ from group.db import _build_groups_db
 
 from .. import app
 
-from sqlalchemy import Table
-from database import Base
+from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, func
+from . import Base
 
 
 class Group(Base):
-    __table__ = Table(app.config['TABLE_NAME'], Base.metadata, autoload=True)
+    __tablename__ = app.config['TABLE_NAME']
+    __table_args__ = {'mysql_engine': 'InnoDB'}
+
+    id = Column(Integer, primary_key=True)
+    group_name = Column(String(128), nullable=False)
+    quota = Column(Integer, nullable=False, default=0)
+    priority = Column(Float, nullable=False, default=10.0)
+    weight = Column(Float, nullable=False, default=1.0)
+    accept_surplus = Column(Boolean, default=False)
+    busy = Column(Integer, nullable=False, default=0)
+    surplus_threshold = Column(Integer, nullable=False, default=0)
+    last_update = Column(DateTime, nullable=False, default=func.now())
+    last_surplus_update = Column(DateTime, nullable=True, default=None)
+
+
+class User(Base):
+    __tablename__ = 'users'
+    __table_args__ = {'mysql_engine': 'InnoDB'}
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(128), nullable=False)
+    active = Column(Boolean, default=False)
+
+
+class Role(Base):
+    __tablename__ = 'roles'
+    __table_args__ = {'mysql_engine': 'InnoDB'}
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(128), nullable=False)
 
 
 class GroupTree(AbstractGroup):
@@ -59,24 +88,3 @@ def build_group_tree_formdata(formdata):
             # app.logger.info("%s: %s", grp, grp.__dict__)
             yield formdata[grp].copy()
     return _build_groups_db(GroupTree, None, group_builder=group_process)
-
-
-def set_quota_sums(db, root):
-    """ Renormalize the sums in the group-tree (@root) of non-leaf nodes """
-    for group in root:
-        if not group.is_leaf:
-            newquota = sum(x.quota for x in group.get_children())
-
-# !! FIXME: and not user_sum_change_auth
-            if newquota != group.quota and True:
-                app.logger.info("Intermediate group sum %s: %d->%d",
-                                group.full_name, group.quota, newquota)
-                dbobj = next(x for x in db if x.group_name == group.full_name)
-                dbobj.quota = newquota
-                group.quota = newquota
-
-            # If newly added group causes a former leaf that has non-zero
-            # threshold to become a non-leaf then set it to zero!
-            if group.surplus_threshold > 0:
-                dbobj = next(x for x in db if x.group_name == group.full_name)
-                dbobj.surplus_threshold = 0
