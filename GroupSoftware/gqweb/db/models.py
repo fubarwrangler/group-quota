@@ -11,8 +11,11 @@ from group.db import _build_groups_db
 
 from .. import app
 
-from sqlalchemy import Column, Integer, String, Boolean, Float, DateTime, func
+from sqlalchemy import (Table, Column, Integer, String, Boolean, Float, func,
+                        ForeignKey, TIMESTAMP)
 from . import Base
+
+group_id = "{0}.id".format(app.config['TABLE_NAME'])
 
 
 class Group(Base):
@@ -20,15 +23,15 @@ class Group(Base):
     __table_args__ = {'mysql_engine': 'InnoDB'}
 
     id = Column(Integer, primary_key=True)
-    group_name = Column(String(128), nullable=False)
-    quota = Column(Integer, nullable=False, default=0)
-    priority = Column(Float, nullable=False, default=10.0)
-    weight = Column(Float, nullable=False, default=1.0)
-    accept_surplus = Column(Boolean, default=False)
-    busy = Column(Integer, nullable=False, default=0)
-    surplus_threshold = Column(Integer, nullable=False, default=0)
-    last_update = Column(DateTime, nullable=False, default=func.now())
-    last_surplus_update = Column(DateTime, nullable=True, default=None)
+    group_name = Column(String(128), nullable=False, unique=True)
+    quota = Column(Integer, nullable=False, server_default='0')
+    priority = Column(Float, nullable=False, server_default='10.0')
+    weight = Column(Float, nullable=False, server_default='1.0')
+    accept_surplus = Column(Boolean, nullable=False, server_default='0')
+    busy = Column(Integer, nullable=False, server_default='0')
+    surplus_threshold = Column(Integer, nullable=False, server_default='0')
+    last_update = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    last_surplus_update = Column(TIMESTAMP, nullable=True)
 
 
 class User(Base):
@@ -46,6 +49,23 @@ class Role(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(128), nullable=False)
+
+
+class UsageLog(Base):
+    """ Not used by web-interface, but let us create it anyway ! """
+
+    __tablename__ = 'atlas_queue_log'
+    __table_args__ = {'mysql_engine': 'InnoDB'}
+
+    id = Column(Integer, ForeignKey(group_id, ondelete="cascade"), primary_key=True)
+    amount_in_queue = Column(Integer, nullable=False, server_default='0')
+    query_time = Column(TIMESTAMP, nullable=False, index=True,
+                        server_default=func.now())
+
+user_role_table = Table('user_roles', Base.metadata,
+                        Column('user_id', Integer, ForeignKey('users.id')),
+                        Column('role_id', Integer, ForeignKey('roles.id'))
+                        )
 
 
 class GroupTree(AbstractGroup):

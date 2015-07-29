@@ -19,3 +19,8 @@ db_session = scoped_session(sessionmaker(autocommit=False,
 Base = declarative_base()
 Base.metadata = MetaData(bind=engine)
 Base.query = db_session.query_property()
+
+
+def init_db():
+    import models  # flake8: noqa -- to register models
+    Base.metadata.create_all(bind=engine)
