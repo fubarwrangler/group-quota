@@ -9,6 +9,7 @@
 {{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', None)) }}
 {%- endblock -%}
 {%- block body -%}
+{%- set rootgrp = groups[0].parent -%}
 <div class="container-fluid maxw">
   <h3>Subtree Picker</h3>
   <div class="row">
@@ -22,8 +23,12 @@
 
   <div class="treediv row"><!--- Down one lvl -->
   <div class="parent">
+    {%- if rootgrp.children|length >= 2 -%}
     <a href="/ezq/%3croot%3e">{{"Tree Root"}}</a>
-    <span class="quotaeztree text-muted">{{groups[0].siblings()|sum(attribute='quota')}}</span>
+    {%- else -%}
+    Tree Root
+    {%- endif -%}
+    <span class="quotaeztree text-muted">{{rootgrp.get_children()|sum(attribute='quota')}}</span>
   </div>
 {%- for group in groups %}
   {%- set prev_level = level if not loop.first else -1 %}

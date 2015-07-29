@@ -32,6 +32,7 @@ $('input[name="new+group_name"]').click(function() {
 {%- else -%}
 <form class="form-inline" role="form" method="POST">
 <div class="container-fluid">
+{%- if groups -%}
 <h3>Remove Groups</h3>
 <div class="row" id="main_head"> <!-- Row of headers -->
   <strong class="col-xs-1">Delete?</strong>
@@ -61,6 +62,7 @@ $('input[name="new+group_name"]').click(function() {
   </span>
 </div> <!-- End {{group.full_name}} -->
 {%- endfor %}
+{%- endif -%}
 
 <h3 style="margin-top: 40px;">Add Groups</h3>
   <div class="row">

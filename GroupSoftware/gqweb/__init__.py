@@ -16,6 +16,7 @@ app.config.from_envvar('GQEDITCFG', silent=True)
 
 from db import db_session
 from db.models import Group, build_group_tree_db
+from util.validation import group_defaults
 
 import views.quota_edit       # flake8: noqa -- this unused import has views
 import views.group_modify     # flake8: noqa -- this unused import has views
@@ -46,7 +47,7 @@ def edit_groups():
 def add_groups():
     root = build_group_tree_db(Group.query.all())
     return render_template('group_add_rm.html', groups=namesort(root),
-                           defaults=group_modify.group_defaults)
+                           defaults=group_defaults)
 
 @app.route('/ezq')
 def ez_quota_chooser():
