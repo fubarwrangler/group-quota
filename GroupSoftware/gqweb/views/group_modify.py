@@ -4,41 +4,13 @@
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # =============================================================================
 from flask import render_template, redirect, url_for, flash, request
+
 from .. import app
 
 from ..db import db_session
 from ..db.models import Group, build_group_tree_db
-from ..validation import validate_form_types, group_defaults, set_quota_sums
-
-
-def remove_groups(candidates, tree):
-    bad_removes = list()
-    warned = set()
-    for group in (tree.find(x) for x in candidates):
-        stranded = set(x.full_name for x in group) - candidates
-        if stranded - warned:
-            bad_removes.append((group.full_name, stranded - warned))
-        warned |= stranded
-    return bad_removes
-
-
-def new_group_fits(data, tree):
-
-    newname = data['group_name']
-    if tree.find(newname):
-        return "Group %s already exists" % newname
-
-    if newname.count('.') >= 1:
-        parent = ".".join(newname.split('.')[:-1])
-        if not tree.find(parent):
-            return "New group <strong>%s</strong> must have" \
-                   " a parent in the tree (<u>%s</u>)" % \
-                   (newname, parent)
-
-    missing_fields = set(group_defaults) - set(data)
-    if missing_fields:
-        misslist = ", ".join(sorted(missing_fields))
-        return "New group needs the following fields defined: %s" % misslist
+from ..util.validation import validate_form_types
+from ..util.tree import set_quota_sums, new_group_fits, remove_groups
 
 
 @app.route('/addrm', methods=['POST'])

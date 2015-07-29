@@ -3,40 +3,13 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
+from flask import request, redirect, url_for, flash
 
 from .. import app
 
-from flask import request, redirect, url_for, flash
 from ..db import db_session
 from ..db.models import Group, build_group_tree_db
-from math import floor
-
-
-# Rounding according to this algorithm: http://stackoverflow.com/questions/13483430/
-def largest_remainder(data, total):
-    ifloor = lambda x: int(floor(x))
-
-    new_data = map(ifloor, data)
-    # total = sum(data)
-    partial = sum(new_data)
-
-    # How many extra integers to give out
-    extra = total - partial
-
-    app.logger.debug("lr: %s : %s : %f : %f", data, new_data, total, partial)
-
-    # In largest decimal order
-    decimal_order = map(ifloor, sorted(data, key=lambda x: floor(x) - x))
-
-    n = 0
-    while extra > 0.0:
-        new_data[new_data.index(decimal_order[n])] += 1
-        extra -= 1
-        n += 1
-
-    app.logger.debug('%s == %s: %s', sum(new_data), total, new_data)
-
-    return new_data
+from ..util.rounding import largest_remainder
 
 
 def validate_quotas(root):
