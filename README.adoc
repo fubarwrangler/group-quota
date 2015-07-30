@@ -3,11 +3,29 @@ William Strecker-Kellogg <https://github.com/fubarwrangler>
 
 An HTCondor Account Group manager, used by the US ATLAS Teir-1 at BNL.
 
+== Background
+TODO
 
-Test:
+== Auto-Balancing
+TODO
 
-[source,python]
-----
-def this():
-    pass
-----
+== Webpage
+
+The webpage under gqweb/ is a flask application that allows users to create,
+modify, and remove groups. Different users will have different privileges, from
+read-only, to being able to alter the quotas in a subgroup without changing the
+parent (EZ-Edit), to changing anything about the group-tree.
+
+.Main Page
+image::http://i.imgur.com/PtKD4Da.png[Screenshot of Main Page,width=800,scaledwidth=100%]
+
+An example of the EZ-Editor that allows someone to rebalance among a certain portion
+of a tree while keeping the parent group fixed:
+
+.Example of EZ-Editor
+image::http://i.imgur.com/2dujlSf.png[Screenshot of EZ-Editor,width=800,scaledwidth=100%]
+
+Changing anything about the groups in the full editor:
+
+.Quota Editor
+image::http://i.imgur.com/qOFYgp1.png[Screenshot of Quota Editor,width=800,scaledwidth=100%]
