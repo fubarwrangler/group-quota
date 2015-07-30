@@ -13,6 +13,8 @@ from .. import app
 
 from sqlalchemy import (Table, Column, Integer, String, Boolean, Float, func,
                         ForeignKey, TIMESTAMP)
+from sqlalchemy.orm import relationship, backref
+
 from . import Base
 
 group_id = "{0}.id".format(app.config['TABLE_NAME'])
@@ -33,6 +35,11 @@ class Group(Base):
     last_update = Column(TIMESTAMP, nullable=False, server_default=func.now())
     last_surplus_update = Column(TIMESTAMP, nullable=True)
 
+user_role_table = Table('user_roles', Base.metadata,
+                        Column('user_id', Integer, ForeignKey('users.id')),
+                        Column('role_id', Integer, ForeignKey('roles.id'))
+                        )
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -41,6 +48,8 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(128), nullable=False)
     active = Column(Boolean, default=False)
+    roles = relationship('Role', secondary=user_role_table,
+                         backref=backref('users', lazy='dynamic'))
 
 
 class Role(Base):
@@ -61,11 +70,6 @@ class UsageLog(Base):
     amount_in_queue = Column(Integer, nullable=False, server_default='0')
     query_time = Column(TIMESTAMP, nullable=False, index=True,
                         server_default=func.now())
-
-user_role_table = Table('user_roles', Base.metadata,
-                        Column('user_id', Integer, ForeignKey('users.id')),
-                        Column('role_id', Integer, ForeignKey('roles.id'))
-                        )
 
 
 class GroupTree(AbstractGroup):

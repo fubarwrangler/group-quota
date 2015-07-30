@@ -1,1 +1,1 @@
-DATABASE_URI = 'mysql://localhost/testgq'
+DATABASE_URI = 'mysql://localhost/testgq?charset=utf8'

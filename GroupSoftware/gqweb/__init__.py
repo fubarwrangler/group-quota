@@ -15,12 +15,13 @@ app.config.from_envvar('GQEDITCFG', silent=True)
 # app.config['APPLICATION_ROOT'] = '/farmapp/'
 
 from db import db_session
-from db.models import Group, build_group_tree_db
+from db.models import Group, User, Role, build_group_tree_db
 from util.validation import group_defaults
 
 import views.quota_edit       # flake8: noqa -- this unused import has views
 import views.group_modify     # flake8: noqa -- this unused import has views
 import views.ez_edit          # flake8: noqa -- this unused import has views
+import views.user          # flake8: noqa -- this unused import has views
 
 
 namesort = lambda root: sorted(list(root), key=lambda x: x.full_name)
@@ -72,3 +73,8 @@ def ez_quota_edit(parent):
         subtree[0].parent.quota = sum(x.quota for x in subtree)
 
     return render_template('quota_edit.html', groups=subtree)
+
+
+@app.route('/user')
+def usermanager():
+    return render_template('user/user_manage.html', u=User.query.all())
