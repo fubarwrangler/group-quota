@@ -11,14 +11,19 @@ from ..db import db_session
 from ..db.models import User, Role
 
 
+def add_unique(obj, attr='name'):
+    if not type(obj).query.filter(getattr(type(obj), attr) == getattr(obj, attr)).count():
+        db_session.add(obj)
+
+
 @app.before_first_request
 def default_users_and_roles():
-    username = app.config['DEFAULT_USER']
-    rolename = app.config['DEFAULT_USER_ROLE']
-    if not User.query.filter(User.name==username).count():
-        db_session.add(User(name=username, active=True))
-    if not Role.query.filter(Role.name==rolename).count():
-        db_session.add(Role(name=rolename))
+
+    add_unique(User(name=app.config['DEFAULT_USER'], active=True, comment="Default admin user"))
+    add_unique(Role(name='admin', comment='Full administrator with all privileges'))
+    add_unique(Role(name='alter', comment='Can add / remove groups as well as edit them'))
+    add_unique(Role(name='edit', comment='Can edit anything about existing groups'))
+
     db_session.commit()
 
 
