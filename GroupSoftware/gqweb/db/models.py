@@ -46,11 +46,14 @@ class User(Base):
     __table_args__ = {'mysql_engine': 'InnoDB'}
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False)
+    name = Column(String(24), nullable=False)
     comment = Column(String(128))
     active = Column(Boolean, default=False)
     roles = relationship('Role', secondary=user_role_table,
                          backref=backref('users', lazy='dynamic'))
+
+    def __str__(self):
+        return self.name
 
 
 class Role(Base):
@@ -58,8 +61,11 @@ class Role(Base):
     __table_args__ = {'mysql_engine': 'InnoDB'}
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(32), nullable=False)
+    name = Column(String(12), nullable=False)
     comment = Column(String(128))
+
+    def __str__(self):
+        return self.name
 
 
 class UsageLog(Base):

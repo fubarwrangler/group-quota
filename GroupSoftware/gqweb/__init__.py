@@ -77,4 +77,5 @@ def ez_quota_edit(parent):
 
 @app.route('/user')
 def usermanager():
-    return render_template('user/user_manage.html', u=User.query.all())
+    return render_template('user.html', u=User.query.all(),
+                           r=Role.query.all())
