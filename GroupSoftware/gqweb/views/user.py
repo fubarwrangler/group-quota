@@ -1,5 +1,5 @@
 # ===========================================================================
-# Methods to validate edited quota info from form data and make changes
+# Methods alter users and their permissions
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
@@ -12,17 +12,20 @@ from ..db.models import User, Role
 
 
 def add_unique(obj, attr='name'):
-    if not type(obj).query.filter(getattr(type(obj), attr) == getattr(obj, attr)).count():
+    if not type(obj).query.filter(getattr(type(obj), attr) == getattr(obj, attr)).first():
         db_session.add(obj)
 
 
 @app.before_first_request
 def default_users_and_roles():
 
-    add_unique(User(name=app.config['DEFAULT_USER'], active=True, comment="Default admin user"))
-    add_unique(Role(name='admin', comment='Full administrator with all privileges'))
-    add_unique(Role(name='alter', comment='Can add / remove groups as well as edit them'))
-    add_unique(Role(name='edit', comment='Can edit anything about existing groups'))
+    add_unique(User(name=app.config['ADMIN_USER'], active=True, comment="Default admin user"))
+
+    add_unique(Role(name='admin',   comment='Full administrator with all privileges'))
+    add_unique(Role(name='alter',   comment='Can add / remove groups'))
+    add_unique(Role(name='edit',    comment='Can edit all group parameters'))
+    add_unique(Role(name='balance', comment='Can rebalance quotas with EZ-Editor'))
+    add_unique(Role(name='anon',    comment='Read-only, no privileges to alter'))
 
     db_session.commit()
 
@@ -30,7 +33,9 @@ def default_users_and_roles():
 @app.route('/user/add', methods=['POST'])
 def add_user():
 
-    userdata = request.form.iteritems()
+    user = request.form.get('username')
+    comment = request.form.get('comment')
+    db_sessiopn.add(User(name=user, comment=comment))
     db_session.commit()
 
     return redirect(url_for('main_menu'))
@@ -39,7 +44,34 @@ def add_user():
 @app.route('/user/remove', methods=['POST'])
 def remove_user():
 
-    userdata = request.form.iteritems()
+    uid = request.form.get('userid')
+    User.query.get(uid).delete()
     db_session.commit()
 
     return redirect(url_for('main_menu'))
+
+@app.route('/user/api/<username>/rolechange', methods=['POST'])
+def change_role(username):
+
+    data = request.get_json()
+    app.logger.info(data)
+
+    role = data['role']
+    change = data['action'].lower()
+
+    user = User.query.filter(User.name == username).first()
+    therole = User.query.filter(Role.name == role).first()
+
+    if not user or not role:
+        flash('API Error: no user+role %s + %s found' % (username, role))
+        return redirect(url_for('usermanager'))
+
+    if change == 'add':
+        user.roles.append(therole)
+        flash('Role %s added to user %s' % (role, username))
+    else:
+        user.roles.remove(therole)
+        flash('Role %s removed to user %s' % (role, username))
+
+    db_session.commit()
+    return render_template('user.html')

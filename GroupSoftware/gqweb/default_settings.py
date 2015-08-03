@@ -2,9 +2,7 @@ DATABASE_URI = 'sqlite:////home/willsk/this.db'
 TABLE_NAME = 'atlas_group_quotas'
 DEBUG = True
 
-ADMIN_ROLE = 'admin'
-DEFAULT_USER = 'willsk'
-DEFAULT_USER_ROLE = 'admin'  # XXX: CHANGE FOR PROD
+ADMIN_USER = 'willsk'
 
 
 # XXX: NOT REALLY USED IN PROD: Do the following and put in environs
