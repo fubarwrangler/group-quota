@@ -1,10 +1,18 @@
 
-$.ajax({
-   type : "POST",
-   url : "{{ url_for('mod.load_ajax') }}",
-   data: JSON.stringify(data, null, '\t'),
-   contentType: 'application/json;charset=UTF-8',
-   success: function(result) {
-       console.log(result);
-   }
+$('.aj_rmuser').click(function (e) {
+    var $jqthis = $(this);
+    var prompt = "Are you sure you want to remove " + $jqthis.attr('name') + "?";
+    bootbox.confirm(prompt, function(result) {
+        if(!result) { return; }
+        var uid = $jqthis.attr('uid');
+
+        $.post($SCRIPT_ROOT + '/user/api/remove', { userid: uid })
+            .done(function() {
+                $('#ur_' + uid).remove();
+            })
+            .fail(function() {
+                alert("Failed to delete uid=" + uid)
+            });
+        return true;
+    });
 });

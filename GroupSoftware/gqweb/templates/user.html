@@ -1,6 +1,6 @@
 {%- extends "layout.html" %}
 {%- block extraheaders %}
-  {{ macros.css('user.js') }}
+  {{ macros.js('vendor/bootbox.min.js') }}
 {%- endblock %}
 {%- block navbar %}
 {{ macros.navbar(('Home', '/'), ('Users', None)) }}
@@ -11,16 +11,23 @@
   <div class="container-fluid row">
     <div class="col-lg-7">
     <table class="table table-hover">
+      <colgroup>
+        <col class="col-sm-1">
+        <col class="col-sm-1">
+        <col class="col-sm-3">
+        <col class="col-sm-1">
+        <col class="col-sm-1">
+      </colgroup>
       <caption> Users and roles </caption>
       <thead>
       <tr><th> Delete? </th><th> Name </th><th> Comment </th><th> Active </th><th> Roles </th></tr>
       </thead>
       <tbody>
 {%- for user in u %}
-      <tr>
+      <tr id="ur_{{user.id}}">
         <td>
-          <span class="glyphicon glyphicon-remove text-danger rmuser"
-                aria-hidden="true" uid={{user.id}}></span>
+          <span class="glyphicon glyphicon-remove text-danger aj_rmuser"
+                aria-hidden="true" uid={{user.id}} name="{{user}}"></span>
         </td>
         <td> {{ user }} </td>
         <td> {{ user.comment }} </td>
@@ -33,7 +40,8 @@
         {%- for role in r %}
           <div class="controls span2">
             <label class="checkbox-inline">
-              <input type="checkbox" name="{{user}}_roles" value="{{ role }}">
+              <input class="aj_rolecheck" type="checkbox" name="{{user}}_roles" value="{{ role }}"
+              {%- if role in user.roles %} checked{%- endif %}>
               {{ role.name }}
             </label>
           </div>
@@ -92,4 +100,5 @@
 <script type="text/javascript">
 $(".checkslider").bootstrapSwitch();
 </script>
+{{ macros.js('user.js') }}
 {%- endblock -%}

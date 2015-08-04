@@ -3,7 +3,7 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from flask import request, render_template, redirect, url_for, flash  # flake8: noqa TODO: REMOVE ME
+from flask import request, render_template, redirect, url_for, flash, Response  # flake8: noqa TODO: REMOVE ME
 
 from .. import app
 
@@ -50,23 +50,21 @@ def add_user():
 
     return redirect(url_for('usermanager'))
 
-
-@app.route('/user/remove', methods=['POST'])
+@app.route('/user/api/remove', methods=['POST'])
 def remove_user():
 
-    uid = request.form.get('userid')
-    app.logger.info("Remove %s", uid)
-    User.query.get(uid).delete()
+    uid = int(request.form.get('userid'))
+    User.query.filter_by(id=uid).delete()
     db_session.commit()
+    return Response(status=204)
 
-    return redirect(url_for('usermanager'))
-
-@app.route('/user/api/<username>/rolechange', methods=['POST'])
-def change_role(username):
+@app.route('/user/api/rolechange', methods=['POST'])
+def change_role():
 
     data = request.get_json()
     app.logger.info(data)
 
+    username = data['user']
     role = data['role']
     change = data['action'].lower()
 
@@ -82,15 +80,16 @@ def change_role(username):
         flash('Role %s added to user %s' % (role, username))
     else:
         user.roles.remove(therole)
-        flash('Role %s removed to user %s' % (role, username))
+        flash('Role %s removed from user %s' % (role, username))
 
     db_session.commit()
     return render_template('user.html')
 
-@app.route('/user/api/<username>/activate', methods=['POST'])
-def activeate_user(username):
+@app.route('/user/api/activate', methods=['POST'])
+def activeate_user():
 
     data = request.get_json()
+    username = data['user']
 
     user = User.query.filter(User.name == username).first()
 

@@ -15,7 +15,9 @@
 
   {{ macros.css('awesome-bootstrap-checkbox.css') }}
   {{ macros.css('style.css') }}
-
+  <script type="text/javascript">
+    var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
   {%- block extraheaders %}{% endblock %}
   <title>ATLAS Group Quotas</title>
 </head>
