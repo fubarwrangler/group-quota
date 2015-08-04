@@ -6,13 +6,13 @@ $('.aj_rmuser').click(function (e) {
         if(!result) { return; }
         var uid = $jqthis.attr('uid');
 
-        $.post($SCRIPT_ROOT + '/user/api/remove', { userid: uid })
+        $.postjson('/user/api/remove', {userid: uid})
             .done(function() {
                 $('#ur_' + uid).remove();
                 flash('Removed user ' + uid, 'warning');
             })
             .fail(function() {
-                alert("Failed to delete uid=" + uid);
+                flash("Failed to delete uid=" + uid, 'danger');
             });
         return true;
     });
@@ -31,5 +31,27 @@ $('.aj_active').on('switchChange.bootstrapSwitch', function(event, state) {
         .done(function() {
             var msg = (state ? "Activated" : "Deactivated") + ' user ' + user;
             flash(msg, state? 'success' : 'warning');
+        });
+});
+
+
+$('.aj_rolecheck').change(function(e) {
+    var action = this.checked;
+
+    var $t = $(this);
+
+    var user = $t.attr('user');
+    var role = $t.attr('role');
+
+    $.postjson('/user/api/rolechange', {user: user, role: role, 'action': action})
+        .fail(function()    {
+            var verb = action ? "adding" : "removing";
+            flash('Server error '+verb+' '+role+' for '+user, 'danger');
+            $t.prop("checked", !$t.prop("checked"));
+        })
+        .done(function()    {
+            var msg = (action ? "Added " + role + ' to' : "Removed " + role + ' from') +
+                        ' user ' + user;
+            flash(msg, action ? 'success' : 'info');
         });
 });

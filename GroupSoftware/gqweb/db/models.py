@@ -49,8 +49,7 @@ class User(Base):
     name = Column(String(24), nullable=False)
     comment = Column(String(128))
     active = Column(Boolean, default=False)
-    roles = relationship('Role', secondary=user_role_table,
-                         backref=backref('users', lazy='dynamic'))
+    roles = relationship('Role', secondary=user_role_table)
 
     def __str__(self):
         return self.name

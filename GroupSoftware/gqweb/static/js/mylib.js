@@ -30,8 +30,8 @@ $.postjson = function (url, data) {
 
 function flash(message,category) {
     $('<div class="alert alert-'+category+' flash closeme">!'+ message +'</div>')
-        .prependTo('#mainContent')
-        .delay(1500)
+        .prependTo('#flashes')
+        .delay(1900)
         .fadeOut(200, function() {
             $(this).alert('close');
         });

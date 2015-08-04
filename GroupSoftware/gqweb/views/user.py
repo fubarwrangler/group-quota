@@ -57,7 +57,8 @@ def remove_user():
 
     # TODO: Block removing current user
 
-    uid = int(request.form.get('userid'))
+    data = request.get_json()
+    uid = data['userid']
     User.query.filter_by(id=uid).delete()
     db_session.commit()
     return Response(status=204)
@@ -66,28 +67,25 @@ def remove_user():
 def change_role():
 
     data = request.get_json()
-    app.logger.info(data)
 
     username = data['user']
     role = data['role']
-    change = data['action'].lower()
+    action = data['action']
 
     user = User.query.filter_by(name=username).first()
-    therole = User.query.filter_by(name=role).first()
+    therole = Role.query.filter_by(name=role).first()
 
     if not user or not role:
-        flash('API Error: no user+role %s + %s found' % (username, role))
-        return redirect(url_for('usermanager'))
+        return Response(status=520)
 
-    if change == 'add':
+    if action:
         user.roles.append(therole)
-        flash('Role %s added to user %s' % (role, username))
     else:
         user.roles.remove(therole)
-        flash('Role %s removed from user %s' % (role, username))
 
     db_session.commit()
-    return render_template('user.html')
+
+    return Response(status=204)
 
 @app.route('/user/api/activate', methods=['POST'])
 def activeate_user():

@@ -99,11 +99,12 @@ body>div {
     margin-bottom: 20px;
 }
 
-div.flash {
+div#flashes {
     position: fixed;
     top: 40px;
     left: 25%;
     width: 50%;
+    z-index: 10;
 }
 
 span.aj_rmuser {
