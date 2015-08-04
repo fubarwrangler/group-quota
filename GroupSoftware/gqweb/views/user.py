@@ -42,16 +42,20 @@ def add_user():
         return redirect(url_for('usermanager'))
 
     if User.query.filter(User.name == user).first():
-        flash('Cannot add: user %s already exists' % user)
+        flash('Cannot add: user %s already exists' % user, category='tmperror')
         return redirect(url_for('usermanager'))
 
     db_session.add(User(name=user, comment=comment, active=active))
     db_session.commit()
 
+    flash('Added new user %s' % user)
+
     return redirect(url_for('usermanager'))
 
 @app.route('/user/api/remove', methods=['POST'])
 def remove_user():
+
+    # TODO: Block removing current user
 
     uid = int(request.form.get('userid'))
     User.query.filter_by(id=uid).delete()
@@ -68,8 +72,8 @@ def change_role():
     role = data['role']
     change = data['action'].lower()
 
-    user = User.query.filter(User.name == username).first()
-    therole = User.query.filter(Role.name == role).first()
+    user = User.query.filter_by(name=username).first()
+    therole = User.query.filter_by(name=role).first()
 
     if not user or not role:
         flash('API Error: no user+role %s + %s found' % (username, role))
@@ -88,16 +92,15 @@ def change_role():
 @app.route('/user/api/activate', methods=['POST'])
 def activeate_user():
 
+    # TODO: Block deactivating current user
+
     data = request.get_json()
     username = data['user']
+    user = User.query.filter_by(name=username).first()
+    if not user:
+        return Response(status=520)
 
-    user = User.query.filter(User.name == username).first()
-
-    if not user or not role:
-        flash('API Error: no user %s found' % username)
-        return redirect(url_for('usermanager'))
-
-    user.active = data['active']
+    user.active = data['active'] == 'on'
 
     db_session.commit()
-    return render_template('user.html')
+    return Response(status=200)

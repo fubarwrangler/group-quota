@@ -18,6 +18,26 @@ $.fn.redraw = function(){
     });
 };
 
+$.postjson = function (url, data) {
+	return $.ajax($SCRIPT_ROOT + url, {
+		url: JSON.stringify(data),
+		contentType: 'application/json',
+		type: 'POST',
+		data: JSON.stringify(data),
+	});
+};
+
+
+function flash(message,category) {
+    $('<div class="alert alert-'+category+' flash closeme">!'+ message +'</div>')
+        .prependTo('#mainContent')
+        .delay(1500)
+        .fadeOut(200, function() {
+            $(this).alert('close');
+        });
+}
+
+
 // Escape selector string for jquery
 function jq( myid ) {
     return myid.replace( /(:|\.|\[|\]|,|\+)/g, "\\$1" );
