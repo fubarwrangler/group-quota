@@ -14,7 +14,7 @@ from ..util.tree import set_quota_sums, new_group_fits, remove_groups
 
 
 @app.route('/addrm', methods=['POST'])
-def add_groups_post():
+def add_remove_groups():
 
     button_hit = request.form.get('bAct')
 

@@ -25,7 +25,6 @@ def default_users_and_roles():
     add_unique(Role(name='alter',   comment='Can add / remove groups'))
     add_unique(Role(name='edit',    comment='Can edit all group parameters'))
     add_unique(Role(name='balance', comment='Can rebalance quotas with EZ-Editor'))
-    add_unique(Role(name='anon',    comment='Read-only, no privileges to alter'))
 
     db_session.commit()
 

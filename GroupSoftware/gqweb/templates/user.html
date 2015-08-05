@@ -98,7 +98,12 @@
 
 {% block endjs -%}
 <script type="text/javascript">
-$(".checkslider").bootstrapSwitch();
+$(".checkslider").bootstrapSwitch({
+  onColor: 'success',
+  offColor: 'danger',
+  onText: 'YES',
+  offText: 'NO',
+});
 </script>
 {{ macros.js('user.js') }}
 {%- endblock -%}
