@@ -18,6 +18,15 @@ $.fn.redraw = function(){
     });
 };
 
+$.fn.equalwidth = function(padding) {
+	var maxw = 0;
+	var extra = padding || 0;
+	$(this).each(function(){
+		if ($(this).width() > maxw) { maxw = $(this).width(); }
+	});
+	$(this).width(maxw + extra);
+};
+
 $.postjson = function (url, data) {
 	return $.ajax($SCRIPT_ROOT + url, {
 		url: JSON.stringify(data),
@@ -29,12 +38,13 @@ $.postjson = function (url, data) {
 
 
 function flash(message,category) {
-    $('<div class="alert alert-'+category+' flash closeme">!'+ message +'</div>')
+    $('<div class="alert alert-'+category+' flash closeme"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>'+ message +'</div>')
         .prependTo('#flashes')
         .delay(1900)
         .fadeOut(200, function() {
             $(this).alert('close');
         });
+
 }
 
 

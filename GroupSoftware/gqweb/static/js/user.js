@@ -50,8 +50,10 @@ $('.aj_rolecheck').change(function(e) {
             $t.prop("checked", !$t.prop("checked"));
         })
         .done(function()    {
-            var msg = (action ? "Added " + role + ' to' : "Removed " + role + ' from') +
+            var msg = (action ? "Added role " + role + ' to' : "Removed role " + role + ' from') +
                         ' user ' + user;
             flash(msg, action ? 'success' : 'info');
         });
 });
+
+$('.checkbox-inline').equalwidth();

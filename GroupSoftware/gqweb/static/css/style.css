@@ -111,6 +111,10 @@ span.aj_rmuser {
     cursor: pointer;
 }
 
+.checkbox-inline + .checkbox-inline {
+    margin-left: 0px;
+}
+
 /* DEBUG
 div.treediv {
     outline: blue dashed thin;

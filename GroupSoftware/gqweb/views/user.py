@@ -58,8 +58,8 @@ def remove_user():
     # TODO: Block removing current user
 
     data = request.get_json()
-    uid = data['userid']
-    User.query.filter_by(id=uid).delete()
+    user = data['user']
+    User.query.filter_by(name=user).delete()
     db_session.commit()
     return Response(status=204)
 

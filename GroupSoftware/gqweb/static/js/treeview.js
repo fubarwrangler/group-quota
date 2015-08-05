@@ -13,10 +13,6 @@ $('div.parent').hover(function(event)    {
 $(function()    {
     $('div.treediv').each(function() {
         var $direct_children = $(this).children('.parent,.nonparent');
-        var maxw = 0;
-        $direct_children.each(function(){
-            if ($(this).width() > maxw) { maxw = $(this).width(); }
-        });
-        $direct_children.width(maxw + 20);
+        $direct_children.equalwidth(20);
     });
 });
