@@ -11,24 +11,6 @@ from ..db import db_session
 from ..db.models import User, Role
 
 
-def add_unique(obj, attr='name'):
-    if not type(obj).query.filter(getattr(type(obj), attr) == getattr(obj, attr)).first():
-        db_session.add(obj)
-
-
-@app.before_first_request
-def default_users_and_roles():
-
-    add_unique(User(name=app.config['ADMIN_USER'], active=True, comment="Default admin user"))
-
-    add_unique(Role(name='admin',   comment='Full administrator with all privileges'))
-    add_unique(Role(name='alter',   comment='Can add / remove groups'))
-    add_unique(Role(name='edit',    comment='Can edit all group parameters'))
-    add_unique(Role(name='balance', comment='Can rebalance quotas with EZ-Editor'))
-
-    db_session.commit()
-
-
 @app.route('/user/add', methods=['POST'])
 def add_user():
 

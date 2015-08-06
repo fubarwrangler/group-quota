@@ -1,9 +1,10 @@
 Website TODO
 
-* On edit page, make the box to edit group-leaf name toggle-able with JS
-* Add form, default value greyed out until clicked on
+X Add form, default value greyed out until clicked on
 * Confirm if quota-sum will change
-* List changes made after edit in flash() or something
+X List changes made after edit in flash() or something
 
-* Modify child-quotas in ez-editor!!
-* Popup textbox direct-input for quotas
+X Modify child-quotas in ez-editor!!
+X Popup textbox direct-input for quotas
+
+* Graph idle jobs off group-name-link on main page

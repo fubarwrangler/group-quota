@@ -52,7 +52,7 @@ $('.aj_rolecheck').change(function(e) {
         .done(function()    {
             var msg = (action ? "Added role " + role + ' to' : "Removed role " + role + ' from') +
                         ' user ' + user;
-            flash(msg, action ? 'success' : 'info');
+            flash(msg, action ? 'success' : 'warning');
         });
 });
 
