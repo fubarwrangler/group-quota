@@ -6,20 +6,12 @@
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
 from flask import (Flask, render_template, flash, redirect, url_for, config,
-                   session)
-from flask.ext.principal import (Principal, Identity, AnonymousIdentity,
-                                 RoleNeed, Permission)
+                   request, session, g)
+from flask.ext.principal import Principal, Identity, AnonymousIdentity, RoleNeed
 
 app = Flask(__name__)
 
 principals = Principal(app)
-
-admin_role = RoleNeed('admin')
-
-admin_permission = Permission(admin_role)
-edit_permission = Permission(RoleNeed('edit'), admin_role)
-balance_permission = Permission(RoleNeed('balance'), admin_role)
-add_remove_permission = Permission(RoleNeed('alter'), admin_role)
 
 app.config.from_object(__name__)
 app.config.from_object('gqweb.default_settings')
@@ -29,7 +21,10 @@ app.config.from_envvar('GQEDITCFG', silent=True)
 from db import db_session
 from db.models import Group, User, Role, build_group_tree_db
 from util.validation import group_defaults
-from util.userload import load_user_debug
+from util.userload import load_user_debug, load_user_header
+from util.userload import (admin_permission, edit_permission, balance_permission,
+                           add_remove_permission)
+
 
 import views.quota_edit       # flake8: noqa -- this unused import has views
 import views.group_modify     # flake8: noqa -- this unused import has views
@@ -65,18 +60,45 @@ def default_users_and_roles():
 
 @principals.identity_loader
 def load_identity():
-    username = load_user_debug('willsk')
-    identity = Identity(username)
-
-
-    user = User.query.filter_by(name=username).first()
-    if not user or not user.active:
+    if request.path.startswith("/static/"):
         return AnonymousIdentity()
 
-    for role in user.roles:
-        identity.provides.add(RoleNeed(role.name))
+    reconfig = session.get('reload_roles', False)
+    if reconfig:
+        session.pop('reload_roles')
+    username = session.get('user')
+    if not username or reconfig:
+        app.logger.info("New user loaded")
+
+        if app.config['DEBUG']:
+            username = load_user_debug(app.config['ADMIN_USER'])
+        else:
+            username = load_user_header('REMOTE_USER')
+        session['user'] = username
+
+    roles = session.get('roles')
+    if not roles or reconfig:
+        user = User.query.filter_by(name=username).first()
+        if not user or not user.active:
+            return AnonymousIdentity()
+        roles = [role.name for role in user.roles]
+        app.logger.info("New roles loaded: %s", roles)
+        session['roles'] = roles
+
+    identity = Identity(username)
+    for role in roles:
+        identity.provides.add(RoleNeed(role))
+
+    g.user = username
+    g.roles = roles
 
     return identity
+
+@app.route('/logout')
+def logout():
+    session.pop('user')
+    session.pop('roles')
+    return redirect(url_for('main_menu'))
 
 
 @app.route('/')

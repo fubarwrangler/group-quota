@@ -3,6 +3,7 @@ TABLE_NAME = 'atlas_group_quotas'
 DEBUG = True
 
 ADMIN_USER = 'willsk'
+# ADMIN_USER = 'Administrator'
 
 
 # XXX: NOT REALLY USED IN PROD: Do the following and put in environs
@@ -10,3 +11,4 @@ ADMIN_USER = 'willsk'
 #   $ tr -c -d '[:alnum:][!#$%&*.,]' < /dev/urandom | head -c 20
 #
 SECRET_KEY = 'ChAnGEmE!!-- rZB[6ogb#e#lzz.rXmr&'
+# SESSION_COOKIE_SECURE = True

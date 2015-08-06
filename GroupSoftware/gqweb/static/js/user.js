@@ -1,18 +1,18 @@
 
 $('.aj_rmuser').click(function (e) {
     var $jqthis = $(this);
-    var prompt = "Are you sure you want to remove " + $jqthis.attr('name') + "?";
+    var user = $jqthis.attr('name');
+    var prompt = "Are you sure you want to remove " + user + "?";
     bootbox.confirm(prompt, function(result) {
         if(!result) { return; }
-        var uid = $jqthis.attr('uid');
 
-        $.postjson('/user/api/remove', {userid: uid})
+        $.postjson('/user/api/remove', {user: user})
             .done(function() {
-                $('#ur_' + uid).remove();
-                flash('Removed user ' + uid, 'warning');
+                $('#ur_' + user).remove();
+                flash('Removed user ' + user, 'warning');
             })
             .fail(function() {
-                flash("Failed to delete uid=" + uid, 'danger');
+                flash("Failed to delete user: " + user, 'danger');
             });
         return true;
     });

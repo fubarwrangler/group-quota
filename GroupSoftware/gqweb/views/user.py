@@ -3,15 +3,17 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from flask import request, render_template, redirect, url_for, flash, Response  # flake8: noqa TODO: REMOVE ME
+from flask import request, redirect, url_for, flash, Response, session
 
 from .. import app
 
 from ..db import db_session
 from ..db.models import User, Role
+from ..util.userload import admin_permission
 
 
 @app.route('/user/add', methods=['POST'])
+@admin_permission.require(403)
 def add_user():
 
     user = request.form.get('username')
@@ -33,7 +35,9 @@ def add_user():
 
     return redirect(url_for('usermanager'))
 
+
 @app.route('/user/api/remove', methods=['POST'])
+@admin_permission.require(403)
 def remove_user():
 
     # TODO: Block removing current user
@@ -44,7 +48,9 @@ def remove_user():
     db_session.commit()
     return Response(status=204)
 
+
 @app.route('/user/api/rolechange', methods=['POST'])
+@admin_permission.require(403)
 def change_role():
 
     data = request.get_json()
@@ -65,10 +71,13 @@ def change_role():
         user.roles.remove(therole)
 
     db_session.commit()
+    session['reload_roles'] = True
 
     return Response(status=204)
 
+
 @app.route('/user/api/activate', methods=['POST'])
+@admin_permission.require(403)
 def activeate_user():
 
     # TODO: Block deactivating current user
@@ -80,6 +89,7 @@ def activeate_user():
         return Response(status=520)
 
     user.active = data['active'] == 'on'
+    session['reload_roles'] = True
 
     db_session.commit()
     return Response(status=200)
