@@ -10,6 +10,7 @@ from .. import app
 from ..db import db_session
 from ..db.models import Group, build_group_tree_db
 from ..util.rounding import largest_remainder
+from ..util.userload import balance_permission
 
 
 def validate_quotas(root):
@@ -22,6 +23,7 @@ def validate_quotas(root):
 
 
 @app.route('/ezq/<groupparent>', methods=['POST'])
+@balance_permission.require(403)
 def ezedit_chooser(groupparent):
 
     new_quotas = dict(

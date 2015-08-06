@@ -11,9 +11,11 @@ from ..db import db_session
 from ..db.models import Group, build_group_tree_db
 from ..util.validation import validate_form_types
 from ..util.tree import set_quota_sums, new_group_fits, remove_groups
+from ..util.userload import add_remove_permission
 
 
 @app.route('/addrm', methods=['POST'])
+@add_remove_permission.require(403)
 def add_remove_groups():
 
     button_hit = request.form.get('bAct')
