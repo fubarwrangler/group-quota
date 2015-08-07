@@ -79,15 +79,18 @@ def load_identity():
     roles = session.get('roles')
     if not roles or reconfig:
         user = User.query.filter_by(name=username).first()
-        if not user or not user.active:
+        if not user:
+            g.user = 'anonymous'
             return AnonymousIdentity()
-        roles = [role.name for role in user.roles]
+        roles = [role.name for role in user.roles] if user.active else []
         app.logger.info("New roles loaded: %s", roles)
         session['roles'] = roles
+        session['active'] = user.active
 
     identity = Identity(username)
-    for role in roles:
-        identity.provides.add(RoleNeed(role))
+    if session.get('active'):
+        for role in roles:
+            identity.provides.add(RoleNeed(role))
 
     g.user = username
     g.roles = roles
@@ -97,8 +100,8 @@ def load_identity():
 @app.route('/logout')
 def logout():
     url = request.values.get('target')
-    session.pop('user')
-    session.pop('roles')
+    if 'user' in session: session.pop('user')
+    if 'roles' in session: session.pop('roles')
     return redirect(url)
 
 
@@ -153,3 +156,11 @@ def ez_quota_edit(parent):
 def usermanager():
     return render_template('user.html', u=User.query.all(),
                            r=Role.query.all())
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(403)
+def page_not_found(e):
+    return render_template('errors/403.html'), 403

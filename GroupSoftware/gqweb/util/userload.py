@@ -15,5 +15,5 @@ _admin_role = RoleNeed('admin')
 
 admin_permission = Permission(_admin_role)
 edit_permission = Permission(RoleNeed('edit'), _admin_role)
-balance_permission = Permission(RoleNeed('balance'), _admin_role, edit_permission)
+balance_permission = Permission(RoleNeed('balance'), _admin_role)
 add_remove_permission = Permission(RoleNeed('alter'), _admin_role)

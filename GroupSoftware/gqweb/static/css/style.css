@@ -121,6 +121,10 @@ div#user {
     right: 10px;
 }
 
+div#adminbtn {
+    float: right;
+}
+
 /* DEBUG
 div.treediv {
     outline: blue dashed thin;

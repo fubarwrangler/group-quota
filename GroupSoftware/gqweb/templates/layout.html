@@ -54,7 +54,7 @@
 {%- block body %}{%- endblock %}
 </div>
 <div id="user">
-    Logged in as <i><mark>{{ g.user }}</mark></i>
+    Logged in as <i><mark>{{ g.user }}</mark></i>{%- if session.get('active') != 1%} Not active {%- endif %}
     (<a href="{{url_for('logout', target=request.script_root + request.path)}}">refresh</a>)
 </div>
 {%- block endjs %}{%- endblock %}
