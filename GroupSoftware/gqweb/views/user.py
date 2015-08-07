@@ -3,7 +3,7 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from flask import request, redirect, url_for, flash, Response, session
+from flask import request, redirect, url_for, flash, Response, session, g
 
 from .. import app
 
@@ -44,9 +44,11 @@ def remove_user():
 
     data = request.get_json()
     user = data['user']
+    if g.user == user:
+        return Response(status=520, response="Cannot remove own user!")
     User.query.filter_by(name=user).delete()
     db_session.commit()
-    return Response(status=204)
+    return Response(status=204, response="Removed user %s" % user)
 
 
 @app.route('/user/api/rolechange', methods=['POST'])
@@ -63,17 +65,20 @@ def change_role():
     therole = Role.query.filter_by(name=role).first()
 
     if not user or not role:
-        return Response(status=520)
+        return Response(status=520,
+                        response="User %s or role %s not found" % (user, therole))
 
     if action:
         user.roles.append(therole)
+        msg = "Added role %s to user %s"
     else:
         user.roles.remove(therole)
+        msg = "Removed role %s from user %s"
 
     db_session.commit()
     session['reload_roles'] = True
 
-    return Response(status=204)
+    return Response(status=204, response=msg % (username, role))
 
 
 @app.route('/user/api/activate', methods=['POST'])
@@ -86,7 +91,7 @@ def activeate_user():
     username = data['user']
     user = User.query.filter_by(name=username).first()
     if not user:
-        return Response(status=520)
+        return Response(status=520, response="User %s not found!" % username)
 
     user.active = data['active'] == 'on'
     session['reload_roles'] = True

@@ -7,12 +7,12 @@ $('.aj_rmuser').click(function (e) {
         if(!result) { return; }
 
         $.postjson('/user/api/remove', {user: user})
-            .done(function() {
+            .done(function(result) {
                 $('#ur_' + user).remove();
-                flash('Removed user ' + user, 'warning');
+                flash(result.responseText, 'warning');
             })
-            .fail(function() {
-                flash("Failed to delete user: " + user, 'danger');
+            .fail(function(result) {
+                flash(result.responseText, 'danger');
             });
         return true;
     });
@@ -24,8 +24,8 @@ $('.aj_active').on('switchChange.bootstrapSwitch', function(event, state) {
     var user = $jqthis.attr('user');
     var data = {'user': user, 'active': state ? 'on' : 'off'};
     $.postjson('/user/api/activate', data)
-        .fail(function() {
-            flash('Server error for user ' + user, 'danger');
+        .fail(function(response) {
+            flash(response.responseText, 'danger');
             $jqthis.bootstrapSwitch('toggleState', true);
         })
         .done(function() {
@@ -44,9 +44,10 @@ $('.aj_rolecheck').change(function(e) {
     var role = $t.attr('role');
 
     $.postjson('/user/api/rolechange', {user: user, role: role, 'action': action})
-        .fail(function()    {
+        .fail(function(result)    {
             var verb = action ? "adding" : "removing";
             flash('Server error '+verb+' '+role+' for '+user, 'danger');
+            console.log(result);
             $t.prop("checked", !$t.prop("checked"));
         })
         .done(function()    {

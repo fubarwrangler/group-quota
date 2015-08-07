@@ -12,7 +12,7 @@ from group.db import _build_groups_db
 from .. import app
 
 from sqlalchemy import (Table, Column, Integer, String, Boolean, Float, func,
-                        ForeignKey, TIMESTAMP)
+                        ForeignKey, TIMESTAMP, UniqueConstraint)
 from sqlalchemy.orm import relationship, backref
 
 from . import Base
@@ -37,7 +37,8 @@ class Group(Base):
 
 user_role_table = Table('user_roles', Base.metadata,
                         Column('user_id', Integer, ForeignKey('users.id')),
-                        Column('role_id', Integer, ForeignKey('roles.id'))
+                        Column('role_id', Integer, ForeignKey('roles.id')),
+                        UniqueConstraint('user_id', 'role_id')
                         )
 
 
