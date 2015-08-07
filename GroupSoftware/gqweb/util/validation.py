@@ -5,7 +5,7 @@
 # ===========================================================================
 import re
 
-name_validate = lambda name: bool(re.match(r'^group_[a-z0-9_\.]+$', name))
+name_validate = lambda name: bool(re.match(r'^[a-z0-9_\.]+$', name))
 new_name_validate = lambda name: bool(re.match(r'^[a-z0-9_]+$', name))
 positive_int = lambda x: x > 0.0
 non_zero_int = lambda x: x >= 1

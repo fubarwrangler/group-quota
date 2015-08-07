@@ -1,4 +1,8 @@
+/**********************************************************/
+/* Handle AJAX calls for the live-updating user-edit form */
+/**********************************************************/
 
+/* Remove a user if the 'x' is clicked, after confirmation box */
 $('.aj_rmuser').click(function (e) {
     var $jqthis = $(this);
     var user = $jqthis.attr('name');
@@ -19,6 +23,7 @@ $('.aj_rmuser').click(function (e) {
 });
 
 
+/* Activate / De-activate a user if the switch is toggled */
 $('.aj_active').on('switchChange.bootstrapSwitch', function(event, state) {
     var $jqthis = $(this);
     var user = $jqthis.attr('user');
@@ -35,6 +40,7 @@ $('.aj_active').on('switchChange.bootstrapSwitch', function(event, state) {
 });
 
 
+/* Add/Remove a role from a user on checkbox-toggle */
 $('.aj_rolecheck').change(function(e) {
     var action = this.checked;
 
@@ -54,4 +60,5 @@ $('.aj_rolecheck').change(function(e) {
         });
 });
 
+/* Equalize checkboxes so they wrap nicely */
 $('.checkbox-inline').equalwidth();

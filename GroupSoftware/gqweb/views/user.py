@@ -12,6 +12,11 @@ from ..db.models import User, Role
 from ..util.userload import admin_permission
 
 
+Ok = lambda x: Response(status=200, response=x)
+OkNoResponse = lambda: Response(status=204)
+Error = lambda x: Response(status=520, response=x)
+
+
 @app.route('/user/add', methods=['POST'])
 @admin_permission.require(403)
 def add_user():
@@ -45,10 +50,11 @@ def remove_user():
     data = request.get_json()
     user = data['user']
     if g.user == user:
-        return Response(status=520, response="Cannot remove own user!")
+        return Error("Cannot remove own user!")
+
     User.query.filter_by(name=user).delete()
     db_session.commit()
-    return Response(status=200, response="Removed user %s" % user)
+    return Ok("Removed user " + user)
 
 
 @app.route('/user/api/rolechange', methods=['POST'])
@@ -65,8 +71,9 @@ def change_role():
     therole = Role.query.filter_by(name=role).first()
 
     if not user or not role:
-        return Response(status=520,
-                        response="User %s or role %s not found" % (user, therole))
+        return Error("User %s or role %s not found" % (user, therole))
+    elif role == 'admin' and username == g.user:
+        return Error("Can't remove admin from yourself!")
 
     if action:
         user.roles.append(therole)
@@ -78,7 +85,7 @@ def change_role():
     db_session.commit()
     session['reload_roles'] = True
 
-    return Response(status=200, response=msg.format(username, role))
+    return Ok(msg.format(username, role))
 
 
 @app.route('/user/api/activate', methods=['POST'])
@@ -90,11 +97,16 @@ def activeate_user():
     data = request.get_json()
     username = data['user']
     user = User.query.filter_by(name=username).first()
+
     if not user:
-        return Response(status=520, response="User %s not found!" % username)
+        return Error("User " + username + " not found!")
 
     user.active = data['active'] == 'on'
+
+    if username == g.user and not user.active:
+        return Error("Cannot deactivate yourself!")
+
     session['reload_roles'] = True
 
     db_session.commit()
-    return Response(status=204)
+    return OkNoResponse()

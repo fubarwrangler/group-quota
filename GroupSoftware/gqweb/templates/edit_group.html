@@ -66,12 +66,11 @@ $(function () {
             (not really useful unless you are doing auto-regroup)") }}
           {{ colhead('Weight', 'Group Weight', "
             A weight determined by how 'large' the jobs in this group will be,
-            ususally maps to the number of CPUs the jobs require, e.g. an
-            8-core group would have weight=8.0") }}
+            ususally the number of CPUs the jobs require, e.g. an 8-core group
+            would have weight=8.0") }}
           {{ colhead('Threshold', 'Demand Threshold', "
-            The number of idle jobs in the queue belonging to this group above
-            which the group will be considered to have sufficient demand for
-            the balancing algorithm") }}
+            The number of idle jobs in the queue above which the balancing
+            algorithm will consider the queue as having sufficient demand.") }}
           {{ colhead('Surplus', 'Accept Surplus', "
             The surplus flag toggle for this group. Normally this should not
             need to be manually set, the balancing algorithm should toggle these
