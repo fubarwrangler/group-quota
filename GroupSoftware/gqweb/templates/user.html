@@ -8,7 +8,17 @@
 {%- endblock %}
 {%- block body %}
 <div class="container maxw"> <!-- Main page -->
-
+  <h2>User Management</h2>
+  <div class="row">
+    <p class="col-md-8">
+      This page allows you (an administrator) to add, remove, and change the
+      "roles" that each user has. The roles are explained in the table below,
+      with a few additional facts: an administrator has all prigiliges, and
+      someone with <i class="text-warning">edit</i> permissions can
+      re-balance too, and someone with <i class="text-warning">alter</i>
+      permissions can do everything someone with 'edit' can as well.
+    </p>
+  </div>
   <div class="container-fluid row">
     <div class="col-lg-8">
     <table class="table table-hover">

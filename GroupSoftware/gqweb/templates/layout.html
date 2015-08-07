@@ -54,7 +54,8 @@
 {%- block body %}{%- endblock %}
 </div>
 <div id="user">
-    Logged in as {{ g.user }} (<a href="{{url_for('logout')}}">refresh</a>)
+    Logged in as <i><mark>{{ g.user }}</mark></i>
+    (<a href="{{url_for('logout', target=request.script_root + request.path)}}">refresh</a>)
 </div>
 {%- block endjs %}{%- endblock %}
 </body>

@@ -96,9 +96,10 @@ def load_identity():
 
 @app.route('/logout')
 def logout():
+    url = request.values.get('target')
     session.pop('user')
     session.pop('roles')
-    return redirect(url_for('main_menu'))
+    return redirect(url)
 
 
 @app.route('/')
