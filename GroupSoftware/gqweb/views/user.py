@@ -20,7 +20,7 @@ def add_user():
     comment = request.form.get('comment')
     active = bool(request.form.get('active', False))
 
-    if user is None:
+    if not user:
         flash('Required fields for new user: username')
         return redirect(url_for('usermanager'))
 
@@ -48,7 +48,7 @@ def remove_user():
         return Response(status=520, response="Cannot remove own user!")
     User.query.filter_by(name=user).delete()
     db_session.commit()
-    return Response(status=204, response="Removed user %s" % user)
+    return Response(status=200, response="Removed user %s" % user)
 
 
 @app.route('/user/api/rolechange', methods=['POST'])
@@ -70,15 +70,15 @@ def change_role():
 
     if action:
         user.roles.append(therole)
-        msg = "Added role %s to user %s"
+        msg = "Added role {0} to user {1}"
     else:
         user.roles.remove(therole)
-        msg = "Removed role %s from user %s"
+        msg = "Removed role {0} from user {1}"
 
     db_session.commit()
     session['reload_roles'] = True
 
-    return Response(status=204, response=msg % (username, role))
+    return Response(status=200, response=msg.format(username, role))
 
 
 @app.route('/user/api/activate', methods=['POST'])
@@ -97,4 +97,4 @@ def activeate_user():
     session['reload_roles'] = True
 
     db_session.commit()
-    return Response(status=200)
+    return Response(status=204)
