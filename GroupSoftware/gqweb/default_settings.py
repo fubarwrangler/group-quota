@@ -2,7 +2,7 @@ DATABASE_URI = 'sqlite:////home/willsk/this.db'
 TABLE_NAME = 'atlas_group_quotas'
 DEBUG = True
 
-ADMIN_USER = 'edit'
+ADMIN_USER = 'willsk'
 # ADMIN_USER = 'Administrator'
 
 
