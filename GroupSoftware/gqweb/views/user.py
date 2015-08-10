@@ -48,7 +48,7 @@ def add_user():
 @admin_permission.require(403)
 def remove_user():
 
-    data = request.get_json()
+    data = request.json
     user = data['user']
     if g.user == user:
         return Error("Cannot remove own user!")
@@ -62,7 +62,7 @@ def remove_user():
 @admin_permission.require(403)
 def change_role():
 
-    data = request.get_json()
+    data = request.json
 
     username = data['user']
     role = data['role']
@@ -94,7 +94,7 @@ def change_role():
 @admin_permission.require(403)
 def activeate_user():
 
-    data = request.get_json()
+    data = request.json
     username = data['user']
     user = User.query.filter_by(name=username).first()
 
