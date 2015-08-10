@@ -8,6 +8,7 @@
 from flask import (Flask, render_template, flash, redirect, url_for, config,
                    request, session)
 from flask.ext.principal import Principal
+from flask_debugtoolbar import DebugToolbarExtension
 
 app = Flask(__name__)
 
@@ -17,6 +18,8 @@ app.config.from_object(__name__)
 app.config.from_object('gqweb.default_settings')
 app.config.from_envvar('GQEDITCFG', silent=True)
 # app.config['APPLICATION_ROOT'] = '/farmapp/'
+toolbar = DebugToolbarExtension(app)
+
 
 from db import db_session
 from db.models import Group, User, Role, build_group_tree_db
