@@ -92,7 +92,7 @@ $('input[name="new+group_name"]').click(function() {
     </div>
   </div>
   <div class="row">
-    <a href="/" class="btn btn-default btn-sm" role="button">Back</a>
+    <a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
     <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
     <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Groups</button>
   </div>
