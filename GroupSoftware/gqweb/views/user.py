@@ -5,7 +5,7 @@
 # ===========================================================================
 from flask import request, redirect, url_for, flash, Response, session, g
 
-from .. import app
+from ..application import app
 
 from ..db import db_session
 from ..db.models import User, Role

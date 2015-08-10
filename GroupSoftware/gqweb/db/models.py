@@ -9,11 +9,11 @@ import hashlib
 from group.group import AbstractGroup
 from group.db import _build_groups_db
 
-from .. import app
+from ..application import app
 
 from sqlalchemy import (Table, Column, Integer, String, Boolean, Float, func,
                         ForeignKey, TIMESTAMP, UniqueConstraint)
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 from . import Base
 

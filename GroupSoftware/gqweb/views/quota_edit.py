@@ -6,7 +6,7 @@
 from collections import defaultdict
 from flask import request, render_template, redirect, url_for, flash
 
-from .. import app
+from ..application import app
 
 from ..db import db_session
 from ..db.models import Group, build_group_tree_db

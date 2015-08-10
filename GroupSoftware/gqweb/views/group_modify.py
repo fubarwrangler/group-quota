@@ -5,7 +5,7 @@
 # =============================================================================
 from flask import render_template, redirect, url_for, flash, request
 
-from .. import app
+from ..application import app
 
 from ..db import db_session
 from ..db.models import Group, build_group_tree_db

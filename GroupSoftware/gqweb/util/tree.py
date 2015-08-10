@@ -4,7 +4,7 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from .. import app
+from ..application import app
 
 from validation import group_defaults
 from ..db.models import build_group_tree_formdata
