@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block navbar %}
-{{ macros.navbar(('Home', '/')) }}
+{{ macros.navbar(('Home', 'main_menu')) }}
 {% endblock %}
 {% block body %}
 {%-  if 'admin' in session.roles %}
 <div class="" id="adminbtn">
   <div class="col-xs-6">
-    <a href="/user" class="btn btn-warning btn-sm" role="button">Administer Users</a>
+    <a href="{{ url_for('usermanager') }}" class="btn btn-warning btn-sm" role="button">Administer Users</a>
   </div>
 </div>
 {%- endif %}
@@ -51,13 +51,13 @@
     <div class="col-xs-12">
     {%- set nogroups = "" if groups|length > 0 else " disabled" %}
     {%-  if 'admin' in session.roles or 'balance' in session.roles %}
-      <a href="/ezq" class="btn btn-success btn-sm{{ nogroups}}" role="button">Quotas EZ-Edit</a>
+      <a href="{{ url_for('ez_quota_chooser') }}" class="btn btn-success btn-sm{{ nogroups}}" role="button">Quotas EZ-Edit</a>
     {%- endif %}
     {%-  if 'admin' in session.roles or 'edit' in session.roles %}
-      <a href="/edit" class="btn btn-primary btn-sm{{ nogroups}}" role="button">Edit Groups</a>
+      <a href="{{ url_for('edit_groups') }}" class="btn btn-primary btn-sm{{ nogroups}}" role="button">Edit Groups</a>
     {%- endif %}
     {%-  if 'admin' in session.roles or 'alter' in session.roles %}
-      <a href="/addrm" class="btn btn-danger btn-sm" role="button">Add/Remove Groups</a>
+      <a href="{{ url_for('add_groups') }}" class="btn btn-danger btn-sm" role="button">Add/Remove Groups</a>
     {%- endif %}
     </div>
   </div>

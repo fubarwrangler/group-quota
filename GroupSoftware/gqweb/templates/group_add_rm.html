@@ -14,10 +14,10 @@ $('input[name="new+group_name"]').click(function() {
 {%- endblock -%}
 
 {%- block navbar %}
-{%- if typeerrors or gen_err or rmerrors %}
-{{ macros.navbar(('Home', '/'), ('Modify Groups', '/addrm'), ('Error', None)) }}
+{%- if error or rmerrors or errors %}
+{{ macros.navbar(('Home', 'main_menu'), ('Modify Groups', 'add_groups'), ('Error', None)) }}
 {%- else %}
-{{ macros.navbar(('Home', '/'), ('Modify Groups', None)) }}
+{{ macros.navbar(('Home', 'main_menu'), ('Modify Groups', None)) }}
 {%- endif %}
 {%- endblock %}
 

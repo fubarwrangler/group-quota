@@ -9,7 +9,7 @@
 {%- endblock %}
 
 {%- block navbar %}
-{{ macros.navbar(('Home', '/'), ('Quota-EZ Chooser', '/ezq'), ('EZ Edit', 'None')) }}
+{{ macros.navbar(('Home', 'main_menu'), ('Quota-EZ Chooser', 'ez_quota_chooser'), ('EZ Edit', 'None')) }}
 {%- endblock -%}
 
 {%- block body -%}
@@ -28,7 +28,7 @@
 <div class="row">
   <span class="col-xs-3">
   {%- if group.children|length > 1 %}
-    <a href="/ezq/{{group}}">{{group}}</a>
+    <a href="{{ url_for('ez_quota_edit', parent=group) }}">{{group}}</a>
   {%- else %}
     {{group}}
   {%- endif%}
