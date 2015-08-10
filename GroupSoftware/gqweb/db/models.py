@@ -36,8 +36,10 @@ class Group(Base):
     last_surplus_update = Column(TIMESTAMP, nullable=True)
 
 user_role_table = Table('user_roles', Base.metadata,
-                        Column('user_id', Integer, ForeignKey('users.id')),
-                        Column('role_id', Integer, ForeignKey('roles.id')),
+                        Column('user_id', Integer,
+                               ForeignKey('users.id', ondelete='cascade')),
+                        Column('role_id', Integer,
+                               ForeignKey('roles.id', ondelete='cascade')),
                         UniqueConstraint('user_id', 'role_id'),
                         mysql_engine='InnoDB', mysql_charset='utf8',
                         )

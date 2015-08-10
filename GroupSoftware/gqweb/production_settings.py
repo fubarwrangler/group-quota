@@ -2,7 +2,7 @@ import config
 
 DATABASE_URI = 'mysql://%(user)s:%(passwd)s@%(host)s/%(db)s' % config.db
 TABLE_NAME = 'groups'
-DEBUG = True
+DEBUG = False
 
 ADMIN_USER = 'willsk'
 APPLICATION_ROOT = '/farmdebug/'
@@ -15,5 +15,5 @@ SESSION_COOKIE_NAME = 'gqweb_session'
 #
 #   $ tr -c -d '[:alnum:][!#$%&*.,]' < /dev/urandom | head -c 20
 #
-SECRET_KEY = 'ChAnGEmE!!-- rZB[6ogb#e#lzz.rXmr&'
+SECRET_KEY = 'ChAnGEmE!!-- aghhh'
 # SESSION_COOKIE_SECURE = True
