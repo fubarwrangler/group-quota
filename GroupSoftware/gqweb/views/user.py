@@ -79,15 +79,15 @@ def change_role():
 
     if action:
         user.roles.append(therole)
-        msg = "Added role {0} to user {1}"
+        msg = "Added role <b>{0}</b> to user <i>{1}</i>"
     else:
         user.roles.remove(therole)
-        msg = "Removed role {0} from user {1}"
+        msg = "Removed role <b>{0}</b> from user <i>{1}</i>"
 
     db_session.commit()
     session['reload_roles'] = True
 
-    return Ok(msg.format(username, role))
+    return Ok(msg.format(role, username))
 
 
 @app.route('/user/api/activate', methods=['POST'])

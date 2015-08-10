@@ -34,7 +34,7 @@ $('.aj_active').on('switchChange.bootstrapSwitch', function(event, state) {
             $jqthis.bootstrapSwitch('toggleState', true);
         })
         .done(function() {
-            var msg = (state ? "Activated" : "Deactivated") + ' user ' + user;
+            var msg = (state ? "Activated" : "Deactivated") + ' user <i>' + user + '</i>';
             flash(msg, state? 'success' : 'warning');
         });
 });
