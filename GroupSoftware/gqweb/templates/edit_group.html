@@ -22,9 +22,9 @@ $(function () {
 
 {%- block navbar %}
 {%- if errors %}
-{{ macros.navbar(('Home', '/'), ('Edit Groups', '/edit'), ('Error', '')) }}
+{{ macros.navbar(('Home', 'main_menu'), ('Edit Groups', 'edit_groups'), ('Error', '')) }}
 {%- else %}
-{{ macros.navbar(('Home', '/'), ('Edit Groups', '')) }}
+{{ macros.navbar(('Home', 'main_menu'), ('Edit Groups', '')) }}
 {%- endif %}
 {%- endblock %}
 
@@ -118,7 +118,7 @@ $(function () {
     </tbody>
   </table>
   <br>
-<a href="/" class="btn btn-default btn-sm" role="button">Back</a>
+<a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
 <button type="submit" class="btn btn-primary btn-sm">Submit</button>
 </form>
 {% endif -%}
