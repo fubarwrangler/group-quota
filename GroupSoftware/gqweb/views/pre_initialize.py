@@ -8,7 +8,7 @@
 from flask import request, session, g
 from flask.ext.principal import Identity, AnonymousIdentity, RoleNeed
 
-from .. import app, principals
+from ..application import app, principals
 from ..db import db_session
 from ..db.models import User, Role
 from ..util.userload import load_user_debug, load_user_header
@@ -18,8 +18,8 @@ from ..util.userload import load_user_debug, load_user_header
 def default_users_and_roles():
 
     def add_unique(obj, attr='name'):
-        ocl = type(obj)
-        if not ocl.query.filter(getattr(ocl, attr) == getattr(obj, attr)).first():
+        c = type(obj)
+        if not c.query.filter(getattr(c, attr) == getattr(obj, attr)).first():
             db_session.add(obj)
 
     admin_u = User(name=app.config['ADMIN_USER'], active=True,
@@ -33,7 +33,6 @@ def default_users_and_roles():
     add_unique(Role(name='alter',   comment='Can add / remove groups'))
     add_unique(Role(name='edit',    comment='Can edit all group parameters'))
     add_unique(Role(name='balance', comment='Can rebalance quotas with EZ-Editor'))
-
 
     db_session.commit()
 
