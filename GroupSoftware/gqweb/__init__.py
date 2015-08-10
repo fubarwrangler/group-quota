@@ -6,8 +6,9 @@
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
 from flask import (Flask, render_template, flash, redirect, url_for, config,
-                   request, session, g)
-from flask.ext.principal import Principal, Identity, AnonymousIdentity, RoleNeed
+                   request, session)
+from flask.ext.principal import Principal
+from flask_debugtoolbar import DebugToolbarExtension
 
 app = Flask(__name__)
 
@@ -17,11 +18,12 @@ app.config.from_object(__name__)
 app.config.from_object('gqweb.default_settings')
 app.config.from_envvar('GQEDITCFG', silent=True)
 # app.config['APPLICATION_ROOT'] = '/farmapp/'
+toolbar = DebugToolbarExtension(app)
+
 
 from db import db_session
 from db.models import Group, User, Role, build_group_tree_db
 from util.validation import group_defaults
-from util.userload import load_user_debug, load_user_header
 from util.userload import (admin_permission, edit_permission, balance_permission,
                            add_remove_permission)
 
@@ -29,7 +31,8 @@ from util.userload import (admin_permission, edit_permission, balance_permission
 import views.quota_edit       # flake8: noqa -- this unused import has views
 import views.group_modify     # flake8: noqa -- this unused import has views
 import views.ez_edit          # flake8: noqa -- this unused import has views
-import views.user          # flake8: noqa -- this unused import has views
+import views.user             # flake8: noqa -- this unused import has views
+import views.pre_initialize   # flake8: noqa -- this unused import has setup
 
 
 namesort = lambda root: sorted(list(root), key=lambda x: x.full_name)
@@ -39,63 +42,6 @@ namesort = lambda root: sorted(list(root), key=lambda x: x.full_name)
 def shutdown_session(exception=None):
     db_session.remove()
 
-
-@app.before_first_request
-def default_users_and_roles():
-
-    def add_unique(obj, attr='name'):
-        ocl = type(obj)
-        if not ocl.query.filter(getattr(ocl, attr) == getattr(obj, attr)).first():
-            db_session.add(obj)
-
-    add_unique(User(name=app.config['ADMIN_USER'], active=True, comment="Default admin user"))
-
-    add_unique(Role(name='admin',   comment='Full administrator with all privileges'))
-    add_unique(Role(name='alter',   comment='Can add / remove groups'))
-    add_unique(Role(name='edit',    comment='Can edit all group parameters'))
-    add_unique(Role(name='balance', comment='Can rebalance quotas with EZ-Editor'))
-
-    db_session.commit()
-
-@principals.identity_loader
-def load_identity():
-
-    if request.path.startswith("/static/"):
-        return AnonymousIdentity()
-
-    reconfig = session.get('reload_roles', False)
-    if reconfig:
-        session.pop('reload_roles')
-    username = session.get('user')
-    if not username or reconfig:
-        app.logger.debug("New user loaded")
-
-        if app.config['DEBUG']:
-            username = load_user_debug(app.config['ADMIN_USER'])
-        else:
-            username = load_user_header('REMOTE_USER')
-        session['user'] = username
-
-    roles = session.get('roles')
-    if not roles or reconfig:
-        user = User.query.filter_by(name=username).first()
-        if not user:
-            g.user = 'anonymous'
-            return AnonymousIdentity()
-        roles = [role.name for role in user.roles] if user.active else []
-        app.debug.info("New roles loaded: %s", roles)
-        session['roles'] = roles
-        session['active'] = user.active
-
-    identity = Identity(username)
-    if session.get('active'):
-        for role in roles:
-            identity.provides.add(RoleNeed(role))
-
-    g.user = username
-    g.roles = roles
-
-    return identity
 
 @app.route('/logout')
 def logout():
