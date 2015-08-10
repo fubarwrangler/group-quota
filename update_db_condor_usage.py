@@ -21,14 +21,14 @@ import datetime
 import subprocess
 
 try:
-    conn = MySQLdb.connect(db="group_quotas", host="database.rcf.bnl.gov",
+    conn = MySQLdb.connect(db="atlas_groups", host="database.rcf.bnl.gov",
                            user="atlas_update", passwd="XPASSX")
     dbc = conn.cursor()
 except MySQLdb.Error, e:
     print "DB Error %d: %s" % (e.args[0], e.args[1])
     sys.exit(1)
 
-dbc.execute("SELECT group_name FROM atlas_group_quotas")
+dbc.execute("SELECT group_name FROM groups")
 db_groups = set(x[0] for x in dbc)
 dbc.close()
 if not db_groups:
@@ -58,9 +58,9 @@ for group in (x for x in db_groups if x not in active):
 try:
     dbc = conn.cursor()
     for x in active:
-        dbc.execute('UPDATE atlas_group_quotas SET busy = %d WHERE group_name = "%s"' %
+        dbc.execute('UPDATE groups SET busy = %d WHERE group_name = "%s"' %
                     (active[x], x))
-    dbc.execute('UPDATE atlas_group_quotas SET last_update = %s', datetime.datetime.now())
+    dbc.execute('UPDATE groups SET last_update = %s', datetime.datetime.now())
     dbc.close()
 except MySQLdb.Error, e:
     print "DB Error %d: %s" % (e.args[0], e.args[1])

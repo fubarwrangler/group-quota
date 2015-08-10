@@ -24,10 +24,10 @@ keep_days = 30
 def insert_to_db(data):
     try:
         con, cur = config.dbconn.get()
-        cur.executemany('INSERT INTO atlas_queue_log (`id`, `amount_in_queue`) '
-                        'SELECT id, %s FROM atlas_group_quotas WHERE group_name=%s',
+        cur.executemany('INSERT INTO queue_log (`id`, `amount_in_queue`) '
+                        'SELECT id, %s FROM groups WHERE group_name=%s',
                         statements)
-        cur.execute('DELETE FROM atlas_queue_log WHERE '
+        cur.execute('DELETE FROM queue_log WHERE '
                     'query_time < DATE_SUB(NOW(), INTERVAL %d DAY)' % keep_days)
         con.commit()
     except MySQLdb.Error as E:

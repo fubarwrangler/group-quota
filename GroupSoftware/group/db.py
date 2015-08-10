@@ -21,7 +21,7 @@ class TreeException(Exception):
 def _get_groups(fields):
     """ Return groups from DB ordered by name appropriate for tree creation """
 
-    query = 'SELECT %s FROM atlas_group_quotas ORDER BY group_name' % ", ".join(fields)
+    query = 'SELECT %s FROM groups ORDER BY group_name' % ", ".join(fields)
 
     try:
         con, cur = db.get(curclass=MySQLdb.cursors.DictCursor)
@@ -81,7 +81,7 @@ def update_surplus_flags(root):
     """
 
     con, cur = db.get()
-    cur.execute("SELECT group_name, accept_surplus, last_surplus_update FROM atlas_group_quotas")
+    cur.execute("SELECT group_name, accept_surplus, last_surplus_update FROM groups")
     db_surplus = dict((x, (bool(y), z)) for x, y, z in cur.fetchall())
     year = (60 * 60) * 24 * 365
     now = datetime.datetime.now()
@@ -97,7 +97,7 @@ def update_surplus_flags(root):
         if last_change > c.change_lookback * 60:
             log.info("Changing %s from %s->%s", group.full_name,
                      not group.accept, group.accept)
-            cur.execute("UPDATE atlas_group_quotas SET last_surplus_update=now(), "
+            cur.execute("UPDATE groups SET last_surplus_update=now(), "
                         "accept_surplus=%s WHERE group_name=%s",
                         (group.accept, group.full_name))
         else:

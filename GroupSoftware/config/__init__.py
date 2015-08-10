@@ -1,13 +1,11 @@
 # Parameters shared by QBalance software
-
 import os
-
 
 # Db Connection parameters
 db = {
     'host': 'localhost',
-    'db': 'group_quotas',
-    'passwd': os.environ.get('GQ_DBPASS', 'xxx'),
+    'db': 'atlas_groups',
+    'passwd': os.environ.get('GQ_DBPASS', 'default'),
     'user': 'gqu'
 }
 
@@ -21,5 +19,5 @@ demand_lookback = 160
 # a sufficiently fast decrease to not be considered for demand
 pct_dec_spike = 60
 
-analyze_logfile = "/home/mvjensen/atlasSurplus.log"
-panda_logfile = '/scratch/panda_dump.log'
+analyze_logfile = '/tmp/surplus_analysis.log'
+panda_logfile = '/tmp/panda_dump.log'

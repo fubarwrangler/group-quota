@@ -1,5 +1,7 @@
-DATABASE_URI = 'sqlite:////home/willsk/this.db'
-TABLE_NAME = 'atlas_group_quotas'
+import config
+
+DATABASE_URI = 'mysql://%(user)s:%(passwd)s@%(host)s/%(db)s' % config.db
+TABLE_NAME = 'groups'
 DEBUG = True
 
 ADMIN_USER = 'willsk'

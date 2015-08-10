@@ -1,9 +1,9 @@
 --
--- Table structure for table `atlas_group_quotas`
+-- Table structure for table `groups`
 --
 
-DROP TABLE IF EXISTS `atlas_group_quotas`;
-CREATE TABLE `atlas_group_quotas` (
+DROP TABLE IF EXISTS `groups`;
+CREATE TABLE `groups` (
       `id` int AUTO_INCREMENT not null,
       `group_name` varchar(128) NOT NULL,
       `quota` int(12) NOT NULL DEFAULT 0,
@@ -19,13 +19,13 @@ CREATE TABLE `atlas_group_quotas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-DROP TABLE IF EXISTS `atlas_queue_log`;
-CREATE TABLE `atlas_queue_log` (
+DROP TABLE IF EXISTS `queue_log`;
+CREATE TABLE `queue_log` (
   `id` int DEFAULT NULL,
   `amount_in_queue` int(10) unsigned NOT NULL DEFAULT '0',
   `query_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT FK_qlog_gq_id FOREIGN KEY
-    (`id`) REFERENCES `atlas_group_quotas` (`id`)
+    (`id`) REFERENCES `groups` (`id`)
     ON DELETE CASCADE,
   KEY `ts_idx` (`query_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -33,7 +33,7 @@ CREATE TABLE `atlas_queue_log` (
 CREATE USER 'atlas_update'@'%' IDENTIFIED BY 'xxx';
 CREATE USER 'atlas_edit'@'%' IDENTIFIED BY 'xxx';
 
-GRANT SELECT, UPDATE ON group_quotas.atlas_group_quotas TO 'atlas_update'@'%';
-GRANT SELECT, INSERT, UPDATE, DELETE ON group_quotas.atlas_group_quotas TO 'atlas_edit'@'%';
+GRANT SELECT, UPDATE ON atlas_groups.groups TO 'atlas_update'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON atlas_groups.groups TO 'atlas_edit'@'%';
 
 FLUSH PRIVILEGES;

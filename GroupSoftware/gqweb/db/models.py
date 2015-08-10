@@ -71,7 +71,7 @@ class Role(Base):
 class UsageLog(Base):
     """ Not used by web-interface, but let us create it anyway ! """
 
-    __tablename__ = 'atlas_queue_log'
+    __tablename__ = 'queue_log'
     __table_args__ = {'mysql_engine': 'InnoDB'}
 
     id = Column(Integer, ForeignKey(group_id, ondelete="cascade"), primary_key=True)
