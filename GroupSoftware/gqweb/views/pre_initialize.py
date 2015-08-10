@@ -29,13 +29,13 @@ def default_users_and_roles():
     add_unique(admin_u)
     add_unique(admin_role)
 
-    the_admin_role = Role.query.filter_by(name='admin').first()
+    db_admin_role = Role.query.filter_by(name='admin').first()
 
     add_unique(Role(name='alter',   comment='Can add / remove groups'))
     add_unique(Role(name='edit',    comment='Can edit all group parameters'))
     add_unique(Role(name='balance', comment='Can rebalance quotas with EZ-Editor'))
 
-    admin_u.roles.append(the_admin_role)
+    admin_u.roles.append(admin_role if not db_admin_role else db_admin_role)
 
     db_session.commit()
 

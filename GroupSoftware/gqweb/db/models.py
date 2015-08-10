@@ -68,16 +68,13 @@ class Role(Base):
         return self.name
 
 
-class UsageLog(Base):
-    """ Not used by web-interface, but let us create it anyway ! """
-
-    __tablename__ = 'queue_log'
-    __table_args__ = {'mysql_engine': 'InnoDB'}
-
-    id = Column(Integer, ForeignKey(group_id, ondelete="cascade"), primary_key=True)
-    amount_in_queue = Column(Integer, nullable=False, server_default='0')
-    query_time = Column(TIMESTAMP, nullable=False, index=True,
-                        server_default=func.now())
+# Table isn't mapped, but we may as well create it here anyway!
+q_log = Table('queue_log', Base.metadata,
+              Column('id', Integer, ForeignKey(group_id, ondelete="cascade")),
+              Column('amount_in_queue', Integer, nullable=False, server_default='0'),
+              Column('query_time', TIMESTAMP, nullable=False, index=True,
+                     server_default=func.now())
+              )
 
 
 class GroupTree(AbstractGroup):
