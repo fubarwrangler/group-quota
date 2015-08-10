@@ -33,7 +33,10 @@ def add_user():
         flash('Cannot add: user %s already exists' % user, category='tmperror')
         return redirect(url_for('usermanager'))
 
-    db_session.add(User(name=user, comment=comment, active=active))
+    uobj = User(name=user, comment=comment, active=active)
+    uobj.roles = list()
+
+    db_session.add(uobj)
     db_session.commit()
 
     flash('Added new user %s' % user)
