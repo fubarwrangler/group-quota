@@ -45,8 +45,6 @@ def add_user():
 @admin_permission.require(403)
 def remove_user():
 
-    # TODO: Block removing current user
-
     data = request.get_json()
     user = data['user']
     if g.user == user:
@@ -70,6 +68,7 @@ def change_role():
     user = User.query.filter_by(name=username).first()
     therole = Role.query.filter_by(name=role).first()
 
+    # Block removing current user & neutering the admin
     if not user or not role:
         return Error("User %s or role %s not found" % (user, therole))
     elif role == 'admin' and username == g.user:
@@ -92,8 +91,6 @@ def change_role():
 @admin_permission.require(403)
 def activeate_user():
 
-    # TODO: Block deactivating current user
-
     data = request.get_json()
     username = data['user']
     user = User.query.filter_by(name=username).first()
@@ -103,6 +100,7 @@ def activeate_user():
 
     user.active = data['active'] == 'on'
 
+    # Block deactivating current user
     if username == g.user and not user.active:
         return Error("Cannot deactivate yourself!")
 

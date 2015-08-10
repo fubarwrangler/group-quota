@@ -109,7 +109,6 @@ class GroupTree(AbstractGroup):
 def build_group_tree_db(db_groups):
     def group_process(f):
         for grp in db_groups:
-            # app.logger.info("%s: %s", grp, grp.__dict__)
             yield grp.__dict__.copy()
     return _build_groups_db(GroupTree, None, group_builder=group_process)
 
@@ -117,6 +116,5 @@ def build_group_tree_db(db_groups):
 def build_group_tree_formdata(formdata):
     def group_process(f):
         for grp in sorted(formdata):
-            # app.logger.info("%s: %s", grp, grp.__dict__)
             yield formdata[grp].copy()
     return _build_groups_db(GroupTree, None, group_builder=group_process)

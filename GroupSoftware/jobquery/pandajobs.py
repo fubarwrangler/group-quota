@@ -28,8 +28,6 @@ queues = {
 }
 
 # **************** Configuration variables and information *****************
-
-# FIXME: This will stop working if/when python validates SSL certs!
 url = "https://pandaserver.cern.ch:25443/server/panda/getJobStatisticsWithLabel"
 
 # According to J. Hover, this is the definitive test for if a queue is analysis

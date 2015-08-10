@@ -32,7 +32,6 @@ def ezedit_chooser(groupparent):
                    request.form.iteritems())              # 1. For each form key-value pair,
             )
         )
-    app.logger.info(new_quotas)
 
     db_groups = Group.query.all()
     root = build_group_tree_db(db_groups)
