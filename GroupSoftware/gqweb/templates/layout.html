@@ -54,7 +54,12 @@
 {%- block body %}{%- endblock %}
 </div>
 <div id="user">
-    Logged in as <i><mark>{{ g.user }}</mark></i>{%- if session.get('active') != 1%} Not active {%- endif %}
+    Logged in as <i><mark>{{ g.user }}</mark></i>
+    {%- if session.get('active') != 1%}
+    <span class="glyphicon glyphicon-warning-sign text-danger"></span> Inactive
+    {%- else -%}
+    <span class="glyphicon glyphicon-ok-sign text-success"></span>
+    {%- endif %}
     (<a href="{{url_for('logout', target=request.script_root + request.path)}}">refresh</a>)
 </div>
 {%- block endjs %}{%- endblock %}
