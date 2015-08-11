@@ -22,7 +22,7 @@ group_id = "{0}.id".format(app.config['TABLE_NAME'])
 
 class Group(Base):
     __tablename__ = app.config['TABLE_NAME']
-    __table_args__ = {'mysql_engine': 'InnoDB'}
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
 
     id = Column(Integer, primary_key=True)
     group_name = Column(String(128), nullable=False, unique=True)
@@ -36,15 +36,18 @@ class Group(Base):
     last_surplus_update = Column(TIMESTAMP, nullable=True)
 
 user_role_table = Table('user_roles', Base.metadata,
-                        Column('user_id', Integer, ForeignKey('users.id')),
-                        Column('role_id', Integer, ForeignKey('roles.id')),
-                        UniqueConstraint('user_id', 'role_id')
+                        Column('user_id', Integer,
+                               ForeignKey('users.id', ondelete='cascade')),
+                        Column('role_id', Integer,
+                               ForeignKey('roles.id', ondelete='cascade')),
+                        UniqueConstraint('user_id', 'role_id'),
+                        mysql_engine='InnoDB', mysql_charset='utf8',
                         )
 
 
 class User(Base):
     __tablename__ = 'users'
-    __table_args__ = {'mysql_engine': 'InnoDB'}
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
 
     id = Column(Integer, primary_key=True)
     name = Column(String(24), nullable=False, unique=True)
@@ -58,7 +61,7 @@ class User(Base):
 
 class Role(Base):
     __tablename__ = 'roles'
-    __table_args__ = {'mysql_engine': 'InnoDB'}
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
 
     id = Column(Integer, primary_key=True)
     name = Column(String(12), nullable=False, unique=True)
@@ -73,7 +76,8 @@ q_log = Table('queue_log', Base.metadata,
               Column('id', Integer, ForeignKey(group_id, ondelete="cascade")),
               Column('amount_in_queue', Integer, nullable=False, server_default='0'),
               Column('query_time', TIMESTAMP, nullable=False, index=True,
-                     server_default=func.now())
+                     server_default=func.now()),
+              mysql_engine='InnoDB', mysql_charset='utf8',
               )
 
 

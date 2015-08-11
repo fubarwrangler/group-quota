@@ -3,7 +3,7 @@ from flask.ext.principal import RoleNeed, Permission
 
 
 def load_user_header(header='REMOTE_USER'):
-    user = request.headers.get(header)
+    user = request.environ.get(header)
     return user
 
 
