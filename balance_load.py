@@ -4,12 +4,12 @@ import optparse
 import logging
 import sys
 
-import group.db as group_db
-import group.idlejobs as idle
-import group.balance as balance
-import config as c
+import gq.group.db as group_db
+import gq.group.idlejobs as idle
+import gq.group.balance as balance
+import gq.config as c
 
-from log import setup_logging
+from gq.log import setup_logging
 
 
 def log_group_tree(groups):

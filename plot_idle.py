@@ -2,7 +2,7 @@
 
 import sys
 
-import config.dbconn as db
+import gq.config.dbconn as db
 import matplotlib.pyplot as plt
 
 QUEUE = sys.argv[1]

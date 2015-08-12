@@ -11,6 +11,6 @@ moddir = os.path.dirname(__file__)
 mods = [os.path.basename(x) for x in glob.glob(moddir + "/*.py")]
 mods.pop(mods.index('__init__.py'))
 
-module_names = [os.path.basename(moddir)+'.'+x[:-3] for x in mods]
+module_names = ['gq.' + os.path.basename(moddir) + '.' + x[:-3] for x in mods]
 
 __all__ = ['module_names']
