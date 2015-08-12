@@ -16,7 +16,6 @@ principals = Principal(app)
 app.config.from_object(__name__)
 app.config.from_object('gqweb.default_settings')
 app.config.from_envvar('GQEDITCFG', silent=True)
-# app.config['APPLICATION_ROOT'] = '/farmapp/'
 
 from db import db_session
 from db.models import Group, User, Role, build_group_tree_db
