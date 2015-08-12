@@ -6,8 +6,8 @@
 # ===========================================================================
 import hashlib
 
-from group.group import AbstractGroup
-from group.db import _build_groups_db
+from gq.group import AbstractGroup
+from gq.group.db import _build_groups_db
 
 from ..application import app
 

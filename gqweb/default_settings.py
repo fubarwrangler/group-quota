@@ -1,4 +1,4 @@
-import config
+import gq.config as config
 
 DATABASE_URI = 'mysql://%(user)s:%(passwd)s@%(host)s/%(db)s' % config.db
 TABLE_NAME = 'groups'
