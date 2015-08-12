@@ -31,10 +31,10 @@ import sys
 import tempfile
 import time
 
-import group.group
-import group.db
-import group.file
-from log import setup_logging
+import gq.group as group
+import gq.group.db as gdb
+import gq.group.file as gfile
+from gq.log import setup_logging
 
 from email.MIMEText import MIMEText
 from email.utils import formatdate
@@ -51,7 +51,7 @@ log = setup_logging(None, backup=3, size_mb=40, level=logging.DEBUG)
 os.environ['EXTRA_CFG_D'] = '/etc/condor/atlas.d/'
 
 
-class UpdateQuotaGroup(group.group.QuotaGroup):
+class UpdateQuotaGroup(group.QuotaGroup):
 
     def get_diff_str(self, other):
         mine = set([x.full_name for x in self.all()])
@@ -111,8 +111,8 @@ class UpdateQuotaGroup(group.group.QuotaGroup):
             sys.exit(1)
 
 
-get_file_groups = lambda x: group.file.build_quota_groups_file(x, UpdateQuotaGroup)
-get_db_groups = lambda: group.db.build_quota_groups_db(UpdateQuotaGroup)
+get_file_groups = lambda x: gfile.build_quota_groups_file(x, UpdateQuotaGroup)
+get_db_groups = lambda: gdb.build_quota_groups_db(UpdateQuotaGroup)
 
 
 def overwrite_file(groups):
