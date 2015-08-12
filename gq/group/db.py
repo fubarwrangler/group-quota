@@ -6,8 +6,8 @@ import datetime
 import MySQLdb
 import MySQLdb.cursors
 
-import config.dbconn as db
-import config as c
+from ..config import dbconn as db
+from .. import config as c
 
 from group import DemandGroup, QuotaGroup
 

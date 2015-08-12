@@ -7,6 +7,8 @@ from collections import deque
 
 log = logging.getLogger()
 
+__all__ = ['AbstractGroup', 'DemandGroup', 'QuotaGroup']
+
 
 class AbstractGroup(object):
     """ A tree of scheduling groups. Leaf nodes are groups where jobs are

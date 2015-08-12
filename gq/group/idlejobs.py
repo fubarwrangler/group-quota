@@ -4,8 +4,8 @@
 # the last hour.
 
 import logging
-import config.dbconn as db
-import config as c
+from ..config import dbconn as db
+from .. import config as c
 
 log = logging.getLogger()
 

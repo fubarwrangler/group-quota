@@ -4,14 +4,14 @@ import MySQLdb
 import logging
 import sys
 
-import config.dbconn
-import config as c
+import gq.config.dbconn
+import gq.config as c
 
-from log import setup_logging
+from gq.log import setup_logging
 
 log = setup_logging(c.panda_logfile, backup=3, size_mb=20, level=logging.INFO)
 
-from jobquery import module_names
+from gq.jobquery import module_names
 
 modules = list()
 for mod in module_names:
@@ -23,7 +23,7 @@ keep_days = 30
 
 def insert_to_db(data):
     try:
-        con, cur = config.dbconn.get()
+        con, cur = gq.config.dbconn.get()
         cur.executemany('INSERT INTO queue_log (`id`, `amount_in_queue`) '
                         'SELECT id, %s FROM groups WHERE group_name=%s',
                         statements)

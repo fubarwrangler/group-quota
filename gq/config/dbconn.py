@@ -1,4 +1,4 @@
-import config as c
+from . import db
 import MySQLdb
 import sys
 
@@ -9,7 +9,7 @@ log = logging.getLogger()
 
 def get(curclass=None):
     try:
-        con = MySQLdb.connect(**c.db)
+        con = MySQLdb.connect(**db)
         cur = con.cursor(cursorclass=curclass)
     except MySQLdb.Error as E:
         log.error("Error connecting to database: %s" % E)
