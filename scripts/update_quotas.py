@@ -74,13 +74,14 @@ class UpdateQuotaGroup(group.QuotaGroup):
             diffattrs = mygrp.diff(theirgrp)
             for attr, myval, theirval in ((x, getattr(mygrp, x), getattr(theirgrp, x))
                                           for x in diffattrs):
-                s += "Group '%s' - %s changed from %s to %s\n" % (grpname, attr, myval, theirval)
+                s += "Group '%s' - %s changed from %s to %s\n" % \
+                    (grpname, attr, myval, theirval)
 
         return s
 
     def __str__(self):
 
-        msg = "GROUP_NAMES = %s\n" % ', '.join(x.full_name for x in self)
+        msg = "GROUP_NAMES = %s\n" % ', \\\n'.join(x.full_name for x in self)
         for g in reversed(list(self)):
             msg += '\n'
             msg += 'GROUP_QUOTA_%s = %d\n' % (g.full_name, g.quota)
@@ -124,6 +125,7 @@ def overwrite_file(groups):
     # Needs to be on same filesystem to allow hardlinking that goes on when
     # os.rename() is called, else we get a 'Invalid cross-device link' error
     tmpname = tempfile.mktemp(suffix='grpq', dir=os.path.dirname(QUOTA_FILE))
+    log.debug("Writing temporary file: %s", tmpname)
     groups.write_file(tmpname)
 
     # This may be overkill...but can't hurt -- reread tmpfile and compare w/ db
