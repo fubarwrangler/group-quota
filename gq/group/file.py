@@ -46,6 +46,27 @@ def build_quota_groups_file(fname, grpCLS=group.QuotaGroup):
     return root
 
 
+def read_lines_continue(fobj):
+    """ Continue lines that end in backslash """
+
+    in_line = False
+    tmp = ''
+    for line in (x.strip() for x in fobj if x):
+        if re.match('^\s*#', line):
+            continue
+
+        if line.endswith('\\'):
+            tmp += line.rstrip('\\')
+            in_line = True
+            continue
+        elif in_line:
+            in_line = False
+            line = tmp + line.rstrip('\\')
+            tmp = ''
+
+        yield line
+
+
 def _read_quotas(fname):
     try:
         fp = open(fname, "r")
@@ -64,7 +85,7 @@ def _read_quotas(fname):
 
     grps = {}
     group_names = []
-    for line in (x.strip() for x in fp if x and not re.match('^\s*#', x)):
+    for line in read_lines_continue(fp):
 
         for kind, regex in regexes.items():
             if not regex.match(line):
