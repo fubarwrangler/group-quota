@@ -1,6 +1,5 @@
 #!/usr/bin/python
 from gqweb import app as application
-
 URL_PREFIX = '/farmdebug'
 
 
@@ -26,3 +25,12 @@ class RemoteUserMiddleware(object):
 
 application = ScriptNameEdit(application)
 application = RemoteUserMiddleware(application)
+
+if __name__ == "__main__":
+    import logging
+    import sys
+    from werkzeug.serving import run_simple
+
+    logging.basicConfig(level=logging.DEBUG, stream=sys.stderr)
+    run_simple('0.0.0.0', 5000, application,
+               use_reloader=True, use_debugger=True, use_evalex=True)
