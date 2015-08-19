@@ -1,23 +1,37 @@
 # Parameters shared by QBalance software
 import os
+import sys
+import os.path
+import logging
+import ConfigParser
+
+_sources = ('/etc/gq.cfg', os.environ.get('GQ_CONFIG', ''))
+
+_cfg = ConfigParser.ConfigParser()
+_moduledir = os.path.dirname(os.path.realpath(__file__))
+_defaultconfig = os.path.join(_moduledir, 'defaults.cfg')
+try:
+    _cfg.readfp(open(_defaultconfig))
+except EnvironmentError:
+    logging.error("Cannot read default config: %s", _defaultconfig)
+    sys.exit(1)
+
+_cfg.read(_sources)
 
 # Db Connection parameters
 db = {
-    'host': 'localhost',
-    'db': 'atlas_groups',
-    'passwd': os.environ.get('GQ_DBPASS', 'default'),
-    'user': 'gqu'
+    'host':     _cfg.get('mysql-db', 'host'),
+    'db':       _cfg.get('mysql-db', 'database'),
+    'user':     _cfg.get('mysql-db', 'user'),
+    'passwd':   _cfg.get('mysql-db', 'password'),
 }
 
-# Minutes to look back for last change
-change_lookback = 30
+change_lookback = _cfg.getint('params', 'change_lookback')
 
-# Minutes ago to average to consider for demand
-demand_lookback = 160
+demand_lookback = _cfg.getint('params', 'demand_lookback')
+pct_dec_spike = _cfg.getfloat('params', 'pct_dec_spike')
 
-# Percent decrease betwen halves in spike-calculation that would indicate
-# a sufficiently fast decrease to not be considered for demand
-pct_dec_spike = 60
+analyze_logfile = _cfg.get('logging', 'analyze_logfile')
+panda_logfile = _cfg.get('logging', 'panda_logfile')
 
-analyze_logfile = '/tmp/surplus_analysis.log'
-panda_logfile = '/tmp/panda_dump.log'
+log_level = getattr(logging, _cfg.get('logging', 'level').upper())
