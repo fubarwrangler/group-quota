@@ -27,7 +27,7 @@ parser.add_option("-l", "--logfile", action="store", default=c.analyze_logfile,
                   help="File to log information to ('-' for stderr)")
 options, args = parser.parse_args()
 
-loglevel = logging.DEBUG if options.debug else logging.INFO
+loglevel = logging.DEBUG if options.debug else c.log_level
 
 log = setup_logging(options.logfile, backup=3, size_mb=40, level=loglevel)
 
