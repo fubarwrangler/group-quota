@@ -1,15 +1,14 @@
-import config
+import gq.config as config
 
 DATABASE_URI = 'mysql://%(user)s:%(passwd)s@%(host)s/%(db)s' % config.db
-TABLE_NAME = 'groups'
+APP_NAME = 'ATLAS'
 DEBUG = False
 
 ADMIN_USER = 'willsk'
-APPLICATION_ROOT = '/farmdebug/'
-SESSION_COOKIE_NAME = 'gqweb_session'
+# APPLICATION_ROOT = '/farmapp/'
+SESSION_COOKIE_NAME = 'gqweb_s_{0}'.format(APP_NAME)
 
-# ADMIN_USER = 'Administrator'
-
+LOG_FILE = '/tmp/gq_{0}_log'.format(APP_NAME)
 
 # XXX: NOT REALLY USED IN PROD: Do the following and put in environs
 #
