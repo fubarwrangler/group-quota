@@ -64,10 +64,10 @@ def get_jobs():
             idle[queues[panda_q]] = 0
             continue
         else:
-            log.debug("queue %s: %s", panda_q, data)
+            log.debug("PANDA queue %s: %s", panda_q, data)
 
         n = get_num_activated(panda_q, data)
-        log.info("%s:%s has %d activated", panda_q, queues[panda_q], n)
+        log.debug("%s:%s has %d activated", panda_q, queues[panda_q], n)
 
         idle[queues[panda_q]] = n
 
