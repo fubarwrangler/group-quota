@@ -19,7 +19,7 @@
     var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
   </script>
   {%- block extraheaders %}{% endblock %}
-  <title>ATLAS Group Quotas</title>
+  <title>{{ config['APP_NAME'] }} Group Quotas</title>
 </head>
 <body>
 {%- block navbar %}{%- endblock %}
@@ -54,6 +54,7 @@
 {%- block body %}{%- endblock %}
 </div>
 <div id="user">
+    ({{ config['APP_NAME'] }}) &mdash;
     Logged in as <i><mark>{{ g.user }}</mark></i>
     {%- if session.get('active') != 1%}
     <span class="glyphicon glyphicon-warning-sign text-danger"></span> Inactive

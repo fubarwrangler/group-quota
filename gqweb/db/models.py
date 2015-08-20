@@ -17,11 +17,9 @@ from sqlalchemy.orm import relation as relationship
 
 from . import Base
 
-group_id = "{0}.id".format(app.config['TABLE_NAME'])
-
 
 class Group(Base):
-    __tablename__ = app.config['TABLE_NAME']
+    __tablename__ = 'groups'
     __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
 
     id = Column(Integer, primary_key=True)
@@ -73,7 +71,7 @@ class Role(Base):
 
 # Table isn't mapped, but we may as well create it here anyway!
 q_log = Table('queue_log', Base.metadata,
-              Column('id', Integer, ForeignKey(group_id, ondelete="cascade")),
+              Column('id', Integer, ForeignKey('groups.id', ondelete="cascade")),
               Column('amount_in_queue', Integer, nullable=False, server_default='0'),
               Column('query_time', TIMESTAMP, nullable=False, index=True,
                      server_default=func.now()),

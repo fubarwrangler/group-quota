@@ -34,4 +34,5 @@ setup(
     install_requires=['MySQL-python'],
     keywords='htcondor condor group-quota flask',
     packages=find_packages(exclude=['gqweb.*', 'gqweb']),
+    package_data={'gq.config': ['*.cfg']},
 )
