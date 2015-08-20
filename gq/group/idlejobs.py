@@ -7,6 +7,8 @@ import logging
 from ..config import dbconn as db
 from .. import config as c
 
+import MySQLdb
+
 log = logging.getLogger()
 
 
@@ -96,3 +98,38 @@ def populate_demand(root):
         node.demand = demand
 
     con.close()
+
+
+def _insert_to_db(data, keep_days):
+    try:
+        con, cur = c.dbconn.get()
+        cur.executemany('INSERT INTO queue_log (`id`, `amount_in_queue`) '
+                        'SELECT id, %s FROM groups WHERE group_name=%s',
+                        [tuple(reversed(x)) for x in data])
+        cur.execute('DELETE FROM queue_log WHERE '
+                    'query_time < DATE_SUB(NOW(), INTERVAL %d DAY)' % keep_days)
+        con.commit()
+    except MySQLdb.Error as E:
+        log.error("Error connecting to database: %s" % E)
+        return False
+    else:
+        return True
+
+
+def insert_data(modules, window):
+    """ Take a list of modules from the get_idle script and update the database
+        with the output of *.get_jobs() from each. Keep @windows #days of data
+    """
+    data = {}
+
+    for mod in modules:
+        nums = mod.get_jobs()
+        for k in nums:
+            log.info("%s: %d idle jobs", k, nums[k])
+
+        if nums is None:
+            log.error("Module %s returned None, exit!", mod)
+            return False
+        data.update(nums)
+
+    return _insert_to_db(data.iteritems(), window)
