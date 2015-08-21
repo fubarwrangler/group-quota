@@ -32,7 +32,7 @@ import views.user             # flake8: noqa -- this unused import has views
 import views.pre_initialize   # flake8: noqa -- this unused import has setup
 
 
-if not app.debug and app.config.get('LOG_FILE'):
+if app.config.get('LOG_FILE'):
     file_handler = logging.FileHandler(app.config['LOG_FILE'])
     file_handler.setLevel(app.config.get('LOG_LEVEL', logging.INFO))
     app.logger.addHandler(file_handler)
