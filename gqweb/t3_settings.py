@@ -1,7 +1,7 @@
 import gq.config as config
 
 DATABASE_URI = 'mysql://%(user)s:%(passwd)s@%(host)s/%(db)s' % config.db
-APP_NAME = 'ATLAS'
+APP_NAME = 'Teir 3'
 DEBUG = False
 
 ADMIN_USER = 'willsk'
@@ -14,5 +14,5 @@ LOG_FILE = '/tmp/gq_{0}_log'.format(APP_NAME.replace(' ', '_'))
 #
 #   $ tr -c -d '[:alnum:][!#$%&*.,]' < /dev/urandom | head -c 20
 #
-SECRET_KEY = 'ChAnGEmE!!-- aghhh  9STf!0#5Cq!Q!xeTL!6bFb'
+SECRET_KEY = 'CHANGE_ME!! - kvzUuR&LQ77x$&&smTFG.[U8QA]0'
 # SESSION_COOKIE_SECURE = True
