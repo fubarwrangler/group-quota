@@ -1,15 +1,19 @@
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
+import os
+import os.path
 
-# To use a consistent encoding
-# from codecs import open
-# from os import path
 
-# here = path.abspath(path.dirname(__file__))
+def listdir(dirs, root):
+    old = os.getcwd()
+    os.chdir(root)
+    l = list()
+    for D in dirs:
+        l.extend([os.path.join(dp, f) for dp, dn, fn in os.walk(D) for f in fn])
+    os.chdir(old)
+    return l
 
-# # Get the long description from the relevant file
-# with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
-#     long_description = f.read()
+data_files = listdir(['templates', 'static'], 'gqweb')
 
 setup(
     name='gqweb',
@@ -60,4 +64,5 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['gq', 'gq.*']),
+    package_data={'gqweb': data_files},
 )
