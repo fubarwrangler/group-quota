@@ -57,6 +57,8 @@ def ezedit_chooser(groupparent):
             g.quota = q
             dbobj = next(x for x in db_groups if x.group_name == g.full_name)
             if dbobj.quota != q:
+                app.logger.info("EZ-Change quota for %s: %d -> %d",
+                                dbobj.group_name, dbobj.quota, q)
                 dbobj.quota = q
                 changed = True
 

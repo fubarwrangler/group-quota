@@ -39,7 +39,9 @@ def add_user():
     db_session.add(uobj)
     db_session.commit()
 
-    flash('Added new user %s' % user)
+    msg = 'Added new user %s' % user
+    app.logger.info(msg)
+    flash(msg)
 
     return redirect(url_for('usermanager'))
 
@@ -55,6 +57,9 @@ def remove_user():
 
     User.query.filter_by(name=user).delete()
     db_session.commit()
+
+    app.logger.info("Removed user %s", user)
+
     return Ok("Removed user " + user)
 
 
@@ -87,12 +92,14 @@ def change_role():
     db_session.commit()
     session['reload_roles'] = True
 
+    app.logger.info(msg.format(role, username))
+
     return Ok(msg.format(role, username))
 
 
 @app.route('/user/api/activate', methods=['POST'])
 @admin_permission.require(403)
-def activeate_user():
+def activate_user():
 
     data = request.json
     username = data['user']
@@ -108,6 +115,8 @@ def activeate_user():
         return Error("Cannot deactivate yourself!")
 
     session['reload_roles'] = True
+
+    app.logger.info("%sctivated user %s", 'A' if user.active else 'Dea', username)
 
     db_session.commit()
     return OkNoResponse()

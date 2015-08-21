@@ -10,7 +10,7 @@ ADMIN_USER = 'willsk'
 
 # Used only if not in DEBUG mode
 LOG_FILE = '/tmp/group_quota_{0}.log'.format(APP_NAME)
-LOG_LEVEL = logging.WARNING
+LOG_LEVEL = logging.INFO
 
 # XXX: NOT REALLY USED IN PROD: Do the following and put in environs
 #

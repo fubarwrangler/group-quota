@@ -50,7 +50,7 @@ def load_identity():
         session.pop('reload_roles')
     username = session.get('user')
     if not username or reconfig:
-        app.logger.info("New user loaded")
+        app.logger.debug("New user loaded")
 
         if app.config['DEBUG']:
             username = load_user_debug(app.config['ADMIN_USER'])
@@ -65,7 +65,7 @@ def load_identity():
             g.user = 'anonymous'
             return AnonymousIdentity()
         roles = [role.name for role in user.roles] if user.active else []
-        app.logger.info("New roles loaded: %s", roles)
+        app.logger.debug("New roles loaded: %s", roles)
         session['roles'] = roles
         session['active'] = user.active
 

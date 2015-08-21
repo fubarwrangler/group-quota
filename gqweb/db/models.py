@@ -9,8 +9,6 @@ import hashlib
 from gq.group import AbstractGroup
 from gq.group.db import _build_groups_db
 
-from ..application import app
-
 from sqlalchemy import (Table, Column, Integer, String, Boolean, Float, func,
                         ForeignKey, TIMESTAMP, UniqueConstraint)
 from sqlalchemy.orm import relation as relationship
