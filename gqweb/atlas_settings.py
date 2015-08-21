@@ -1,5 +1,5 @@
 import gq.config as config
-import logging
+# import logging
 
 DATABASE_URI = 'mysql://%(user)s:%(passwd)s@%(host)s/%(db)s' % config.db
 APP_NAME = 'ATLAS'
@@ -10,7 +10,7 @@ ADMIN_USER = 'willsk'
 SESSION_COOKIE_NAME = 'gqweb_s_{0}'.format(APP_NAME)
 
 LOG_FILE = '/tmp/gq_{0}_log'.format(APP_NAME.replace(' ', '_'))
-LOG_LEVEL = logging.DEBUG
+# LOG_LEVEL = logging.INFO
 
 # XXX: NOT REALLY USED IN PROD: Do the following and put in environs
 #
