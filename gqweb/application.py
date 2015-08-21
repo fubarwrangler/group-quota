@@ -8,6 +8,7 @@
 from flask import (Flask, render_template, flash, redirect, url_for, config,
                    request, session)
 from flask.ext.principal import Principal
+import logging
 
 app = Flask(__name__)
 
@@ -31,6 +32,11 @@ import views.ez_edit          # flake8: noqa -- this unused import has views
 import views.user             # flake8: noqa -- this unused import has views
 import views.pre_initialize   # flake8: noqa -- this unused import has setup
 
+
+if app.config.get('LOG_FILE'):
+    file_handler = logging.FileHandler(app.config['LOG_FILE'])
+    file_handler.setLevel(app.config.get('LOG_LEVEL', logging.INFO))
+    app.logger.addHandler(file_handler)
 
 namesort = lambda root: sorted(list(root), key=lambda x: x.full_name)
 
