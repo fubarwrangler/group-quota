@@ -36,6 +36,7 @@ def add_remove_groups():
 
         for obj in db_groups:
             if obj.group_name in to_remove:
+                app.logger.info("Delete group: %s", obj.group_name)
                 db_session.delete(obj)
         db_session.flush()
         flash("Successfully removed %d group(s)" % len(to_remove))
@@ -57,6 +58,8 @@ def add_remove_groups():
         new_in_db = Group(**group)
         db_session.add(new_in_db)
         db_session.flush()
+
+        app.logger.info("Added new group: %s", newgrp)
 
         flash("New group added: %s" % newgrp['group_name'])
 

@@ -24,8 +24,8 @@ def set_quota_sums(db, root):
 
         # NOTE: Auth here is done by role-based auth
         if newquota != group.quota:
-            app.logger.debug("Intermediate group sum %s: %d->%d",
-                             group.full_name, group.quota, newquota)
+            app.logger.info("Quota changed - %s: %d -> %d",
+                            group.full_name, group.quota, newquota)
             dbobj = next(x for x in db if x.group_name == group.full_name)
             dbobj.quota = newquota
             group.quota = newquota
@@ -129,8 +129,8 @@ def set_renames(db, formdata):
         # possibly modified group-tree
         obj = next(x for x in db if x.group_name == orig_grp.full_name)
         if obj.group_name != group.full_name:
-            app.logger.debug("Group rename detected!: %s->%s",
-                             obj.group_name, group.full_name)
+            app.logger.info("Rename group: %s -> %s",
+                            obj.group_name, group.full_name)
             obj.group_name = group.full_name
 
     app.logger.debug("\n".join(map(str, root)))
