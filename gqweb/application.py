@@ -8,6 +8,7 @@
 from flask import (Flask, render_template, flash, redirect, url_for, config,
                    request, session)
 from flask.ext.principal import Principal
+from logging.handlers import RotatingFileHandler
 import logging
 
 app = Flask(__name__)
@@ -32,9 +33,10 @@ import views.ez_edit          # flake8: noqa -- this unused import has views
 import views.user             # flake8: noqa -- this unused import has views
 import views.pre_initialize   # flake8: noqa -- this unused import has setup
 
+ten_meg = 10 * 1024 ** 2
 
 if app.config.get('LOG_FILE'):
-    file_handler = logging.FileHandler(app.config['LOG_FILE'])
+    file_handler = RotatingFileHandler(app.config['LOG_FILE'], maxBytes=ten_meg, backupCount=3)
     file_handler.setLevel(app.config.get('LOG_LEVEL', logging.INFO))
     app.logger.addHandler(file_handler)
 
