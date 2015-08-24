@@ -6,7 +6,7 @@ DEBUG = False
 
 ADMIN_USER = 'willsk'
 # APPLICATION_ROOT = '/farmapp/'
-SESSION_COOKIE_NAME = 'gqweb_s_{0}'.format(APP_NAME)
+SESSION_COOKIE_NAME = 'gqweb_s_{0}'.format(APP_NAME.replace(' ', '_'))
 
 LOG_FILE = '/tmp/gq_{0}_log'.format(APP_NAME.replace(' ', '_'))
 
