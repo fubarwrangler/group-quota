@@ -1,3 +1,9 @@
+# ===========================================================================
+# Add file-handler logger to app for production / testing use
+#
+# (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
+# ===========================================================================
+
 from ..application import app
 
 from logging import Formatter

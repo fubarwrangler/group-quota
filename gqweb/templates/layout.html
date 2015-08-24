@@ -54,8 +54,13 @@
 {%- block body %}{%- endblock %}
 </div>
 <div id="user">
+
+    {%- if g.user == 'anonymous' -%}
+    Not Logged In
+    {%- else -%}
     ({{ config['APP_NAME'] }}) &mdash;
     Logged in as <i><mark>{{ g.user }}</mark></i>
+    {%- endif %}
     {%- if session.get('active') != 1%}
     <span class="glyphicon glyphicon-warning-sign text-danger"></span> Inactive
     {%- else -%}

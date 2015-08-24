@@ -34,4 +34,6 @@ pct_dec_spike = _cfg.getfloat('params', 'pct_dec_spike')
 analyze_logfile = _cfg.get('logging', 'analyze_logfile')
 panda_logfile = _cfg.get('logging', 'panda_logfile')
 
+condor_cm = _cfg.get('htcondor', 'cm_addr')
+
 log_level = getattr(logging, _cfg.get('logging', 'level').upper())

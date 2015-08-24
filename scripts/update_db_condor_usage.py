@@ -6,66 +6,89 @@
 # By: William Strecker-Kellogg -- willsk@bnl.gov
 #
 # CHANGELOG:
-# 7/29/10:  v1.0 put into production
-# 8/3/10:   revised to not use RACF_Group, by using the hidden regexp() feature to match group names
-# 10/29/10: revised to use only one call to condor_status, much more efficient
-# 1/25/12:  Made code more streamlined and obvious
-
-# NOTE: Needs the (empty) file /etc/condor/condor_config to exist!!
-#       This script works in conjunction with /var/www/cgi-bin/group_quota.py on
-#       farmweb01, which serves as a web interface to edit this database.
+#   08/24/15: rewrite for using gq library
 
 import sys
 import MySQLdb
 import datetime
 import subprocess
 
-try:
-    conn = MySQLdb.connect(db="atlas_groups", host="database.rcf.bnl.gov",
-                           user="atlas_update", passwd="XPASSX")
-    dbc = conn.cursor()
-except MySQLdb.Error, e:
-    print "DB Error %d: %s" % (e.args[0], e.args[1])
-    sys.exit(1)
+import gq.config as c
+import gq.config.dbconn as db
 
-dbc.execute("SELECT group_name FROM groups")
-db_groups = set(x[0] for x in dbc)
-dbc.close()
-if not db_groups:
-    print 'Error, no groups in database?'
-    sys.exit(1)
+from gq.group import AbstractGroup
+from gq.group.db import _build_groups_db
+from gq.log import setup_logging
 
-# get info from condor
-proc = subprocess.Popen(["condor_status",  "-pool",  "condor03.usatlas.bnl.gov:9660",
-                         "-constraint",  "AccountingGroup =!= UNDEFINED",
-                         "-format",  "%s ",  "AccountingGroup", "-format",
-                         "%s\\n", "Cpus"], stdout=subprocess.PIPE)
 
-active = {}
+log = setup_logging(None)
 
-for group, count in ((y.split()) for y in proc.communicate()[0].split("\n") if y):
-    group = ".".join(group.split("@")[0].split(".")[:-1])
-    if group in active:
-        active[group] += int(count)
-    elif group in db_groups:
-        active[group] = int(count)
-    else:
-        print "Unknown group %s" % group
 
-for group in (x for x in db_groups if x not in active):
-    active[group] = 0
+class BusyGroup(AbstractGroup):
 
-try:
-    dbc = conn.cursor()
-    for x in active:
-        dbc.execute('UPDATE groups SET busy = %d WHERE group_name = "%s"' %
-                    (active[x], x))
-    dbc.execute('UPDATE groups SET last_update = %s', datetime.datetime.now())
-    dbc.close()
-except MySQLdb.Error, e:
-    print "DB Error %d: %s" % (e.args[0], e.args[1])
-    conn.rollback()
-    conn.close()
-else:
-    conn.commit()
-    conn.close()
+    def __init__(self, name):
+        super(BusyGroup, self).__init__(name)
+        self.busy = 0
+
+
+def get_condor_groups():
+    """ Yield a series of tuples of (group, count) where count is the number
+        of cpus (SlotWeight) of that group
+    """
+
+    def get_group_from_classad(g):
+        return ".".join(g.split("@")[0].split(".")[:-1])
+
+    # get info from condor
+    proc = subprocess.Popen(["condor_status",  "-pool",  c.condor_cm,
+                             "-constraint",  "AccountingGroup =!= UNDEFINED",
+                             "-format",  "%s ",  "AccountingGroup", "-format",
+                             "%s\\n", "Cpus"], stdout=subprocess.PIPE)
+    for line in (x.strip('\n') for x in proc.stdout):
+        if not line:
+            continue
+        ad, count = line.split()
+        yield get_group_from_classad(ad), count
+    proc.wait()
+
+
+def populate_group_busy(groups):
+
+    # Map group-name -> group-obj for faster searching by name
+    active = dict([(x.full_name, x) for x in groups])
+
+    for group, count in get_condor_groups():
+        if group in active:
+            active[group].busy += int(count)
+        else:
+            log.warning("Unknown group: %s", group)
+
+    # Set intermediate nodes as sum of children
+    for group in groups:
+        if not group.is_leaf:
+            group.busy = sum(x.busy for x in group.get_children())
+
+
+def fill_busy_db(groups):
+    con, cur = db.get()
+    for g in groups:
+        cur.execute('UPDATE groups SET busy = %d WHERE group_name = "%s"' %
+                    (g.busy, g.full_name))
+    cur.execute('UPDATE groups SET last_update = %s', datetime.datetime.now())
+    con.commit()
+    con.close()
+
+
+if __name__ == '__main__':
+    # Build group tree from groups that count the "busy" field in the db
+    groups = _build_groups_db(BusyGroup, ('group_name',))
+
+    # Fill tree with info from condor
+    populate_group_busy(groups)
+
+    # Update DB with info in group tree
+    try:
+        fill_busy_db(groups)
+    except MySQLdb.Error as e:
+        log.error("DB Error %d: %s", e.args[0], e.args[1])
+        sys.exit(1)
