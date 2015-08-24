@@ -6,66 +6,69 @@
 # By: William Strecker-Kellogg -- willsk@bnl.gov
 #
 # CHANGELOG:
-# 7/29/10:  v1.0 put into production
-# 8/3/10:   revised to not use RACF_Group, by using the hidden regexp() feature to match group names
-# 10/29/10: revised to use only one call to condor_status, much more efficient
-# 1/25/12:  Made code more streamlined and obvious
-
-# NOTE: Needs the (empty) file /etc/condor/condor_config to exist!!
-#       This script works in conjunction with /var/www/cgi-bin/group_quota.py on
-#       farmweb01, which serves as a web interface to edit this database.
+#   08/24/15: rewrite for using gq library
 
 import sys
 import MySQLdb
 import datetime
 import subprocess
 
-try:
-    conn = MySQLdb.connect(db="atlas_groups", host="database.rcf.bnl.gov",
-                           user="atlas_update", passwd="XPASSX")
-    dbc = conn.cursor()
-except MySQLdb.Error, e:
-    print "DB Error %d: %s" % (e.args[0], e.args[1])
-    sys.exit(1)
+from collections import defaultdict
 
-dbc.execute("SELECT group_name FROM groups")
-db_groups = set(x[0] for x in dbc)
-dbc.close()
-if not db_groups:
-    print 'Error, no groups in database?'
-    sys.exit(1)
+import gq.config as c
+import gq.config.dbconn as db
 
-# get info from condor
-proc = subprocess.Popen(["condor_status",  "-pool",  "condor03.usatlas.bnl.gov:9660",
-                         "-constraint",  "AccountingGroup =!= UNDEFINED",
-                         "-format",  "%s ",  "AccountingGroup", "-format",
-                         "%s\\n", "Cpus"], stdout=subprocess.PIPE)
+from gq.log import setup_logging
 
-active = {}
 
-for group, count in ((y.split()) for y in proc.communicate()[0].split("\n") if y):
-    group = ".".join(group.split("@")[0].split(".")[:-1])
-    if group in active:
-        active[group] += int(count)
-    elif group in db_groups:
-        active[group] = int(count)
+log = setup_logging(None)
+con, cur = db.get()
+
+
+def get_groups():
+    cur.execute("SELECT group_name FROM groups")
+    g = set(x[0] for x in cur)
+    cur.close()
+    if not g:
+        log.error('No groups defined')
+        sys.exit(1)
+    return g
+
+
+def get_condor_data(groups):
+    # get info from condor
+    proc = subprocess.Popen(["condor_status",  "-pool",  c.condor_cm,
+                             "-constraint",  "AccountingGroup =!= UNDEFINED",
+                             "-format",  "%s ",  "AccountingGroup", "-format",
+                             "%s\\n", "Cpus"], stdout=subprocess.PIPE)
+
+    active = defaultdict(int)
+
+    for group, count in ((y.split()) for y in proc.communicate()[0].split("\n") if y):
+        group = ".".join(group.split("@")[0].split(".")[:-1])
+        if group in groups:
+            active[group] += int(count)
+        else:
+            log.warning("Unknown group: %s", group)
+
+    for group in (x for x in groups if x not in active):
+        active[group] = 0
+
+    return active
+
+if __name__ == '__main__':
+    usage = get_condor_data(get_groups())
+    try:
+        cur = con.cursor()
+        for x in usage:
+            cur.execute('UPDATE groups SET busy = %d WHERE group_name = "%s"' %
+                        (usage[x], x))
+        cur.execute('UPDATE groups SET last_update = %s', datetime.datetime.now())
+        cur.close()
+    except MySQLdb.Error as e:
+        log.error("DB Error %d: %s", e.args[0], e.args[1])
+        con.rollback()
+        con.close()
     else:
-        print "Unknown group %s" % group
-
-for group in (x for x in db_groups if x not in active):
-    active[group] = 0
-
-try:
-    dbc = conn.cursor()
-    for x in active:
-        dbc.execute('UPDATE groups SET busy = %d WHERE group_name = "%s"' %
-                    (active[x], x))
-    dbc.execute('UPDATE groups SET last_update = %s', datetime.datetime.now())
-    dbc.close()
-except MySQLdb.Error, e:
-    print "DB Error %d: %s" % (e.args[0], e.args[1])
-    conn.rollback()
-    conn.close()
-else:
-    conn.commit()
-    conn.close()
+        con.commit()
+        con.close()
