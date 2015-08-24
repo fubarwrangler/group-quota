@@ -42,7 +42,7 @@
         <span class="glyphicon {{ 'glyphicon-ok text-success' if group.accept_surplus else 'glyphicon-remove text-danger' }}" aria-hidden="true">
         </span>
       </div>
-      <div class="col-xs-1">{{group.busy if group.is_leaf else "<span class='glyphicon glyphicon-option-horizontal'></span>"|safe}}</div>
+      <div class="col-xs-1">{{group.busy}}</div>
     </div>
     {%- else -%}
     <div class="row"><div class="col-xs-12 text-danger">No Groups Defined</div></div>
