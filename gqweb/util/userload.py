@@ -1,3 +1,11 @@
+# ===========================================================================
+# Define functions here to load the user -- in our case we load it from
+# the apache basic-auth header, but a user/password scheme could be supported
+# here using flask-login or something. Also defines Roles & Permissions.
+#
+# (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
+# ===========================================================================
+
 from flask import request
 from flask.ext.principal import RoleNeed, Permission
 
