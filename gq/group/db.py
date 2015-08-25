@@ -86,13 +86,17 @@ def update_surplus_flags(root):
     year = (60 * 60) * 24 * 365
     now = datetime.datetime.now()
 
+    # Since python <= 2.6 doesn't have a .total_seconds() method on timedeltas...
+    # See: https://docs.python.org/2/library/datetime.html#datetime.timedelta.total_seconds
+    seconds = lambda td: ((td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
     for group in root:
         db_accept, ts = db_surplus[group.full_name]
         if group.accept == db_accept:
             continue
 
         # last change ago in seconds or a year ago if not defined
-        last_change = (now - ts).total_seconds() if ts else year
+        last_change = seconds(now - ts) if ts else year
 
         if last_change > c.change_lookback * 60:
             log.info("Changing %s from %s->%s", group.full_name,
