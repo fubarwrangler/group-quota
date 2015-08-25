@@ -30,6 +30,7 @@ import views.quota_edit       # flake8: noqa -- this unused import has views
 import views.group_modify     # flake8: noqa -- this unused import has views
 import views.ez_edit          # flake8: noqa -- this unused import has views
 import views.user             # flake8: noqa -- this unused import has views
+import views.plot_idle        # flake8: noqa -- this unused import has setup
 import views.pre_initialize   # flake8: noqa -- this unused import has setup
 
 if app.config.get('LOG_FILE'):
