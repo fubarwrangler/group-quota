@@ -34,7 +34,8 @@
     <div class="row main-row {{'text-muted' if not group.is_leaf else ''}}">
       <div class="col-xs-3">
         {# {%- if group.is_leaf %}<span class="glyphicon glyphicon-leaf text-success"></span>{%- endif %}#}
-        <strong>{{group.full_name}}</strong></div>
+        <a href="{{ url_for('plot', group=group.full_name)}}"><strong>{{group.full_name}}</strong></a>
+      </div>
       <div class="col-xs-1">{{group.quota}}</div>
       <div class="col-xs-1">{{group.priority|round(1)}}</div>
       <div class="col-xs-1">{{group.weight|round(1)}}</div>
