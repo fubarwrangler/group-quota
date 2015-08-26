@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python -Wignore
 
 import optparse
 import logging

@@ -6,6 +6,8 @@ TABLE_NAME = 'groups'
 DEBUG = True
 APP_NAME = 'ATLAS'
 
+DBPOOL_RECYCLE = 3600 * 3
+
 ADMIN_USER = 'willsk'
 
 # Used only if not in DEBUG mode

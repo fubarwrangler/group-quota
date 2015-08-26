@@ -12,7 +12,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine(app.config['DATABASE_URI'],
                        echo=app.config['DEBUG'],
-                       convert_unicode=True)
+                       convert_unicode=True,
+                       pool_recycle=app.config['DBPOOL_RECYCLE'])
 
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
