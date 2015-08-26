@@ -21,6 +21,16 @@
       that allows easy editing of the quota at one level of the tree without
       violating other levels (EZ-Edit button).
     </p>
+    <div class="col-sm-3 pull-right">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Idle Jobs</h3>
+        </div>
+        <div class="panel-body">
+          <a href="{{ url_for('plot_page') }}">Click here</a> to view idle-job plots
+        </div>
+      </div>
+    </div>
   </div>
     <div class="row" id="main_head">
       <strong class="col-xs-3">Name</strong>
@@ -32,10 +42,7 @@
     </div>
     {%- for group in groups %}
     <div class="row main-row {{'text-muted' if not group.is_leaf else ''}}">
-      <div class="col-xs-3">
-        {# {%- if group.is_leaf %}<span class="glyphicon glyphicon-leaf text-success"></span>{%- endif %}#}
-        <a href="{{ url_for('plot', group=group.full_name)}}"><strong>{{group.full_name}}</strong></a>
-      </div>
+      <div class="col-xs-3"> <strong>{{group}}</strong> </div>
       <div class="col-xs-1">{{group.quota}}</div>
       <div class="col-xs-1">{{group.priority|round(1)}}</div>
       <div class="col-xs-1">{{group.weight|round(1)}}</div>
