@@ -12,6 +12,10 @@ from sqlalchemy import select, distinct
 
 from datetime import timedelta, datetime
 
+# Set environment so it works on webserver where $HOME/.matplotlib isn't writable
+import os
+os.environ['MPLCONFIGDIR'] = "/var/tmp/"
+
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.dates import DateFormatter
