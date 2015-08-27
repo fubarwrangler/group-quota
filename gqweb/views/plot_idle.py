@@ -28,7 +28,7 @@ except ImportError:
 group_t = Group.__table__
 
 
-@app.route('/plot/')
+@app.route('/plot')
 def plot_page():
     q = select([distinct(group_t.c.group_name)], log_t.c.id == group_t.c.id)
     q = q.where(log_t.c.query_time >= datetime.now() - timedelta(hours=4))

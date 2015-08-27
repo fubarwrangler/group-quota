@@ -29,7 +29,7 @@ options, args = parser.parse_args()
 
 loglevel = logging.DEBUG if options.debug else c.log_level
 
-log = setup_logging(options.logfile, backup=3, size_mb=40, level=loglevel)
+log = setup_logging(options.logfile, backup=3, size_mb=50, level=loglevel)
 
 field_map = {'group_name': 'name',
              'accept_surplus': 'surplus',
@@ -38,6 +38,7 @@ field_map = {'group_name': 'name',
 
 if __name__ == "__main__":
     try:
+        log.info("===================== START Balance =======================")
         groups = group_db.build_demand_groups_db()
         idle.populate_demand(groups)
 
@@ -50,3 +51,5 @@ if __name__ == "__main__":
     except Exception as E:
         log.exception("Uncaught exception!")
         sys.exit(1)
+    finally:
+        log.info("===================== END Balance =======================")
