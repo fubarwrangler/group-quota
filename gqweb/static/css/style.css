@@ -26,7 +26,6 @@ input.form-control.xs-box {
 
 .main-row>span {
     border-bottom: dotted thin gray;
-    /*border-collapse: collapse;*/
     margin-bottom: 8px;
     padding-bottom: 21px;
     height: 20px;
@@ -125,11 +124,6 @@ div#adminbtn {
     float: right;
 }
 
-/* DEBUG
-div.treediv {
-    outline: blue dashed thin;
+.navbar-fixed-bottom {
+  min-height:10px;
 }
-/*
-span {
-    outline: green dotted thin;
-}*/
