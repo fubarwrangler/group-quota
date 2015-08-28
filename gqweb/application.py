@@ -9,6 +9,7 @@ from flask import (Flask, render_template, flash, redirect, url_for, config,
                    request, session)
 from flask.ext.principal import Principal
 import logging
+import datetime
 
 app = Flask(__name__)
 
@@ -44,6 +45,10 @@ namesort = lambda root: sorted(list(root), key=lambda x: x.full_name)
 def shutdown_session(exception=None):
     db_session.remove()
 
+
+@app.context_processor
+def inject_time():
+    return dict(now=datetime.datetime.now())
 
 @app.route('/logout')
 def logout():
