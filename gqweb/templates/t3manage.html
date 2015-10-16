@@ -1,0 +1,93 @@
+{%- extends "layout.html" %}
+
+{% block endjs -%}
+{%- endblock -%}
+
+{%- block navbar %}
+{%- if error or rmerrors or errors %}
+{{ macros.navbar(('Home', 'main_menu'), ('Modify Groups', 'add_groups'), ('Error', None)) }}
+{%- else %}
+{{ macros.navbar(('Home', 'main_menu'), ('Modify Groups', None)) }}
+{%- endif %}
+{%- endblock %}
+
+{%- block body %}
+<div class="container maxw"> <!-- Main page -->
+{%- if errors %}
+{{ macros.showerror("Error Adding Group", errors)}}
+{%- elif error %}
+{{ macros.showerror("Error Adding Group", [error])}}
+{%- elif rmerrors %}
+{{ macros.rmerror(rmerrors) }}
+{%- else -%}
+<form class="form-inline" role="form" method="POST">
+<div class="container-fluid">
+{%- if groups -%}
+<h3>Remove Groups</h3>
+<div class="row" id="main_head"> <!-- Row of headers -->
+  <strong class="col-xs-1">Delete?</strong>
+  <strong class="col-xs-3">Name</strong>
+  <strong class="col-xs-1">Quota</strong>
+  <strong class="col-xs-1">Prio</strong>
+  <strong class="col-xs-1">Weight</strong>
+  <strong class="col-xs-1">Threshold</strong>
+  <strong class="col-xs-1">Surplus</strong>
+</div>
+{%- for group in groups %}
+<div class="row main-row"> <!-- Row for group {{group.full_name}} -->
+  <span class="col-xs-1">
+    <span class="checkbox checkbox-danger">
+      <input type="checkbox" name="rm_me" value="{{group.full_name}}"/>
+      <label></label>
+    </span>
+  </span>
+  <span class="col-xs-3"><strong>{{ group.full_name }}</strong></span>
+  <span class="col-xs-1">{{ group.quota }}</span>
+  <span class="col-xs-1">{{ group.priority|round(1) }}</span>
+  <span class="col-xs-1">{{ group.weight|round(1) }}</span>
+  <span class="col-xs-1">{{ group.surplus_threshold }}</span>
+  <span class="col-xs-1">
+    <span class="glyphicon {{ 'glyphicon-ok text-success' if group.accept_surplus else 'glyphicon-remove text-danger' }}" aria-hidden="true">
+    </span>
+  </span>
+</div> <!-- End {{group.full_name}} -->
+{%- endfor %}
+{%- endif -%}
+
+<h3 style="margin-top: 40px;">Add Groups</h3>
+  <div class="row">
+    <div class="col-xs-3">
+      <label>Group Name</label>
+      <input type="text" name="new+group_name" placeholder="group_" class="form-control sm-box"/>
+    </div>
+    <div class="col-xs-2">
+      <label>Quota</label>
+      <input type="text" name="new+quota" placeholder="Enter quota..." class="form-control sm-box"/>
+    </div>
+    <div class="col-xs-1">
+      <label>Priority</label>
+      <input type="text" name="new+priority" value="{{ defaults['priority'] }}" class="form-control sm-box addbox"/>
+    </div>
+    <div class="col-xs-1">
+      <label>Weight</label>
+      <input type="text" name="new+weight" value="{{ defaults['weight'] }}" class="form-control sm-box addbox"/>
+    </div>
+    <div class="col-xs-2">
+      <label>Threshold</label>
+      <input type="text" name="new+surplus_threshold" value="{{ defaults['surplus_threshold'] }}" class="form-control sm-box addbox"/>
+    </div>
+    <div class="col-xs-1">
+      <label>Surplus</label>
+      <input type="checkbox" name="new+accept_surplus" class="form-control truefalse"/>
+    </div>
+  </div>
+  <div class="row">
+    <a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
+    <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
+    <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Groups</button>
+  </div>
+</div> <!-- End add-form fluid-container -->
+</form>
+{%- endif -%}
+</div> <!-- End entire page -->
+{%- endblock %}

@@ -31,6 +31,8 @@ class Group(Base):
     last_update = Column(TIMESTAMP, nullable=False, server_default=func.now())
     last_surplus_update = Column(TIMESTAMP, nullable=True)
 
+    t3groups = relationship('T3Institute')
+
 user_role_table = Table('user_roles', Base.metadata,
                         Column('user_id', Integer,
                                ForeignKey('users.id', ondelete='cascade')),
@@ -65,6 +67,27 @@ class Role(Base):
 
     def __str__(self):
         return self.name
+
+
+class T3User(Base):
+    __tablename__ = 't3users'
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
+
+    name = Column(String(32), nullable=False, primary_key=True)
+    affiliation = Column(String(45), nullable=False, primary_key=True)
+    fullname = Column(String(256))
+
+
+class T3Institute(Base):
+    __tablename__ = 'institutes'
+    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
+
+    name = Column(String(32), ForeignKey('t3users.name', ondelete='restrict'),
+                  nullable=False, primary_key=True)
+    group = Column(String(128), ForeignKey('groups.group_name', ondelete='restrict'))
+    fullname = Column(String(256))
+
+    users = relationship('T3User')
 
 
 # Table isn't mapped, but we may as well create it here anyway!
