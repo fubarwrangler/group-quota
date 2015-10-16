@@ -5,8 +5,7 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from flask import (Flask, render_template, flash, redirect, url_for, config,
-                   request, session)
+from flask import Flask, render_template, flash, redirect, url_for, request, session
 from flask.ext.principal import Principal
 import logging
 import datetime
@@ -28,12 +27,12 @@ from util.userload import (admin_permission, edit_permission, balance_permission
                            add_remove_permission)
 
 
-import views.quota_edit       # flake8: noqa -- this unused import has views
-import views.group_modify     # flake8: noqa -- this unused import has views
-import views.ez_edit          # flake8: noqa -- this unused import has views
-import views.user             # flake8: noqa -- this unused import has views
-import views.plot_idle        # flake8: noqa -- this unused import has setup
-import views.pre_initialize   # flake8: noqa -- this unused import has setup
+import views.quota_edit       # noqa -- this unused import has views
+import views.group_modify     # noqa -- this unused import has views
+import views.ez_edit          # noqa -- this unused import has views
+import views.user             # noqa -- this unused import has views
+import views.plot_idle        # noqa -- this unused import has setup
+import views.pre_initialize   # noqa -- this unused import has setup
 
 if app.config.get('LOG_FILE'):
     log_setup(app.config.get('LOG_FILE'), app.config.get('LOG_LEVEL', logging.INFO))
@@ -50,11 +49,24 @@ def shutdown_session(exception=None):
 def inject_time():
     return dict(now=datetime.datetime.now())
 
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('errors/404.html'), 404
+
+
+@app.errorhandler(403)
+def access_denied(e):
+    return render_template('errors/403.html'), 403
+
+
 @app.route('/logout')
 def logout():
     url = request.values.get('target')
-    if 'user' in session: session.pop('user')
-    if 'roles' in session: session.pop('roles')
+    if 'user' in session:
+        session.pop('user')
+    if 'roles' in session:
+        session.pop('roles')
     return redirect(url)
 
 
@@ -78,6 +90,7 @@ def add_groups():
     return render_template('group_add_rm.html', groups=namesort(root),
                            defaults=group_defaults)
 
+
 @app.route('/ezq')
 @balance_permission.require(403)
 def ez_quota_chooser():
@@ -88,11 +101,12 @@ def ez_quota_chooser():
 @app.route('/ezq/<parent>')
 def ez_quota_edit(parent):
 
-     # NOTE: Could narrow the db-query down some but this is easiest for now
+    # NOTE: Could narrow the db-query down some but this is easiest for now
     group = build_group_tree_db(Group.query.all()).find(parent)
 
     if not group or not group.children or len(group.children) <= 1:
-        flash('Group %s not an intermediate group with >1 children!' % parent, category="error")
+        flash('Group %s not an intermediate group with >1 children!' % parent,
+              category="error")
         return redirect(url_for('main_menu'))
 
     subtree = group.children.values()
@@ -109,11 +123,3 @@ def ez_quota_edit(parent):
 def usermanager():
     return render_template('user.html', u=User.query.all(),
                            r=Role.query.all())
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('errors/404.html'), 404
-
-@app.errorhandler(403)
-def page_not_found(e):
-    return render_template('errors/403.html'), 403
