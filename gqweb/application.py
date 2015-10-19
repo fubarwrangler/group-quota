@@ -20,7 +20,7 @@ app.config.from_envvar('GQEDITCFG', silent=True)
 # app.config['APPLICATION_ROOT'] = '/farmapp/'
 
 from db import db_session
-from db.models import Group, User, Role, build_group_tree_db
+from db.models import Group, User, Role, T3Institute, T3User, build_group_tree_db
 from util.validation import group_defaults
 from util.app_logging import log_setup
 from util.userload import (admin_permission, edit_permission, balance_permission,
@@ -123,3 +123,13 @@ def ez_quota_edit(parent):
 def usermanager():
     return render_template('user.html', u=User.query.all(),
                            r=Role.query.all())
+
+
+@app.route('/t3')
+def t3_users():
+    return render_template('t3manage.html', users=T3User.query.all())
+
+
+@app.route('/t3/institutes')
+def t3_institute():
+    return render_template('t3institutes.html', institutes=T3Institute.query.all())

@@ -1,0 +1,36 @@
+{%- extends "layout.html" %}
+
+{% block endjs -%}
+{%- endblock -%}
+
+{%- block navbar %}
+{{ macros.navbar(('Home', 'main_menu'), ('Modify Institutes', None)) }}
+{%- endblock %}
+
+{%- block body %}
+<div class="container maxw"> <!-- Main page -->
+    <table class="table table-bordered table-striped table-hover table-condenced">
+      <colgroup>
+        <col class="col-md-2">
+        <col class="col-md-1">
+        <col class="col-md-1">
+      </colgroup>
+      <thead>
+        <tr>
+            <th> Institute Name </th>
+            <th> Shortname </th>
+            <th> Associated Group </th>
+        </tr>
+      </thead>
+      <tbody>
+      {%- for inst in institutes %}
+      <tr>
+        <td> {{ inst.fullname }} </td>
+        <td> {{ inst.name }} </td>
+        <td> {{ inst.group }} </td>
+      </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+</div> <!-- End entire page -->
+{%- endblock %}
