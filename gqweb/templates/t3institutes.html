@@ -17,12 +17,14 @@ $('.selectpicker').selectpicker();
 
 {%- block body %}
 <div class="container maxw"> <!-- Main page -->
+  <p class="lead"> List of Tier 3 Institutes </p>
+  <form class="form" role="form" method="POST">
   <table class="table table-bordered table-striped table-hover table-condenced">
     <colgroup>
       <col class="col-md-1">
       <col class="col-md-5">
+      <col class="col-md-2">
       <col class="col-md-3">
-      <col class="col-md-4">
     </colgroup>
     <thead>
       <tr>
@@ -37,9 +39,14 @@ $('.selectpicker').selectpicker();
     <tr>
       <td>
         <span class="checkbox checkbox-danger checkbox-inline">
-          <!-- <input type="checkbox" name="rm_me" value="{{i.name}}"/>
-          <label></label> -->
+        {% if i.users|length < 1 -%}
+          <input type="checkbox" name="rm_me" value="{{i.name}}"/>
+        {% else -%}
+          <input type="checkbox" name="rm_me" value="{{i.name}}" disabled title="Has Users"/>
+        {% endif -%}
+          <label></label>
         </span>
+
       </td>
       <td> {{ i.fullname }} </td>
       <td> {{ i.name }} </td>
@@ -48,32 +55,39 @@ $('.selectpicker').selectpicker();
     {%- endfor %}
     </tbody>
   </table>
-</div>
 {% if avail -%}
-<div class="container maxw">
-  <form class="form" role="form" method="POST">
-    <div class="form-group col-sm-5">
+  <div class="row">
+    <div class="form-group col-xs-6">
       <label class="control-label">Institute</label>
       <input type="text" name="newname" class="form-control" placeholder="Institute Name..."/>
     </div>
-    <div class="form-group col-sm-3">
+    <div class="form-group col-xs-3">
       <label class="control-label">Nickname</label>
       <input type="text" name="newshort" class="form-control" placeholder="Short name..."/>
     </div>
-    <div class="form-group col-sm-4">
+    <div class="form-group col-xs-3">
       <label class="control-label">Group</label><br>
       <select name="newgroup" class="selectpicker">
-      {%- for g in avail|sort %}
+      {% for g in avail -%}
         <option value="{{g}}">{{g}}</option>
-      {%- endfor %}
-    </select>
+      {% endfor -%}
+      </select>
     </div>
+  </div>
+{% else -%}
+  <div class="row">
+    <p class="col-sm-12 text-warning"> No Unclaimed Groups Available </p>
+  </div>
+{% endif -%}
+  <div class="row">
     <div class="col-md-5">
       <a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
       <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
       <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Institute</button>
     </div>
+  </div>
   </form>
-</div>
-{% endif -%}
+
+</div> <!-- End Page -->
+
 {%- endblock %}

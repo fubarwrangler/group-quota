@@ -78,6 +78,8 @@ class T3User(Base):
                          nullable=False, primary_key=True)
     fullname = Column(String(256))
 
+    institute = relationship('T3Institute', uselist=False)
+
 
 class T3Institute(Base):
     __tablename__ = 'institutes'

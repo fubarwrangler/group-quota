@@ -1,6 +1,14 @@
 {%- extends "layout.html" %}
 
+{%- block extraheaders %}
+  {{ macros.css('vendor/bootstrap-select.min.css') }}
+  {{ macros.js('vendor/bootstrap-select.min.js') }}
+{%- endblock %}
+
 {% block endjs -%}
+<script type="text/javascript">
+$('.selectpicker').selectpicker();
+</script>
 {%- endblock -%}
 
 {%- block navbar %}
@@ -9,5 +17,67 @@
 
 {%- block body %}
 <div class="container maxw"> <!-- Main page -->
-</div> <!-- End entire page -->
+  <p class="lead"> List of Tier 3 Users </p>
+  <form class="form" role="form" method="POST">
+  <table class="table table-bordered table-striped table-hover table-condenced">
+    <colgroup>
+      <col class="col-md-1">
+      <col class="col-md-2">
+      <col class="col-md-4">
+      <col class="col-md-5">
+    </colgroup>
+    <thead>
+      <tr>
+        <th> Delete </th>
+        <th> Username </th>
+        <th> Full Name </th>
+        <th> Institute </th>
+      </tr>
+    </thead>
+    <tbody>
+    {%- for u in users %}
+    <tr>
+      <td>
+        <span class="checkbox checkbox-danger checkbox-inline">
+          <input type="checkbox" name="rm_me" value="{{u.name}}"/>
+          <label></label>
+        </span>
+      </td>
+      <td> {{ u.name }} </td>
+      <td> {{ u.fullname }} </td>
+      <td> {{ u.affiliation }} <small>({{u.institute.fullname}})</small></td>
+    </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  <div class="row">
+    <div class="form-group col-sm-3">
+      <label class="control-label">Username</label>
+      <input type="text" name="newname" class="form-control" placeholder="Unix username..."/>
+    </div>
+    <div class="form-group col-sm-4">
+      <label class="control-label">Full Name</label>
+      <input type="text" name="newgiven" class="form-control" placeholder="Full Name..."/>
+    </div>
+    <div class="form-group col-sm-5">
+      <label class="control-label">Institute</label><br>
+      <select name="newgroup" class="selectpicker">
+        <option value=""> Please Select... </option>
+      {%- for g in institutes %}
+        <option value="{{g.name}}">{{"%s (%s)"|format(g.fullname, g.name)}}</option>
+      {%- endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-5">
+      <a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
+      <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
+      <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove User</button>
+    </div>
+  </div>
+  </form>
+
+</div> <!-- End Page -->
+
 {%- endblock %}

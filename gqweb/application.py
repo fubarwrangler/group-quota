@@ -126,15 +126,18 @@ def usermanager():
                            r=Role.query.all())
 
 
-@app.route('/t3')
+@app.route('/t3users')
 def t3_user():
-    return render_template('t3users.html', users=T3User.query.all())
+    users = sorted(T3User.query.all(), key=lambda x: (x.affiliation, x.name))
+    grps = T3Institute.query.all()
+    return render_template('t3users.html', users=users, institutes=grps)
 
 
 @app.route('/t3institutes')
 def t3_institute():
     root = build_group_tree_db(Group.query.all())
-    institutes = T3Institute.query.all()
+    institutes = sorted(T3Institute.query.all(), key=lambda x: x.name)
     existing = set([x.group for x in institutes])
-    available = [x for x in root if x.is_leaf and x.full_name not in existing]
+    available = sorted([x for x in root if x.is_leaf and x.full_name not in existing],
+                       key=lambda x: x.full_name)
     return render_template('t3institutes.html', inst=institutes, avail=available)
