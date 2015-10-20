@@ -1,6 +1,14 @@
 {%- extends "layout.html" %}
 
+{%- block extraheaders %}
+  {{ macros.css('vendor/bootstrap-select.min.css') }}
+  {{ macros.js('vendor/bootstrap-select.min.js') }}
+{%- endblock %}
+
 {% block endjs -%}
+<script type="text/javascript">
+$('.selectpicker').selectpicker();
+</script>
 {%- endblock -%}
 
 {%- block navbar %}
@@ -9,28 +17,63 @@
 
 {%- block body %}
 <div class="container maxw"> <!-- Main page -->
-    <table class="table table-bordered table-striped table-hover table-condenced">
-      <colgroup>
-        <col class="col-md-2">
-        <col class="col-md-1">
-        <col class="col-md-1">
-      </colgroup>
-      <thead>
-        <tr>
-            <th> Institute Name </th>
-            <th> Shortname </th>
-            <th> Associated Group </th>
-        </tr>
-      </thead>
-      <tbody>
-      {%- for inst in institutes %}
+  <table class="table table-bordered table-striped table-hover table-condenced">
+    <colgroup>
+      <col class="col-md-1">
+      <col class="col-md-5">
+      <col class="col-md-3">
+      <col class="col-md-4">
+    </colgroup>
+    <thead>
       <tr>
-        <td> {{ inst.fullname }} </td>
-        <td> {{ inst.name }} </td>
-        <td> {{ inst.group }} </td>
+        <th> Delete </th>
+        <th> Institute Name </th>
+        <th> Shortname </th>
+        <th> Associated Group </th>
       </tr>
+    </thead>
+    <tbody>
+    {%- for i in inst %}
+    <tr>
+      <td>
+        <span class="checkbox checkbox-danger checkbox-inline">
+          <!-- <input type="checkbox" name="rm_me" value="{{i.name}}"/>
+          <label></label> -->
+        </span>
+      </td>
+      <td> {{ i.fullname }} </td>
+      <td> {{ i.name }} </td>
+      <td> {{ i.group }} </td>
+    </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+</div>
+{% if avail -%}
+<div class="container maxw">
+  <form class="form" role="form" method="POST">
+    <div class="form-group col-sm-5">
+      <label class="control-label">Institute</label>
+      <input type="text" name="newname" class="form-control" placeholder="Institute Name..."/>
+    </div>
+    <div class="form-group col-sm-3">
+      <label class="control-label">Nickname</label>
+      <input type="text" name="newshort" class="form-control" placeholder="Short name..."/>
+    </div>
+    <div class="form-group col-sm-4">
+      <label class="control-label">Group</label><br>
+      <select name="newgroup" class="selectpicker">
+      {%- for g in avail|sort %}
+        <option value="{{g}}">{{g}}</option>
       {%- endfor %}
-      </tbody>
-    </table>
-</div> <!-- End entire page -->
+    </select>
+    </div>
+    <div class="col-md-5">
+      <a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
+      <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
+      <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Institute</button>
+    </div>
+  </form>
+</div>
+{% endif -%}
 {%- endblock %}

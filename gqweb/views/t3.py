@@ -8,115 +8,69 @@ from flask import request, redirect, url_for, flash, Response, session, g
 from ..application import app
 
 from ..db import db_session
-from ..db.models import User, Role
+from ..db.models import T3Institute
 from ..util.userload import admin_permission
 
 
-Ok = lambda x: Response(status=200, response=x)
-OkNoResponse = lambda: Response(status=204)
-Error = lambda x: Response(status=520, response=x)
-
-
-@app.route('/user/add', methods=['POST'])
+@app.route('/t3institutes', methods=['POST'])
 @admin_permission.require(403)
-def add_user():
+def add_remove_institutes():
 
-    user = request.form.get('username')
-    comment = request.form.get('comment')
-    active = bool(request.form.get('active', False))
+    button_hit = request.form.get('bAct')
 
-    if not user:
-        flash('Required fields for new user: username')
-        return redirect(url_for('usermanager'))
+    if button_hit == 'rm':
+        to_remove = set(request.form.getlist('rm_me'))
+        for x in to_remove:
+            T3Institute.query.filter_by(name=x).delete()
+        if not to_remove:
+            flash("Nothing selected to be removed", category='tmperror')
+            return redirect(url_for('t3_institute'))
 
-    if User.query.filter(User.name == user).first():
-        flash('Cannot add: user %s already exists' % user, category='tmperror')
-        return redirect(url_for('usermanager'))
+        db_session.flush()
+        flash("Successfully removed %d institutes" % len(to_remove))
 
-    uobj = User(name=user, comment=comment, active=active)
-    uobj.roles = list()
+    elif button_hit == 'add':
+        name = request.form.get('newname')
+        short = request.form.get('newshort')
+        grp = request.form.get('newgroup')
+        db_session.add(T3Institute(name=name, shortname=short, group=grp))
+        db_session.flush()
 
-    db_session.add(uobj)
-    db_session.commit()
+        app.logger.info("Added new institute: %s", name)
 
-    msg = 'Added new user %s' % user
-    app.logger.info(msg)
-    flash(msg)
-
-    return redirect(url_for('usermanager'))
-
-
-@app.route('/user/api/remove', methods=['POST'])
-@admin_permission.require(403)
-def remove_user():
-
-    data = request.get_json()
-    user = data['user']
-    if g.user == user:
-        return Error("Cannot remove own user!")
-
-    User.query.filter_by(name=user).delete()
-    db_session.commit()
-
-    app.logger.info("Removed user %s", user)
-
-    return Ok("Removed user " + user)
-
-
-@app.route('/user/api/rolechange', methods=['POST'])
-@admin_permission.require(403)
-def change_role():
-
-    data = request.get_json()
-
-    username = data['user']
-    role = data['role']
-    action = data['action']
-
-    user = User.query.filter_by(name=username).first()
-    therole = Role.query.filter_by(name=role).first()
-
-    # Block removing current user & neutering the admin
-    if not user or not role:
-        return Error("User %s or role %s not found" % (user, therole))
-    elif role == 'admin' and username == g.user:
-        return Error("Can't remove admin from yourself!")
-
-    if action:
-        user.roles.append(therole)
-        msg = "Added role <b>{0}</b> to user <i>{1}</i>"
-    else:
-        user.roles.remove(therole)
-        msg = "Removed role <b>{0}</b> from user <i>{1}</i>"
+        flash("New group added: %s" % name)
 
     db_session.commit()
-    session['reload_roles'] = True
-
-    app.logger.info(msg.format(role, username))
-
-    return Ok(msg.format(role, username))
+    return redirect(url_for('t3_institute'))
 
 
-@app.route('/user/api/activate', methods=['POST'])
+@app.route('/t3users', methods=['POST'])
 @admin_permission.require(403)
-def activate_user():
+def add_remove_t3user():
 
-    data = request.get_json()
-    username = data['user']
-    user = User.query.filter_by(name=username).first()
+    button_hit = request.form.get('bAct')
 
-    if not user:
-        return Error("User " + username + " not found!")
+    if button_hit == 'rm':
+        to_remove = set(request.form.getlist('rm_me'))
+        for x in to_remove:
+            T3Institute.query.filter_by(name=x).delete()
+        if not to_remove:
+            flash("Nothing selected to be removed", category='tmperror')
+            return redirect(url_for('t3_institute'))
 
-    user.active = data['active'] == 'on'
+        db_session.flush()
+        flash("Successfully removed %d institutes" % len(to_remove))
 
-    # Block deactivating current user
-    if username == g.user and not user.active:
-        return Error("Cannot deactivate yourself!")
+    elif button_hit == 'add':
+        name = request.form.get('newname')
+        short = request.form.get('newshort')
+        grp = request.form.get('newgroup')
+        db_session.add(T3Institute(name=name, shortname=short, group=grp))
+        db_session.flush()
 
-    session['reload_roles'] = True
+        app.logger.info("Added new institute: %s", name)
 
-    app.logger.info("%sctivated user %s", 'A' if user.active else 'Dea', username)
+        flash("New group added: %s" % name)
 
     db_session.commit()
-    return OkNoResponse()
+    return redirect(url_for('t3_user'))

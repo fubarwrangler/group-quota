@@ -33,6 +33,7 @@ import views.ez_edit          # noqa -- this unused import has views
 import views.user             # noqa -- this unused import has views
 import views.plot_idle        # noqa -- this unused import has setup
 import views.pre_initialize   # noqa -- this unused import has setup
+import views.t3               # noqa -- this unused import has setup
 
 if app.config.get('LOG_FILE'):
     log_setup(app.config.get('LOG_FILE'), app.config.get('LOG_LEVEL', logging.INFO))
@@ -126,10 +127,14 @@ def usermanager():
 
 
 @app.route('/t3')
-def t3_users():
-    return render_template('t3manage.html', users=T3User.query.all())
+def t3_user():
+    return render_template('t3users.html', users=T3User.query.all())
 
 
-@app.route('/t3/institutes')
+@app.route('/t3institutes')
 def t3_institute():
-    return render_template('t3institutes.html', institutes=T3Institute.query.all())
+    root = build_group_tree_db(Group.query.all())
+    institutes = T3Institute.query.all()
+    existing = set([x.group for x in institutes])
+    available = [x for x in root if x.is_leaf and x.full_name not in existing]
+    return render_template('t3institutes.html', inst=institutes, avail=available)
