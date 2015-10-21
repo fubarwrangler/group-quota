@@ -38,15 +38,14 @@ $('.selectpicker').selectpicker();
     {%- for i in inst %}
     <tr>
       <td>
-        <span class="checkbox checkbox-danger checkbox-inline">
         {% if i.users|length < 1 -%}
+        <span class="checkbox checkbox-danger checkbox-inline">
           <input type="checkbox" name="rm_me" value="{{i.name}}"/>
-        {% else -%}
-          <input type="checkbox" name="rm_me" value="{{i.name}}" disabled title="Has Users"/>
-        {% endif -%}
           <label></label>
         </span>
-
+        {% else -%}
+          <small style="cursor: not-allowed;">{{ i.users|length }} users</small>
+        {% endif -%}
       </td>
       <td> {{ i.fullname }} </td>
       <td> {{ i.name }} </td>
