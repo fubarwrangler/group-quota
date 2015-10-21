@@ -1,0 +1,38 @@
+{%- extends "layout.html" %}
+
+{%- block navbar %}
+{{ macros.navbar(('Home', 'main_menu'), ('T3 Users', None)) }}
+{%- endblock %}
+
+{%- block body %}
+<div class="container maxw"> <!-- Main page -->
+  <p class="lead"> List of Tier 3 Users </p>
+  {% for i in institutes -%}
+  {% if loop.index % 3 -%}
+  <div class="row">
+  {% endif -%}
+  <table class="table table-bordered table-striped table-hover table-condenced col-md-4">
+    <caption> {{ i.fullname }} </caption>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Full Name</th>
+      </tr>
+    </thead>
+    <tbody>
+  {%- for u in i.users %}
+      <tr>
+        <td> {{ u.name }} </td>
+        <td> {{ u.fullname }} </td>
+      </tr>
+  {%- endfor %}
+    </tbody>
+  </table>
+  {% if loop.index % 3 -%}
+  </div>
+  {% endif -%}
+  {%- endfor %}
+  </div>
+</div> <!-- End Page -->
+
+{%- endblock %}

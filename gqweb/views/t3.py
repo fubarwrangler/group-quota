@@ -14,7 +14,7 @@ from ..util.userload import admin_permission
 import sqlalchemy.ext
 
 
-@app.route('/t3institutes', methods=['POST'])
+@app.route('/t3/institutes', methods=['POST'])
 @admin_permission.require(403)
 def add_remove_institutes():
 
@@ -52,7 +52,7 @@ def add_remove_institutes():
     return redirect(url_for('t3_institute'))
 
 
-@app.route('/t3users', methods=['POST'])
+@app.route('/t3/users', methods=['POST'])
 @admin_permission.require(403)
 def add_remove_t3user():
 
