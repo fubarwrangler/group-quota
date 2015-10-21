@@ -134,7 +134,7 @@ def t3view():
 
 @app.route('/t3/users')
 def t3_user(institute=None):
-    users = sorted(T3User.query.all(), key=lambda x: (x.affiliation, x.name))
+    users = sorted(T3User.query.all(), key=lambda x: (x.name, x.affiliation))
     grps = T3Institute.query.all()
     return render_template('t3/users.html', users=users, institutes=grps)
 

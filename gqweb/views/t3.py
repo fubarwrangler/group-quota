@@ -3,19 +3,40 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from flask import request, redirect, url_for, flash, Response, session, g
+from flask import request, redirect, url_for, flash, Response
 
 from ..application import app
 
 from ..db import db_session
 from ..db.models import T3Institute, T3User
-from ..util.userload import admin_permission
+from ..util.userload import t3_admin_permission
 
 import sqlalchemy.ext
 
+Ok = lambda x: Response(status=200, response=x)
+OkNoResponse = lambda: Response(status=204)
+Error = lambda x: Response(status=520, response=x)
+
+
+@app.route('/t3/api/user', methods=['POST'])
+@t3_admin_permission.require(403)
+def edit_user():
+    data = request.get_json()
+    username = data['name']
+
+    user = T3User.query.filter_by(name=username)
+    user.fullname = data['fullname']
+    user.affiliation = data['affiliation']
+
+    db_session.commit()
+
+    app.logger.info("Edit T3 User: %s", username)
+
+    return Ok("Edited User " + user)
+
 
 @app.route('/t3/institutes', methods=['POST'])
-@admin_permission.require(403)
+@t3_admin_permission.require(403)
 def add_remove_institutes():
 
     button_hit = request.form.get('bAct')
@@ -43,7 +64,7 @@ def add_remove_institutes():
             db_session.add(T3Institute(name=short, fullname=name, group=grp))
             db_session.flush()
         except sqlalchemy.exc.IntegrityError as e:
-            flash(e.message)
+            flash(e.message, category='error')
         else:
             app.logger.info("Added new institute: %s", name)
             flash("New group added: %s" % name)
@@ -53,19 +74,20 @@ def add_remove_institutes():
 
 
 @app.route('/t3/users', methods=['POST'])
-@admin_permission.require(403)
+@t3_admin_permission.require(403)
 def add_remove_t3user():
 
     button_hit = request.form.get('bAct')
 
     if button_hit == 'rm':
-        to_remove = set(request.form.getlist('rm_me'))
+        to_remove = request.form.getlist('rm_me')
         if not to_remove:
             flash("Nothing selected to be removed", category='tmperror')
             return redirect(url_for('t3_user'))
 
-        for x in to_remove:
-            T3User.query.filter_by(name=x).delete()
+        for item in to_remove:
+            n, a = item.split(' ')
+            T3User.query.filter_by(name=n, affiliation=a).delete()
 
         db_session.commit()
         flash("Successfully removed %d users" % len(to_remove))
@@ -75,13 +97,13 @@ def add_remove_t3user():
         full = request.form.get('newgiven')
         grp = request.form.get('newgroup')
         if not name or not full or not grp:
-            flash('Must include names and group the user', category='tmperror')
+            flash('All fields required for new user', category='tmperror')
             return redirect(url_for('t3_user'))
         try:
             db_session.add(T3User(name=name, fullname=full, affiliation=grp))
             db_session.flush()
         except sqlalchemy.exc.IntegrityError as e:
-            flash(e.message)
+            flash(e.message, category='error')
         else:
             app.logger.info("Added new institute: %s", name)
             flash("New group added: %s" % name)
