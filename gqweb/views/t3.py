@@ -24,7 +24,7 @@ def edit_user():
     data = request.get_json()
     username = data['name']
 
-    user = T3User.query.filter_by(name=username)
+    user = T3User.query.filter_by(name=username, other=1).first()
     user.fullname = data['fullname']
     user.affiliation = data['affiliation']
 
@@ -32,7 +32,30 @@ def edit_user():
 
     app.logger.info("Edit T3 User: %s", username)
 
-    return Ok("Edited User " + user)
+    return redirect(url_for('t3_user'))
+
+
+@app.route('/t3/api/institute', methods=['POST'])
+@t3_admin_permission.require(403)
+def edit_institute():
+    data = request.form
+    orig = data['origname']
+    name = data['name']
+
+    if orig != name and T3Institute.query.filter_by(name=name).first():
+        flash('Cannot change name of %s, %s already exists' %
+              (orig, name), category='error')
+    else:
+        institute = T3Institute.query.filter_by(name=orig).first()
+        institute.name = name
+        institute.fullname = data['fullname']
+        institute.group = data['group']
+
+        db_session.commit()
+
+        app.logger.info("Edit T3 Institute: %s", orig)
+
+    return redirect(url_for('t3_institute'))
 
 
 @app.route('/t3/institutes', methods=['POST'])
