@@ -19,7 +19,7 @@ $('.selectpicker').selectpicker();
 
 {%- block body %}
 <div class="container maxw"> <!-- Main page -->
-  <p class="lead"> List of Tier 3 Users </p>
+  <p class="lead"> List of Tier 3 Users {%- if filtered %} for {{ filtered.fullname }}{%- endif -%}</p>
   <form class="form" role="form" method="POST">
   <table class="table table-bordered table-striped table-hover table-condenced">
     <colgroup>
@@ -80,7 +80,7 @@ $('.selectpicker').selectpicker();
     <div class="col-md-5">
       <a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
       <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
-      <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove User</button>
+      <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Selected</button>
     </div>
   </div>
   </form>

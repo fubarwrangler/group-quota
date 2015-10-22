@@ -54,7 +54,8 @@ def load_identity():
         app.logger.debug("New user loaded")
 
         if app.config['DEBUG']:
-            username = load_user_debug(app.config['ADMIN_USER'])
+            username = load_user_debug('chris')
+            # username = load_user_debug(app.config['ADMIN_USER'])
         else:
             username = load_user_header('REMOTE_USER')
         session['user'] = username

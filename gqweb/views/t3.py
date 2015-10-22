@@ -11,7 +11,7 @@ from ..db import db_session
 from ..db.models import T3Institute, T3User
 from ..util.userload import t3_admin_permission
 
-import sqlalchemy.ext
+from sqlalchemy.exc import IntegrityError
 
 Ok = lambda x: Response(status=200, response=x)
 OkNoResponse = lambda: Response(status=204)
@@ -30,9 +30,14 @@ def edit_user():
     user.affiliation = data['affiliation']
     user.name = data['name']
 
-    db_session.commit()
-
-    app.logger.info("Edit T3 User: %s", username)
+    try:
+        db_session.commit()
+    except IntegrityError:
+        flash("Duplicate key created, cannot have the same username at the "
+              "same institution!", category='error')
+    else:
+        app.logger.info("Edit T3 User: %s", username)
+        flash("Edit T3 User: %s" % username)
 
     return redirect(url_for('t3_user'))
 
@@ -52,10 +57,13 @@ def edit_institute():
         institute.name = name
         institute.fullname = data['fullname']
         institute.group = data['group']
-
-        db_session.commit()
-
-        app.logger.info("Edit T3 Institute: %s", orig)
+        try:
+            db_session.commit()
+        except IntegrityError:
+            flash("Duplicate key: institutions must be unique ", category='error')
+        else:
+            app.logger.info("Edit T3 Institute: %s", orig)
+            flash("Edited T3 Institute: %s" % orig)
 
     return redirect(url_for('t3_institute'))
 
@@ -88,7 +96,7 @@ def add_remove_institutes():
         try:
             db_session.add(T3Institute(name=short, fullname=name, group=grp))
             db_session.flush()
-        except sqlalchemy.exc.IntegrityError as e:
+        except IntegrityError as e:
             flash(e.message, category='error')
         else:
             app.logger.info("Added new institute: %s", name)
@@ -127,7 +135,7 @@ def add_remove_t3user():
         try:
             db_session.add(T3User(name=name, fullname=full, affiliation=grp))
             db_session.flush()
-        except sqlalchemy.exc.IntegrityError as e:
+        except IntegrityError as e:
             flash(e.message, category='error')
         else:
             app.logger.info("Added new institute: %s", name)

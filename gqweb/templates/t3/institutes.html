@@ -14,7 +14,7 @@ $('.selectpicker').selectpicker();
 {%- endblock -%}
 
 {%- block navbar %}
-{{ macros.navbar(('Home', 'main_menu'), ('Modify Institutes', None)) }}
+{{ macros.navbar(('Home', 'main_menu'), ('T3 Institutes', None)) }}
 {%- endblock %}
 
 {%- block body %}
@@ -48,7 +48,9 @@ $('.selectpicker').selectpicker();
           <label></label>
         </span>
         {% else -%}
-          <small style="cursor: not-allowed;">{{ i.users|length }} users</small>
+          <a href="{{ url_for('t3_user', institute=i.name) }}">
+            <small>{{ i.users|length }} users</small>
+          </a>
         {% endif -%}
       </td>
       <td>
@@ -93,7 +95,7 @@ $('.selectpicker').selectpicker();
     <div class="col-md-5">
       <a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
       <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
-      <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Institute(s)</button>
+      <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Selected</button>
     </div>
   </div>
   </form>

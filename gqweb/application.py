@@ -133,16 +133,21 @@ def t3view():
 
 
 @app.route('/t3/users')
-def t3_user(inst=None):
+def t3_user():
+    inst = request.args.get('institute')
+    app.logger.info(inst)
     if inst:
-        userquery = T3User.query.filter_by(institute=inst)
+        userquery = T3User.query.filter_by(affiliation=inst)
         instquery = T3Institute.query.filter(T3Institute.name == inst)
+        if len(instquery.all()) == 0:
+            return render_template('errors/noresults.html')
     else:
         userquery = T3User.query
         instquery = T3Institute.query
 
     users = sorted(userquery.all(), key=lambda x: (x.name, x.affiliation))
-    return render_template('t3/users.html', users=users, institutes=instquery.all())
+    return render_template('t3/users.html', users=users, institutes=instquery.all(),
+                           filtered=instquery.first() if inst else None)
 
 
 @app.route('/t3/institutes')
