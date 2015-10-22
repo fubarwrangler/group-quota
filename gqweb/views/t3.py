@@ -21,12 +21,14 @@ Error = lambda x: Response(status=520, response=x)
 @app.route('/t3/api/user', methods=['POST'])
 @t3_admin_permission.require(403)
 def edit_user():
-    data = request.get_json()
-    username = data['name']
+    data = request.form
+    username = data['origname']
+    affiliation = data['origaffil']
 
-    user = T3User.query.filter_by(name=username, other=1).first()
+    user = T3User.query.filter_by(name=username, affiliation=affiliation).first()
     user.fullname = data['fullname']
     user.affiliation = data['affiliation']
+    user.name = data['name']
 
     db_session.commit()
 

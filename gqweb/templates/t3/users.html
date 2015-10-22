@@ -44,10 +44,15 @@ $('.selectpicker').selectpicker();
           <input type="checkbox" name="rm_me" value="{{u.name}} {{u.affiliation}}"/>
           <label></label>
         </span>
+        <button class="btn btn-primary btn-xs" type="button"
+                data-title="Edit" data-toggle="modal" data-target="#editUser"
+                data-name="{{u.name}}" data-fullname="{{u.fullname}}" data-affiliation="{{u.affiliation}}">
+          <span class="glyphicon glyphicon-pencil"></span>
+        </button>
       </td>
       <td> {{ u.name }} </td>
       <td> {{ u.fullname }} </td>
-      <td> {{ u.affiliation }} <small>({{u.institute.fullname}})</small></td>
+      <td> {{ u.institute.fullname }} <small>({{u.affiliation}})</small></td>
     </tr>
     {%- endfor %}
     </tbody>
@@ -81,7 +86,7 @@ $('.selectpicker').selectpicker();
   </form>
 
   <!-- Modal -->
-  <div class="modal fade" id="editInst" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal fade" id="editUser" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -92,14 +97,14 @@ $('.selectpicker').selectpicker();
         <div class="modal-body">
 
         <div class="form-group">
-          <label class="col-xs-3 control-label">Name</label>
+          <label class="col-xs-3 control-label">Username</label>
           <div class="col-xs-6">
             <input id="in-fullname" type="text" class="form-control" name="fullname"/>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="col-xs-3 control-label">Nickname</label>
+          <label class="col-xs-3 control-label">Full Name</label>
           <div class="col-xs-3">
             <input id="in-name" type="text" class="form-control" name="name"/>
           </div>
@@ -108,10 +113,9 @@ $('.selectpicker').selectpicker();
         <div class="form-group">
           <label class="col-xs-3 control-label">Group</label>
           <div class="col-xs-5">
-            <select name="group" class="selectpicker" {%- if avail|length < 1 -%}disabled{%- endif -%}>
-            <option id="defaultgroup" value="">xxx</option>
-            {% for g in avail -%}
-              <option value="{{g}}">{{g}}</option>
+            <select id="in-grouppick" name="affiliation" class="selectpicker">
+            {% for i in institutes -%}
+              <option value="{{ i.name }}">{{ i.fullname }}</option>
             {% endfor -%}
             </select>
           </div>
@@ -119,6 +123,8 @@ $('.selectpicker').selectpicker();
 
         </div>
         <div class="modal-footer">
+          <input id="in-origname" type="hidden" class="form-control" name="origname" value=""/>
+          <input id="in-origaffil" type="hidden" class="form-control" name="origaffil" value=""/>
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           <button type="submit" class="btn btn-primary">Save changes</button>
         </div>
