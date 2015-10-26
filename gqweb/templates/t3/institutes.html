@@ -1,0 +1,153 @@
+{%- extends "layout.html" %}
+
+{%- block extraheaders %}
+  {{ macros.css('vendor/bootstrap-select.min.css') }}
+  {{ macros.js('vendor/bootstrap-select.min.js') }}
+  {{ macros.js('mylib.js') }}
+{%- endblock %}
+
+{% block endjs -%}
+{{ macros.js('t3.js') }}
+<script type="text/javascript">
+$('.selectpicker').selectpicker();
+</script>
+{%- endblock -%}
+
+{%- block navbar %}
+{{ macros.navbar(('Home', 'main_menu'), ('T3 Institutes', None)) }}
+{%- endblock %}
+
+{%- block body %}
+<div class="container maxw"> <!-- Main page -->
+  <p class="lead"> List of Tier 3 Institutes </p>
+  <form class="form" role="form" method="POST">
+  <table class="table table-bordered table-striped table-hover table-condenced">
+    <colgroup>
+      <col class="col-md-1">
+      <col class="col-md-1">
+      <col class="col-md-5">
+      <col class="col-md-2">
+      <col class="col-md-3">
+    </colgroup>
+    <thead>
+      <tr>
+        <th> Delete </th>
+        <th> Edit </th>
+        <th> Institute Name </th>
+        <th> Shortname </th>
+        <th> Associated Group </th>
+      </tr>
+    </thead>
+    <tbody>
+    {%- for i in inst %}
+    <tr>
+      <td>
+        {% if i.users|length < 1 -%}
+        <span class="checkbox checkbox-danger checkbox-inline">
+          <input type="checkbox" name="rm_me" value="{{i.name}}"/>
+          <label></label>
+        </span>
+        {% else -%}
+          <a href="{{ url_for('t3_user', institute=i.name) }}">
+            <small>{{ i.users|length }} users</small>
+          </a>
+        {% endif -%}
+      </td>
+      <td>
+        <button class="btn btn-primary btn-xs" type="button"
+                data-title="Edit" data-toggle="modal" data-target="#editInst"
+                data-name="{{i.name}}" data-fullname="{{i.fullname}}" data-group="{{i.group}}">
+          <span class="glyphicon glyphicon-pencil"></span>
+        </button>
+      </td>
+      <td> {{ i.fullname }} </td>
+      <td> {{ i.name }} </td>
+      <td> {{ i.group }} </td>
+    </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+{% if avail -%}
+  <div class="row">
+    <div class="form-group col-xs-6">
+      <label class="control-label">Institute</label>
+      <input type="text" name="newname" class="form-control" placeholder="Institute Name..."/>
+    </div>
+    <div class="form-group col-xs-3">
+      <label class="control-label">Nickname</label>
+      <input type="text" name="newshort" class="form-control" placeholder="Short name..."/>
+    </div>
+    <div class="form-group col-xs-3">
+      <label class="control-label">Group</label><br>
+      <select name="newgroup" class="selectpicker">
+      {% for g in avail -%}
+        <option value="{{g}}">{{g}}</option>
+      {% endfor -%}
+      </select>
+    </div>
+  </div>
+{% else -%}
+  <div class="row">
+    <p class="col-sm-12 text-warning"> No Unclaimed Groups Available </p>
+  </div>
+{% endif -%}
+  <div class="row">
+    <div class="col-md-5">
+      <a href="{{ url_for('main_menu') }}" class="btn btn-default btn-sm" role="button">Back</a>
+      <button type="submit" class="btn btn-success btn-sm" name="bAct" value="add">Add New</button>
+      <button type="submit" class="btn btn-danger btn-sm" name="bAct" value="rm">Remove Selected</button>
+    </div>
+  </div>
+  </form>
+
+  <!-- Modal -->
+  <div class="modal fade" id="editInst" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+        </div>
+        <form id="editForm" method="post" class="form-horizontal" action="{{ url_for('edit_institute') }}">
+        <div class="modal-body">
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label">Name</label>
+          <div class="col-xs-6">
+            <input id="in-fullname" type="text" class="form-control" name="fullname"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label">Nickname</label>
+          <div class="col-xs-3">
+            <input id="in-name" type="text" class="form-control" name="name"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label">Group</label>
+          <div class="col-xs-5">
+            <select name="group" class="selectpicker" {%- if avail|length < 1 -%}disabled{%- endif -%}>
+            <option id="defaultgroup" value="">xxx</option>
+            {% for g in avail -%}
+              <option value="{{g}}">{{g}}</option>
+            {% endfor -%}
+            </select>
+          </div>
+        </div>
+
+        </div>
+        <div class="modal-footer">
+          <input id="in-origname" type="hidden" class="form-control" name="origname" value=""/>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>  <!-- Modal -->
+
+</div> <!-- End Page -->
+
+{%- endblock %}

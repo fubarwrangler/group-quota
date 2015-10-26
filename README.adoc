@@ -4,10 +4,13 @@ William Strecker-Kellogg <https://github.com/fubarwrangler>
 An HTCondor Account Group manager, used by the US ATLAS Teir-1 at BNL.
 
 == Background
-TODO
+HTCondor Hierarchical Group Quotas are used to partition the pool logically into
+queues, with each sub group containing a single species of job. Then the
 
 == Auto-Balancing
-TODO
+Balancing is done by setting the 'accept_surplus' flag on each queue depending
+on the load in its neighboring queues and their weight. See
+Documentation/balancing-algorithm.adoc for more details.
 
 == Webpage
 
@@ -19,13 +22,32 @@ parent (EZ-Edit), to changing anything about the group-tree.
 .Main Page
 image::http://i.imgur.com/PtKD4Da.png[Screenshot of Main Page,width=800,scaledwidth=100%]
 
+=== Editing Groups
+Groups can be added / removed as long as they conform to the tree structure
+already existing. Once groups are present, their quota, weight, threshold, and
+other parameters can be edited.
+
+Changing anything about the groups in the full editor:
+
+.Quota Editor
+image::http://i.imgur.com/qOFYgp1.png[Screenshot of Quota Editor,width=800,scaledwidth=100%]
+
+=== Balancing Between Groups
 An example of the EZ-Editor that allows someone to rebalance among a certain portion
 of a tree while keeping the parent group fixed:
 
 .Example of EZ-Editor
 image::http://i.imgur.com/2dujlSf.png[Screenshot of EZ-Editor,width=800,scaledwidth=100%]
 
-Changing anything about the groups in the full editor:
+You can select any subtree of the groups and balance among them.
 
-.Quota Editor
-image::http://i.imgur.com/qOFYgp1.png[Screenshot of Quota Editor,width=800,scaledwidth=100%]
+=== Users and Roles
+Users are authenticated according to your environment, for example we pass a
+shibboleth token to the backend with the username, but any other auth can be used.
+
+Users can be given different roles, from full administrator, to read-only.
+
+1. Admin: full rights
+2. Alter: can add and remove groups
+3. Edit: can edit any parameters about groups
+4. Balance: can only use the EZ-Editor, not change the sum of the quotas

@@ -34,6 +34,7 @@ def default_users_and_roles():
     add_unique(Role(name='alter',   comment='Can add / remove groups'))
     add_unique(Role(name='edit',    comment='Can edit all group parameters'))
     add_unique(Role(name='balance', comment='Can rebalance quotas with EZ-Editor'))
+    add_unique(Role(name='t3admin', comment='Can alter Tier-3 users and institutes'))
 
     admin_u.roles.append(admin_role if not db_admin_role else db_admin_role)
 
@@ -53,7 +54,8 @@ def load_identity():
         app.logger.debug("New user loaded")
 
         if app.config['DEBUG']:
-            username = load_user_debug(app.config['ADMIN_USER'])
+            username = load_user_debug('chris')
+            # username = load_user_debug(app.config['ADMIN_USER'])
         else:
             username = load_user_header('REMOTE_USER')
         session['user'] = username

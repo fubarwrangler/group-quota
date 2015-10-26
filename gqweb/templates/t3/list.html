@@ -1,0 +1,46 @@
+{%- extends "layout.html" %}
+
+{%- block navbar %}
+{{ macros.navbar(('Home', 'main_menu'), ('T3 Users', None)) }}
+{%- endblock %}
+
+{%- block extraheaders %}
+{{ macros.js ('mylib.js') }}
+{%- endblock %}
+
+{%- block endjs %}
+<script type="text/javascript">
+    // $('.table-responsive').equalheight();
+</script>
+{%- endblock %}
+
+{%- block body %}
+<div class="container-fluid"> <!-- Main page -->
+  <p class="lead"> List of Tier 3 Users </p>
+  {% for i in institutes -%}
+  <div class="col-md-4">
+  <div class="table-responsive">
+  <table class="table table-bordered table-striped table-hover table-condenced">
+    <caption> {{ i.fullname }} </caption>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Full Name</th>
+      </tr>
+    </thead>
+    <tbody>
+  {%- for u in i.users %}
+      <tr>
+        <td> {{ u.name }} </td>
+        <td> {{ u.fullname }} </td>
+      </tr>
+  {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  </div>
+  {%- endfor %}
+  </div>
+</div> <!-- End Page -->
+
+{%- endblock %}
