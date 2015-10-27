@@ -1,0 +1,20 @@
+#!/bin/bash
+
+u=$(whoami)
+q="SELECT  institutes.group, institutes.name, institutes.fullname FROM
+t3users JOIN institutes ON t3users.affiliation=institutes.name
+WHERE t3users.name='$u'"
+
+data=$(echo $q | mysql -u db_query -h rcfdb1.rcf.bnl.gov -N -B t3groups)
+
+read -r g n i <<< "$data"
+
+if [ "x$g" == "x" ]; then
+    echo -e "You ($u) are not found in the database, please request membership"
+    exit 1
+else
+    echo "You ($u) belong to $i ($n):
+
+accounting_group = $g
+"
+fi

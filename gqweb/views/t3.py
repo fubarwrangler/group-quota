@@ -3,7 +3,7 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from flask import request, redirect, url_for, flash, Response
+from flask import request, redirect, url_for, flash
 
 from ..application import app
 
@@ -12,10 +12,6 @@ from ..db.models import T3Institute, T3User
 from ..util.userload import t3_admin_permission
 
 from sqlalchemy.exc import IntegrityError
-
-Ok = lambda x: Response(status=200, response=x)
-OkNoResponse = lambda: Response(status=204)
-Error = lambda x: Response(status=520, response=x)
 
 
 @app.route('/t3/api/user', methods=['POST'])
