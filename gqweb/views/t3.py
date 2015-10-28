@@ -13,6 +13,7 @@ from ..db.t3models import T3Institute, T3User
 from ..util.userload import t3_admin_permission
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import subqueryload
 
 
 @app.route('/t3')
@@ -42,7 +43,8 @@ def t3_user():
 @app.route('/t3/institutes')
 def t3_institute():
     root = build_group_tree_db(Group.query.all())
-    institutes = sorted(T3Institute.query.all(), key=lambda x: x.name)
+    inst = T3Institute.query.options(subqueryload(T3Institute.users))
+    institutes = sorted(inst.all(), key=lambda x: x.name)
     existing = set([x.group for x in institutes])
     available = sorted([x for x in root if x.is_leaf and x.full_name not in existing],
                        key=lambda x: x.full_name)
