@@ -5,8 +5,9 @@ APP_NAME = 'Teir 3'
 DEBUG = False
 
 ADMIN_USER = 'willsk'
-# APPLICATION_ROOT = '/farmapp/'
 SESSION_COOKIE_NAME = 'gqweb_s_{0}'.format(APP_NAME.replace(' ', '_'))
+
+T3ENABLE = True
 
 LOG_FILE = '/tmp/gq_{0}_log'.format(APP_NAME.replace(' ', '_'))
 
