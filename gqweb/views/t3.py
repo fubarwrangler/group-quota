@@ -3,15 +3,50 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from flask import request, redirect, url_for, flash
+from flask import request, redirect, url_for, flash, render_template
 
 from ..application import app
 
 from ..db import db_session
-from ..db.models import T3Institute, T3User
+from ..db.models import Group, build_group_tree_db
+from ..db.t3models import T3Institute, T3User
 from ..util.userload import t3_admin_permission
 
 from sqlalchemy.exc import IntegrityError
+
+
+@app.route('/t3')
+def t3view():
+    institutes = sorted(T3Institute.query.all(), key=lambda x: x.fullname)
+    return render_template('t3/list.html', institutes=institutes)
+
+
+@app.route('/t3/users')
+def t3_user():
+    inst = request.args.get('institute')
+    if inst:
+        userquery = T3User.query.filter_by(affiliation=inst)
+        filterinstquery = T3Institute.query.filter(T3Institute.name == inst)
+        if len(filterinstquery.all()) == 0:
+            return render_template('errors/noresults.html')
+    else:
+        userquery = T3User.query
+
+    instquery = T3Institute.query
+
+    users = sorted(userquery.all(), key=lambda x: (x.name, x.affiliation))
+    return render_template('t3/users.html', users=users, institutes=instquery.all(),
+                           filtered=filterinstquery.first() if inst else None)
+
+
+@app.route('/t3/institutes')
+def t3_institute():
+    root = build_group_tree_db(Group.query.all())
+    institutes = sorted(T3Institute.query.all(), key=lambda x: x.name)
+    existing = set([x.group for x in institutes])
+    available = sorted([x for x in root if x.is_leaf and x.full_name not in existing],
+                       key=lambda x: x.full_name)
+    return render_template('t3/institutes.html', inst=institutes, avail=available)
 
 
 @app.route('/t3/api/user', methods=['POST'])

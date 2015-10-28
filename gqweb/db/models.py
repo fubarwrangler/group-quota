@@ -67,31 +67,6 @@ class Role(Base):
         return self.name
 
 
-class T3User(Base):
-    __tablename__ = 't3users'
-    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
-
-    name = Column(String(32), nullable=False, primary_key=True)
-    affiliation = Column(String(32),
-                         ForeignKey('institutes.name',
-                                    ondelete='restrict', onupdate='cascade'),
-                         nullable=False, primary_key=True)
-    fullname = Column(String(256))
-
-    institute = relationship('T3Institute', uselist=False)
-
-
-class T3Institute(Base):
-    __tablename__ = 'institutes'
-    __table_args__ = {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8'}
-
-    name = Column(String(32), nullable=False, primary_key=True)
-    group = Column(String(128), ForeignKey('groups.group_name', onupdate='cascade'))
-    fullname = Column(String(256))
-
-    users = relationship('T3User')
-
-
 # Table isn't mapped, but we may as well create it here anyway!
 q_log = Table('queue_log', Base.metadata,
               Column('id', Integer, ForeignKey('groups.id', ondelete="cascade")),
