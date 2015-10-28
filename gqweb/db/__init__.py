@@ -3,7 +3,7 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from ..application import app
+from ..application import app, BNLT3
 
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -25,4 +25,6 @@ Base.query = db_session.query_property()
 
 def init_db():
     import models  # flake8: noqa -- to register models
+    if BNLT3:
+        import t3models  # flake8: noqa -- to register models
     Base.metadata.create_all(bind=engine)

@@ -13,6 +13,8 @@ from ..util.validation import validate_form_types
 from ..util.tree import set_quota_sums, new_group_fits, remove_groups
 from ..util.userload import add_remove_permission
 
+from sqlalchemy.exc import IntegrityError
+
 
 @app.route('/addrm', methods=['POST'])
 @add_remove_permission.require(403)
@@ -38,8 +40,14 @@ def add_remove_groups():
             if obj.group_name in to_remove:
                 app.logger.info("Delete group: %s", obj.group_name)
                 db_session.delete(obj)
-        db_session.flush()
-        flash("Successfully removed %d group(s)" % len(to_remove))
+
+        try:
+            db_session.flush()
+        except IntegrityError:
+            flash("Cannot remove a group with active T3 users in it", category='tmperror')
+            return redirect(url_for('add_groups'))
+        else:
+            flash("Successfully removed %d group(s)" % len(to_remove))
 
     elif button_hit == 'add':
         newgrp = dict([(k.split('+')[1], v) for k, v in request.form.iteritems()

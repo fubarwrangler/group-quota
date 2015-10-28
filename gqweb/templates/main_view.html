@@ -71,7 +71,7 @@
     {%- endif %}
     </div>
   </div>
-  {%-  if 'admin' in session.roles or 't3admin' in session.roles %}
+  {%  if ('admin' in session.roles or 't3admin' in session.roles) and config.get('T3ENABLE') -%}
   <div class="row spacer-below">
     <div class="col-xs-5">
       <a href="{{ url_for('t3_institute') }}" class="btn btn-info btn-sm" role="button">T3-Institutes</a>
