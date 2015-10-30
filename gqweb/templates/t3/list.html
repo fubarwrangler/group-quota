@@ -1,46 +1,34 @@
-{%- extends "layout.html" %}
-
-{%- block navbar %}
-{{ macros.navbar(('Home', 'main_menu'), ('T3 Users', None)) }}
-{%- endblock %}
-
-{%- block extraheaders %}
-{{ macros.js ('mylib.js') }}
-{%- endblock %}
-
-{%- block endjs %}
-<script type="text/javascript">
-    // $('.table-responsive').equalheight();
-</script>
-{%- endblock %}
-
-{%- block body %}
-<div class="container-fluid"> <!-- Main page -->
-  <p class="lead"> List of Tier 3 Users </p>
-  {% for i in institutes -%}
-  <div class="col-md-4">
-  <div class="table-responsive">
-  <table class="table table-bordered table-striped table-hover table-condenced">
-    <caption> {{ i.fullname }} </caption>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ATLAS Group Quotas</title>
+</head>
+<body>
+  <p> List of Tier 3 Users </p>
+  <table>
+    <caption> T3 Users </caption>
     <thead>
       <tr>
         <th>Username</th>
         <th>Full Name</th>
+        <th>Institution</th>
+        <th>Group</th>
       </tr>
     </thead>
     <tbody>
-  {%- for u in i.users %}
+  {%- for u in users %}
       <tr>
         <td> {{ u.name }} </td>
         <td> {{ u.fullname }} </td>
+        <td> {{ u.institute.fullname }} </td>
+        <td> {{ u.institute.group }} </td>
       </tr>
   {%- endfor %}
     </tbody>
   </table>
   </div>
-  </div>
-  {%- endfor %}
-  </div>
-</div> <!-- End Page -->
-
-{%- endblock %}
+</body>
+</html>
