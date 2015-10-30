@@ -4,7 +4,7 @@
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
 from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relation as relationship
 
 from . import Base
 
