@@ -1,4 +1,8 @@
 #!/usr/bin/python
+# ****************************************************************************
+# Script to write a HTCondor policy macro that enforces accountinggroup
+# membership from the database
+# ****************************************************************************
 
 import os
 import os.path

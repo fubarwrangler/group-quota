@@ -18,8 +18,8 @@ from sqlalchemy.orm import subqueryload
 
 @app.route('/t3')
 def t3view():
-    institutes = sorted(T3Institute.query.all(), key=lambda x: x.fullname)
-    return render_template('t3/list.html', institutes=institutes)
+    userquery = T3User.query.options(subqueryload(T3User.institute)).order_by(T3User.name)
+    return render_template('t3/list.html', users=userquery.all())
 
 
 @app.route('/t3/users')
