@@ -42,8 +42,10 @@ def get_group_data():
 
     groups = defaultdict(list)
 
+    skip = ['group_atlas.general', 'group_atlas.panda']
+
     for name, group in do_query():
-        if group != 'group_atlas.general':
+        if group not in skip:
             groups[group].append(name)
 
     return groups
@@ -57,7 +59,7 @@ VALID_MEMBER = $(VALID_MEMBER) || \\
 ( ( (TARGET.AcctGroup == "{group}") || (TARGET.AcctGroup == "{group}.long") ) && \\
   stringListMember(Owner, "{namelist}") )
 """
-    with open('/etc/condor/tmpPolicyConfig', 'w') as fp:
+    with open(path, 'w') as fp:
         print >> fp, "# =============================================="
         print >> fp, "# Condor Policy for Validating Group Memberships"
         print >> fp, "# ==============================================\n"
