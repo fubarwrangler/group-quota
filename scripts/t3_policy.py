@@ -53,7 +53,7 @@ def write_file(path, data):
 
     template = """
 # Policy for {group}
-GROUP_MEMBER_OK = $(GROUP_MEMBER_OK) || \\
+VALID_MEMBER = $(VALID_MEMBER) || \\
 ( ( (TARGET.AcctGroup == "{group}") || (TARGET.AcctGroup == "{group}.long") ) && \\
   stringListMember(Owner, "{namelist}") )
 """
@@ -61,7 +61,7 @@ GROUP_MEMBER_OK = $(GROUP_MEMBER_OK) || \\
         print >> fp, "# =============================================="
         print >> fp, "# Condor Policy for Validating Group Memberships"
         print >> fp, "# ==============================================\n"
-        print >> fp, 'GROUP_MEMBER_OK = (TARGET.AcctGroup == "group_atlas.general")\n'
+        print >> fp, 'VALID_MEMBER = (TARGET.AcctGroup == "group_atlas.general")\n'
 
         for group, userlist in data.iteritems():
             print >> fp, template.format(group=group, namelist=",".join(userlist))
@@ -85,7 +85,7 @@ def do_main():
     if hash_file(TMP_FILE) != hash_file(CONFIG_PATH) and os.path.getsize(TMP_FILE) > 0:
         os.rename(TMP_FILE, CONFIG_PATH)
         with open(os.devnull, 'w') as null:
-            subprocess.check_call(['condor_reconfig'], stdout=null, stderr=null)
+            subprocess.check_call(['/usr/sbin/condor_reconfig'], stdout=null, stderr=null)
         log.info("Updated config file and reconfigured condor...")
     else:
         os.remove(TMP_FILE)
