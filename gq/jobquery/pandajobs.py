@@ -19,7 +19,7 @@ log = logging.getLogger()
 
 # Queues to watch, map of PANDA Name -> Condor Group name
 queues = {
-    'BNL_PROD_MCOREHIMEM': 'group_atlas.prod.production',
+    'BNL_PROD_MCOREHIMEM': 'group_atlas.prod.xl',
     'BNL_PROD_MCORE':  'group_atlas.prod.mp',
     'BNL_ATLAS_2':     'group_atlas.prod.test',
     'BNL_PROD':        'group_atlas.prod.production',
