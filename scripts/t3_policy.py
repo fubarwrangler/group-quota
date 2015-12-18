@@ -57,7 +57,7 @@ def write_file(path, data):
 # Policy for {group}
 VALID_MEMBER = $(VALID_MEMBER) || \\
 ( ( (TARGET.AcctGroup == "{group}") || (TARGET.AcctGroup == "{group}.long") ) && \\
-  stringListMember(Owner, "{namelist}") )
+  stringListMember(TARGET.Owner, "{namelist}") )
 """
     with open(path, 'w') as fp:
         print >> fp, "# =============================================="

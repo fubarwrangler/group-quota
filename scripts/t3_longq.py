@@ -40,6 +40,7 @@ def do_main():
 
     for group in groups:
         print 'GROUP_QUOTA_DYNAMIC_%s.long = 0.2' % group
+        print 'GROUP_PRIO_FACTOR_%s.long = 10.0\n' % group
 
 
 if __name__ == "__main__":
