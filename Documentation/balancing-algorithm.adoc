@@ -1,5 +1,5 @@
-Group Balancing Architecture
-============================
+= Group Balancing Architecture
+
 
 This design document will describe the setup in our ATLAS Condor pool of our
 implementation of support for multicore jobs in a generic way using partitionable
@@ -17,8 +17,8 @@ what queues have demand in them to allow an always-optimal allocation of farm
 resources.
 
 
-Group Definition
-----------------
+== Group Definition
+
 
 Group are defined in a hierarchy, with leaf-nodes having jobs running in them.
 For example, our current ATLAS tree looks like:

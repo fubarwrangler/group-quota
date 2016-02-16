@@ -5,49 +5,50 @@ An HTCondor Account Group manager, used by the US ATLAS Teir-1 at BNL.
 
 == Background
 HTCondor Hierarchical Group Quotas are used to partition the pool logically into
-queues, with each sub group containing a single species of job. Then the
+queues, with each sub group containing a single species of job. The groups
+are organized into a tree, with leaf-nodes having jobs submitted into them and
+the higher levels serving to classify these jobs.
 
-== Auto-Balancing
-Balancing is done by setting the 'accept_surplus' flag on each queue depending
-on the load in its neighboring queues and their weight. See
-Documentation/balancing-algorithm.adoc for more details.
+For example, the ATLAS tree is partitioned into production and analysis, with
+each of these containing a few different queues of each type.
 
-== Webpage
+This repo contains code for a website to manage the groups, some scripts to put
+the groups in the configuration of the 'condor_negotiator', and software to
+auto-balance the groups based on which have demand in them and what size jobs
+each group has.
 
-The webpage under gqweb/ is a flask application that allows users to create,
-modify, and remove groups. Different users will have different privileges, from
-read-only, to being able to alter the quotas in a subgroup without changing the
-parent (EZ-Edit), to changing anything about the group-tree.
+== Installation
 
-.Main Page
-image::http://i.imgur.com/PtKD4Da.png[Screenshot of Main Page,width=800,scaledwidth=100%]
+The software needs some packages built via the setup scripts in this repo,
+a webserver running Apache (nginx would work too), and a MySQL database
+somewhere (relatively low traffic).
 
-=== Editing Groups
-Groups can be added / removed as long as they conform to the tree structure
-already existing. Once groups are present, their quota, weight, threshold, and
-other parameters can be edited.
+All parts rely on the 'gq' RPM package, built by *setup-gq.py*. This contains
+code used by the website, the balancing software, and the other scripts.
 
-Changing anything about the groups in the full editor:
+=== Example installation steps
+. Set up database and web servers
+. Build & install the gq and gqweb packages via the setup scripts
+. Run the *init_db.py* script to define the tables from the website models
+. Configure the webpage settings, esp. the SECRET_KEY, and figure out what kind
+  of authentication you want to set up. It is loaded in the site code in
+  gqweb/views/pre_initalize.py which calls 'load_user_header()' from util/userload.py.
+  By default is uses the REMOTE_USER environment variable so some kind of BasicAuth
+  should be easy to set up
 
-.Quota Editor
-image::http://i.imgur.com/qOFYgp1.png[Screenshot of Quota Editor,width=800,scaledwidth=100%]
+=== Balancing & Idle Job Data
+The balancing scripts require knowledge about how much workload is in each queue.
+To provide this data you need to set up software like that in gq/jobquery/, where
+there are modules contain a get_jobs() method that returns a mapping of
+group_name -> # idle at the time it is called. See 'pandajobs.py' for an example
+that looks to PANDA for activated jobs.
 
-=== Balancing Between Groups
-An example of the EZ-Editor that allows someone to rebalance among a certain portion
-of a tree while keeping the parent group fixed:
+The balancing scripts themselves are bin/get_idle_jobs.py and bin/balance_load.py,
+both of which should be called via Cron or some other regular mechanism.
 
-.Example of EZ-Editor
-image::http://i.imgur.com/2dujlSf.png[Screenshot of EZ-Editor,width=800,scaledwidth=100%]
+=== Configuration Generation
+The script update_quotas.py safely write a config file that contains the current
+groups and their parameters, and triggers a reconfig of condor if things changed.
 
-You can select any subtree of the groups and balance among them.
-
-=== Users and Roles
-Users are authenticated according to your environment, for example we pass a
-shibboleth token to the backend with the username, but any other auth can be used.
-
-Users can be given different roles, from full administrator, to read-only.
-
-1. Admin: full rights
-2. Alter: can add and remove groups
-3. Edit: can edit any parameters about groups
-4. Balance: can only use the EZ-Editor, not change the sum of the quotas
+The script is bin/update_quotas.py, and it too requires the 'gq' package. It
+should be run via Cron wherever the 'condor_negotiator' for your pool runs.
