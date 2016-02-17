@@ -50,16 +50,11 @@ loglevel = logging.DEBUG if options.debug else c.log_level
 
 log = setup_logging(options.logfile, backup=3, size_mb=20, level=loglevel)
 
-if not args:
-    from gq.jobquery import module_names
-    modules = list()
-    for mod in module_names:
-        modules.append(__import__(mod, fromlist=module_names))
-elif len(args) != 1:
+if not args or len(args) != 1:
     print >>sys.stderr, "Wrong number of arguments!"
-    modules = None
-else:
-    modules = load_module_path(args[0])
+    sys.exit(1)
+
+modules = load_module_path(args[0])
 
 if modules is None:
     sys.exit(1)

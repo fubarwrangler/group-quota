@@ -1,12 +1,9 @@
-#!/usr/bin/python
 # *****************************************************************************
-#
 # Get jobs from PANDA for appropriate groups (non-grid)
 # All modules must have the get_jobs() method that returns a mapping of
 # group-name -->  num_idle
 #
 # William Strecker-Kellogg <willsk@bnl.gov>
-#
 # *****************************************************************************
 
 import requests
@@ -15,7 +12,6 @@ import logging
 
 log = logging.getLogger()
 
-# **************************************************************************
 
 # Queues to watch, map of PANDA Name -> Condor Group name
 queues = {

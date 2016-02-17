@@ -49,8 +49,8 @@ pertinent fields like quota, weight, threshold, etc... We currently quotas like
 like long/short each 1k, mp 6k, production 4k, test 2k. The parent groups have
 a fictitious "quota" of the sum of their child groups.
 
-Load Balancing
-~~~~~~~~~~~~~~
+== Load Balancing
+
 
 As mentioned in the first section, the idea is to use accept-surplus per-group
 to allow efficient allocation of resources on the farm. This require reading
@@ -61,8 +61,8 @@ This is done with a script that watches PANDA every 5 minutes and logs the
 demand for each queue (as measured by 'activated' job-count) into a DB.
 
 
-Balancing Algorithm
--------------------
+=== Balancing Algorithm
+
 
 The main argument against allowing free-for-all accept-surplus everywhere is
 that this would starve multicore queues by giving each free slot that came up
@@ -91,8 +91,8 @@ with jobs is mentioned above, but the concept is extended according to:
 1. Weight for non-leaf groups is defined as the average weight of it's children
 2. Demand is simply defined like quota, i.e. the sum of the children's demand.
 
-Definition of Demand
-~~~~~~~~~~~~~~~~~~~~
+=== Definition of Demand
+
 
 There are some subtleties in defining what constitutes "sufficient demand" for
 a queue. A moving average for the last hour is looked at as well as whether
