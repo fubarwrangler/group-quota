@@ -10,7 +10,7 @@
 </ol>
 {%- endmacro %}
 
-{% macro showerror(title="Error", errors) %}
+{% macro showerror(title="Error", errors=[]) %}
   <h3>{{ title }}</h3>
     {% for errormsg in errors -%}
     <ul class="alert alert-danger list-unstyled">
