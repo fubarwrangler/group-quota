@@ -31,14 +31,21 @@ class Group(Base):
     last_update = Column(TIMESTAMP, nullable=False, server_default=func.now())
     last_surplus_update = Column(TIMESTAMP, nullable=True)
 
-user_role_table = Table('user_roles', Base.metadata,
-                        Column('user_id', Integer,
-                               ForeignKey('users.id', ondelete='cascade')),
-                        Column('role_id', Integer,
-                               ForeignKey('roles.id', ondelete='cascade')),
-                        UniqueConstraint('user_id', 'role_id'),
-                        mysql_engine='InnoDB', mysql_charset='utf8',
-                        )
+user_role_table = Table(
+    'user_roles', Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id', ondelete='cascade')),
+    Column('role_id', Integer, ForeignKey('roles.id', ondelete='cascade')),
+    UniqueConstraint('user_id', 'role_id'),
+    mysql_engine='InnoDB', mysql_charset='utf8',
+)
+
+user_group_acl_table = Table(
+    'user_group_acl', Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id', ondelete='cascade')),
+    Column('group_id', Integer, ForeignKey('groups.id', ondelete='cascade')),
+    UniqueConstraint('user_id', 'group_id'),
+    mysql_engine='InnoDB', mysql_charset='utf8',
+)
 
 
 class User(Base):
@@ -50,6 +57,7 @@ class User(Base):
     comment = Column(String(128))
     active = Column(Boolean, default=False)
     roles = relationship('Role', secondary=user_role_table)
+    groups = relationship('Group', secondary=user_group_acl_table)
 
     def __str__(self):
         return self.name

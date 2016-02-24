@@ -21,7 +21,7 @@ queues = {
     'BNL_PROD':        'group_atlas.prod.production',
     'ANALY_BNL_SHORT': 'group_atlas.analysis.short',
     'ANALY_BNL_LONG':  'group_atlas.analysis.long',
-    'ANALY_BNL_MCORE': 'group_atlas.analysis.mcore',
+    'ANALY_BNL_MCORE': 'group_atlas.analysis.amc',
 }
 
 # **************** Configuration variables and information *****************

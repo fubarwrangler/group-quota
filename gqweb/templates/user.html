@@ -22,28 +22,30 @@
       <colgroup>
         <col class="col-sm-1">
         <col class="col-sm-1">
-        <col class="col-sm-3">
+        <col class="col-sm-2">
         <col class="col-sm-1">
         <col class="col-sm-2">
+        <col class="col-sm-1">
       </colgroup>
       <caption> Users and roles </caption>
       <thead>
-      <tr><th> Delete? </th><th> Name </th><th> Comment </th><th> Active </th><th> Roles </th></tr>
+      <tr><th> Delete? </th><th> Name </th><th> Comment </th><th> Active </th>
+          <th> Roles </th> <th> Groups? </th></tr>
       </thead>
       <tbody>
 {%- for user in u %}
       <tr id="ur_{{user}}">
-        <td>
+        <td> <!-- Delete button -->
           <span class="glyphicon glyphicon-remove text-danger aj_rmuser"
                 aria-hidden="true" name="{{user}}"></span>
         </td>
         <td> {{ user }} </td>
         <td> {{ user.comment }} </td>
-        <td>
+        <td> <!-- Active Box -->
           <input user="{{user}}" type="checkbox" class="checkslider aj_active"
           {%- if user.active %} checked{%- endif %} data-size="small">
         </td>
-        <td>
+        <td> <!-- Role Checkboxes -->
           <div class="control-group">
         {%- for role in r %}
             <label class="checkbox-inline">
@@ -53,6 +55,21 @@
             </label>
         {%- endfor -%}
           </div>
+        </td>
+        <td> <!-- Group limit -->
+          {% if user.groups|length > 0 -%}
+            Limited to {{user.groups|length}}
+            <a href="{{ url_for('user_groups', u=user) }}" class="btn btn-default"
+               role="button">
+               Edit Here
+            </a>
+          {% else -%}
+            Unlimited / All
+            <a href="{{ url_for('user_groups', u=user) }}" class="btn btn-default"
+               role="button">
+               Add Here
+            </a>
+          {% endif -%}
         </td>
       </tr>
 {%- endfor %}

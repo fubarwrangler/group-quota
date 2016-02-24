@@ -120,3 +120,8 @@ def activate_user():
 
     db_session.commit()
     return OkNoResponse()
+
+
+@app.route('/user/gedit/<u>')
+def user_groups(u):
+    return Ok('Foo')
