@@ -57,9 +57,22 @@
           </div>
         </td>
         <td> <!-- Group limit -->
+          <!-- Small button group -->
+          <div class="btn-group">
+            <button class="btn btn-warning btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{user.groups|length}} groups <span class="caret"></span>
+            </button>
+              <ul class="dropdown-menu">
+                <li><a href="#">Action</a></li>
+                <li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="#">Separated link</a></li>
+              </ul>
+          </div>
           {% if user.groups|length > 0 -%}
             Limited to {{user.groups|length}}
-            <a href="{{ url_for('user_groups', u=user) }}" class="btn btn-default"
+            <a href="{{ url_for('user_groups', u=user) }}" class="btn btn-warning"
                role="button">
                Edit Here
             </a>

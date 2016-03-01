@@ -124,4 +124,5 @@ def activate_user():
 
 @app.route('/user/gedit/<u>')
 def user_groups(u):
-    return Ok('Foo')
+    user = User.query.filter_by(name=u).first()
+    return Ok('Foo: ' + str(list(user.groups)))
