@@ -3,12 +3,13 @@
 #
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
-from flask import request, redirect, url_for, flash, Response, session, g
+from flask import (request, redirect, url_for, flash, render_template,
+                   Response, session, g)
 
 from ..application import app
 
 from ..db import db_session
-from ..db.models import User, Role
+from ..db.models import User, Role, Group, build_group_tree_db
 from ..util.userload import admin_permission
 
 
@@ -123,6 +124,15 @@ def activate_user():
 
 
 @app.route('/user/gedit/<u>')
-def user_groups(u):
+@admin_permission.require(403)
+def user_group_view(u):
     user = User.query.filter_by(name=u).first()
-    return Ok('Foo: ' + str(list(user.groups)))
+    tree = build_group_tree_db(Group.query.all())
+    return render_template('user_groupedit.html', u=user, groups=tree)
+
+
+@app.route('/user/gedit/<u>', methods=['POST'])
+@admin_permission.require(403)
+def user_group_edit(u):
+    user = User.query.filter_by(name=u).first()
+    return render_template('user_groupedit.html', u=user)

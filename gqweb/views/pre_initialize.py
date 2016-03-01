@@ -8,7 +8,7 @@
 from flask import request, session, g
 from flask.ext.principal import Identity, AnonymousIdentity, RoleNeed
 
-from ..application import app, principals
+from ..application import app, principals, BNLT3
 from ..db import db_session
 from ..db.models import User, Role
 from ..util.userload import load_user_debug, load_user_header
@@ -34,7 +34,8 @@ def default_users_and_roles():
     add_unique(Role(name='alter',   comment='Can add / remove groups'))
     add_unique(Role(name='edit',    comment='Can edit all group parameters'))
     add_unique(Role(name='balance', comment='Can rebalance quotas with EZ-Editor'))
-    add_unique(Role(name='t3admin', comment='Can alter Tier-3 users and institutes'))
+    if BNLT3:
+        add_unique(Role(name='t3admin', comment='Can alter Tier-3 users and institutes'))
 
     admin_u.roles.append(admin_role if not db_admin_role else db_admin_role)
 

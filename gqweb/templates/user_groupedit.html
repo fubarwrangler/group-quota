@@ -1,0 +1,16 @@
+{%- extends "layout.html" %}
+{%- block extraheaders %}
+  {{ macros.js('vendor/bootbox.min.js') }}
+  {{ macros.js('mylib.js') }}
+{%- endblock %}
+{%- block navbar %}
+{{ macros.navbar(('Home', 'main_menu'), ('Users', 'usermanager'), ('Group Edit', None)) }}
+{%- endblock %}
+{%- block body %}
+<div class="container maxw">
+<h4>Edit Group-Restrictions for {{u}}</h4>
+<form class="form-inline" role="form" method="POST">
+...
+</form>
+</div>
+{%- endblock %}

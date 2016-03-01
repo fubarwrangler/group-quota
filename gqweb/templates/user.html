@@ -72,13 +72,13 @@
           </div>
           {% if user.groups|length > 0 -%}
             Limited to {{user.groups|length}}
-            <a href="{{ url_for('user_groups', u=user) }}" class="btn btn-warning"
+            <a href="{{ url_for('user_group_view', u=user) }}" class="btn btn-warning"
                role="button">
                Edit Here
             </a>
           {% else -%}
             Unlimited / All
-            <a href="{{ url_for('user_groups', u=user) }}" class="btn btn-default"
+            <a href="{{ url_for('user_group_view', u=user) }}" class="btn btn-default"
                role="button">
                Add Here
             </a>

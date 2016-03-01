@@ -10,7 +10,7 @@ DBPOOL_RECYCLE = 3600 * 3
 
 ADMIN_USER = 'willsk'
 
-T3ENABLE = True
+T3ENABLE = False
 
 # Used only if not in DEBUG mode
 LOG_FILE = '/tmp/group_quota_{0}.log'.format(APP_NAME)

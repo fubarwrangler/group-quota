@@ -32,7 +32,7 @@ import views.quota_edit       # noqa -- this unused import has views
 import views.group_modify     # noqa -- this unused import has views
 import views.ez_edit          # noqa -- this unused import has views
 import views.user             # noqa -- this unused import has views
-import views.plot_idle        # noqa -- this unused import has setup
+import views.plot_idle        # noqa -- this unused import has views
 import views.pre_initialize   # noqa -- this unused import has setup
 
 if BNLT3:
