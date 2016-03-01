@@ -12,6 +12,8 @@ from ..db import db_session
 from ..db.models import User, Role, Group, build_group_tree_db
 from ..util.userload import admin_permission
 
+from collections import defaultdict
+
 
 Ok = lambda x: Response(status=200, response=x)
 OkNoResponse = lambda: Response(status=204)
@@ -128,7 +130,18 @@ def activate_user():
 def user_group_view(u):
     user = User.query.filter_by(name=u).first()
     tree = build_group_tree_db(Group.query.all())
-    return render_template('user_groupedit.html', u=user, groups=tree)
+    children = defaultdict(list)
+    user_groups = set(x.group_name for x in user.groups)
+
+    for group in tree:
+        for ug in user_groups:
+            if group.full_name.startswith(ug) and ug != group.full_name:
+                children[ug].append(group.full_name)
+
+    can_add = [x.full_name for x in tree if not any(x.full_name.startswith(y) for y in user_groups)]
+    app.logger.info("%s :::: %s", children, can_add)
+
+    return render_template('user_groupedit.html', u=user, groups=tree, children=children, avail=can_add)
 
 
 @app.route('/user/gedit/<u>', methods=['POST'])
