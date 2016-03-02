@@ -1,0 +1,30 @@
+div.container>form>div.treediv {
+    padding-left: 0px;
+    border-left: none;
+}
+
+div.treediv {
+    margin-left: 0px;
+    padding-left: 20px;
+    /*border-left: gray dotted thin;*/
+
+}
+
+div.parent, div.nonparent {
+    display: table;
+    border-bottom: 1px dotted #b38b0d;
+    margin-left: -5px;
+    padding-left: 5px;
+    padding-top: 10px;
+}
+
+.sel {
+    color: gray;
+    text-decoration: line-through;
+    cursor: not-allowed;
+}
+
+.ulinerow {
+  border-bottom: black dotted thin;
+  padding-bottom: 10px;
+}

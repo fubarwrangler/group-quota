@@ -3,13 +3,34 @@
   {{ macros.css('vendor/bootstrap-select.min.css') }}
   {{ macros.js('vendor/bootstrap-select.min.js') }}
   {{ macros.js('mylib.js') }}
+  {{ macros.css('user_treeview.css') }}
 {%- endblock %}
 
 {% block endjs -%}
 {{ macros.js('t3.js') }}
 <script type="text/javascript">
 $('.selectpicker').selectpicker();
+function cbox_change(event)    {
+  var pdiv = this.parentElement.nextElementSibling;
+  if($(pdiv).hasClass("treediv")) {
+    if(this.checked)  {
+      $(pdiv).find('div.treediv').andSelf().addClass('sel');
+      $(pdiv).find('.cbox').attr('checked', false);
+      $(pdiv).find('.cbox').attr('disabled', true);
+    } else {
+      $(pdiv).find('div.treediv').andSelf().removeClass('sel');
+      $(pdiv).find('.cbox').attr('disabled', false);
+    }
+    // $(this).toggleClass('editparent');
+  }
+}
+/* Toggle correct classes for highlight event on hover-over link */
+$('.cbox').change(cbox_change);
+$(document).ready(function() {
+  $('.cbox').each(cbox_change);
+});
 </script>
+
 {%- endblock -%}
 
 {%- block navbar %}
@@ -17,24 +38,37 @@ $('.selectpicker').selectpicker();
 {%- endblock %}
 {%- block body %}
 <div class="container maxw">
-<h4>Edit Group-Restrictions for {{u}}</h4>
-<form class="form-inline" role="form" method="POST">
-  Restricted to:
-  <ol>
-    {% for group in u.groups -%}
-    <li> {{ group.group_name }} (and {{ children|length }} children) </li>
-    {% endfor -%}
-  </ol>
+<h3>Edit Group-Restrictions</h3>
+<div class="row">
+  <p class="col-sm-9 ulinerow">
+    Choose which groups user <i>{{ u }}</i> can edit. Selecting none is the
+    default of no restrictions.
+  </p>
+</div>
 
-  <!-- Small button group -->
-  <div class="form-group col-xs-3">
-    <label class="control-label">Group</label><br>
-    <select name="newgroup" class="selectpicker">
-    {% for g in avail -%}
-      <option value="{{g}}">{{g}}</option>
-    {% endfor -%}
-    </select>
+<form role="form" method="POST">
+<div class="row">
+{%- for group in groups %}
+  {%- set prev_level = level if not loop.first else -1 %}
+  {%- set level = group.full_name.count('.') %}
+  {%- if level < prev_level %}
+    {%- for i in range(prev_level - level) %}
+  </div> <!--- UP one lvl -->
+    {%- endfor %}
+  {%- elif level > prev_level %}
+  <div class="treediv"> <!--- Down one lvl -->
+  {%- endif %}
+  {%- if not group.is_leaf and group.children|length > 1 %}
+  <div class="parent">
+  {%- else %}
+  <div class="nonparent">
+  {%- endif %}
+    <input class="cbox" type="checkbox" />
+    <i>{{group}}</i>
   </div>
+{%- endfor %}
+  </div><!--- UP one lvl -->
+</div>
 </form>
 </div>
 {%- endblock %}
