@@ -7,19 +7,18 @@
 {%- endblock %}
 
 {% block endjs -%}
-{{ macros.js('t3.js') }}
 <script type="text/javascript">
 $('.selectpicker').selectpicker();
 function cbox_change(event)    {
-  var pdiv = this.parentElement.nextElementSibling;
-  if($(pdiv).hasClass("treediv")) {
+  var pdiv = $(this).parents().eq(2).next();
+  if(pdiv.hasClass("treediv")) {
     if(this.checked)  {
-      $(pdiv).find('div.treediv').andSelf().addClass('sel');
-      $(pdiv).find('.cbox').attr('checked', false);
-      $(pdiv).find('.cbox').attr('disabled', true);
+      pdiv.find('div.treediv').andSelf().addClass('sel');
+      pdiv.find('.cbox').attr('checked', false);
+      pdiv.find('.cbox').attr('disabled', true);
     } else {
-      $(pdiv).find('div.treediv').andSelf().removeClass('sel');
-      $(pdiv).find('.cbox').attr('disabled', false);
+      pdiv.find('div.treediv').andSelf().removeClass('sel');
+      pdiv.find('.cbox').attr('disabled', false);
     }
     // $(this).toggleClass('editparent');
   }
@@ -27,7 +26,7 @@ function cbox_change(event)    {
 /* Toggle correct classes for highlight event on hover-over link */
 $('.cbox').change(cbox_change);
 $(document).ready(function() {
-  $('.cbox').each(cbox_change);
+  $('input[type=checkbox]:checked').each(cbox_change);
 });
 </script>
 
@@ -38,10 +37,10 @@ $(document).ready(function() {
 {%- endblock %}
 {%- block body %}
 <div class="container maxw">
-<h3>Edit Group-Restrictions</h3>
+<h3>Edit <span>{{ u|capitalize }}'s</span> Group-Restrictions</h3>
 <div class="row">
   <p class="col-sm-9 ulinerow">
-    Choose which groups user <i>{{ u }}</i> can edit. Selecting none is the
+    Choose which groups user <i class="text-success">{{ u }}</i> can edit. Selecting none is the
     default of no restrictions.
   </p>
 </div>
@@ -63,11 +62,20 @@ $(document).ready(function() {
   {%- else %}
   <div class="nonparent">
   {%- endif %}
-    <input class="cbox" type="checkbox" />
-    <i>{{group}}</i>
+    <div class="control-group cbdiv">
+      <label for="ip-{{group}}">
+        <input name="ng" value="{{group}}" id="ip-{{group}}" class="cbox" type="checkbox"
+        {%- if group.full_name in user_groups %} checked {%- endif %} />
+        <span>{{group}}</span>
+      </label>
+    </div>
   </div>
 {%- endfor %}
   </div><!--- UP one lvl -->
+</div>
+<div class="row">
+  <a href="{{url_for('usermanager')}}" class="btn btn-default btn-sm">Cancel</a>
+  <button type="submit" class="btn btn-primary btn-sm">Submit</button>
 </div>
 </form>
 </div>

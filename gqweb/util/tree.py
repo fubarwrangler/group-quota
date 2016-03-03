@@ -134,3 +134,19 @@ def set_renames(db, formdata):
             obj.group_name = group.full_name
 
     app.logger.debug("\n".join(map(str, root)))
+
+
+def valid_exclusion_tree(groupset, tree):
+    """ Return False if the @groupset given has any members that are
+        descendents of any others
+    """
+
+    for gname in groupset:
+        others = set([x for x in groupset if x != gname])
+        group = tree.find(gname)
+        for x in others:
+            if group.find(x):
+                app.logger.warning("Group %s is a child of %s in groupset", x, group)
+                return False
+
+    return True

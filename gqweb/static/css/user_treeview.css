@@ -3,26 +3,45 @@ div.container>form>div.treediv {
     border-left: none;
 }
 
+.container {
+    padding-left: 30px;
+}
+
+
 div.treediv {
     margin-left: 0px;
     padding-left: 20px;
-    /*border-left: gray dotted thin;*/
+    border-left: blue dotted thin;
+}
 
+.row>div.treediv    {
+    border-left: none;
 }
 
 div.parent, div.nonparent {
     display: table;
-    border-bottom: 1px dotted #b38b0d;
     margin-left: -5px;
     padding-left: 5px;
     padding-top: 10px;
 }
 
 .sel {
-    color: gray;
-    text-decoration: line-through;
     cursor: not-allowed;
 }
+
+.sel span {
+    color: gray;
+    text-decoration: line-through;
+}
+
+.cbdiv label span {
+    vertical-align: middle;
+    font-weight: normal;
+}
+.cbdiv input {
+    vertical-align: middle;
+}
+
 
 .ulinerow {
   border-bottom: black dotted thin;

@@ -59,13 +59,13 @@
         <td> <!-- Group limit -->
           {% if user.groups|length > 0 -%}
             Limited to {{user.groups|length}}
-            <a href="{{ url_for('user_group_view', u=user) }}" class="btn btn-warning btn-sm"
+            <a href="{{ url_for('user_group_view', uid=user.id) }}" class="btn btn-warning btn-sm"
                role="button">
                Edit Here
             </a>
           {% else -%}
             Unlimited / All
-            <a href="{{ url_for('user_group_view', u=user) }}" class="btn btn-default btn-sm"
+            <a href="{{ url_for('user_group_view', uid=user.id) }}" class="btn btn-default btn-sm"
                role="button">
                Add Here
             </a>

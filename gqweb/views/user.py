@@ -11,6 +11,7 @@ from ..application import app
 from ..db import db_session
 from ..db.models import User, Role, Group, build_group_tree_db
 from ..util.userload import admin_permission
+from ..util.tree import valid_exclusion_tree
 
 
 Ok = lambda x: Response(status=200, response=x)
@@ -123,8 +124,20 @@ def activate_user():
     return OkNoResponse()
 
 
-@app.route('/user/gedit/<u>', methods=['POST'])
+@app.route('/user/gedit/<uid>', methods=['POST'])
 @admin_permission.require(403)
-def user_group_edit(u):
-    user = User.query.filter_by(name=u).first()
-    return render_template('user_groupedit.html', u=user)
+def user_group_edit(uid):
+    user = User.query.filter_by(id=uid).first()
+    new_groups = set(request.form.getlist('ng'))
+    app.logger.info("Changed groups for %s: %s", user.name, new_groups)
+
+    root = build_group_tree_db(Group.query.all())
+    if not valid_exclusion_tree(new_groups, root):
+        flash("New grouplist contains a child of one of itself", category='error')
+        return redirect(url_for('user_group_view', uid=uid))
+
+    user.groups = Group.query.filter(Group.group_name.in_(new_groups)).all()
+    db_session.commit()
+    flash("Success changing allowed groups for %s" % user)
+
+    return redirect(url_for('usermanager'))
