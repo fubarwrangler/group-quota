@@ -10,7 +10,7 @@ from ..application import app
 from ..db import db_session
 from ..db.models import Group, build_group_tree_db
 from ..util.rounding import largest_remainder
-from ..util.userload import balance_permission
+from ..util.userload import balance_permission, can_change_group
 
 
 def validate_quotas(root):
@@ -32,6 +32,10 @@ def ezedit_chooser(groupparent):
                    request.form.iteritems())              # 1. For each form key-value pair,
             )
         )
+
+    if not all(can_change_group(x) for x in new_quotas):
+        flash("Disallowed group modified in balancer", category='error')
+        return redirect(url_for('ez_quota_chooser'))
 
     db_groups = Group.query.all()
     root = build_group_tree_db(db_groups)

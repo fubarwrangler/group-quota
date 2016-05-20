@@ -73,6 +73,8 @@ def logout():
         session.pop('user')
     if 'roles' in session:
         session.pop('roles')
+    if 'groups' in session:
+        session.pop('groups')
     return redirect(url)
 
 

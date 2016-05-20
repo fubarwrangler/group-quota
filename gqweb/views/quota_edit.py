@@ -12,12 +12,13 @@ from ..db import db_session
 from ..db.models import Group, build_group_tree_db
 from ..util.validation import validate_form_types
 from ..util.tree import set_quota_sums, set_renames, set_params
-from ..util.userload import edit_permission
+from ..util.userload import edit_permission, can_change_group
 
 
 @app.route('/edit', methods=['POST'])
 @edit_permission.require(403)
 def edit_groups_form():
+
     data = defaultdict(dict)
     for k, value in request.form.iteritems():
         group, parameter = k.split('+')
@@ -27,6 +28,9 @@ def edit_groups_form():
     for grpname in data:
         data[grpname], e = validate_form_types(data[grpname])
         errors.extend(e)
+
+    if not all(map(can_change_group, data.keys())):
+        errors.extend("Group outside of your permissions was edited")
 
     if errors:
         return render_template('edit_group.html', errors=errors)

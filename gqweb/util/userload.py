@@ -6,8 +6,10 @@
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
 
-from flask import request
+from flask import request, session
 from flask.ext.principal import RoleNeed, Permission
+
+from ..application import app
 
 
 def load_user_header(header='REMOTE_USER'):
@@ -17,6 +19,18 @@ def load_user_header(header='REMOTE_USER'):
 
 def load_user_debug(user):
     return user
+
+
+def can_change_group(gname):
+    # Empty list is no restrictions
+    group_acl = session.get('groups', [])
+    if not group_acl:
+        return True
+
+    app.logger.debug("Test %s : %s", gname, group_acl)
+
+    # FIXME: is this right? I can't think right now
+    return any(gname.startswith(x) for x in group_acl)
 
 
 _admin_role = RoleNeed('admin')

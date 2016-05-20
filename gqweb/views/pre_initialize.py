@@ -71,10 +71,18 @@ def load_identity():
         session['roles'] = roles
         session['active'] = user.active
 
+        user_groups = [x.group_name for x in user.groups]
+        app.logger.debug("New group ACL loaded: %s->%s", username, user_groups)
+        session['groups'] = user_groups
+
     identity = Identity(username)
     if session.get('active'):
         for role in roles:
             identity.provides.add(RoleNeed(role))
+
+        # Do we really want a Need() per group? Better to do it ourselves
+        # for group in session.get('groups', []):
+        #     identity.provides.add(RoleNeed(group))
 
     g.user = username
     g.roles = roles
