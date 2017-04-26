@@ -29,9 +29,6 @@ def edit_groups_form():
         data[grpname], e = validate_form_types(data[grpname])
         errors.extend(e)
 
-    if not all(map(can_change_group, data.keys())):
-        errors.extend("Group outside of your permissions was edited")
-
     if errors:
         return render_template('edit_group.html', errors=errors)
 
@@ -47,14 +44,21 @@ def edit_groups_form():
     except ValueError as e:
         flash(str(e), 'error')
         return redirect(url_for('edit_groups_form'))
-    else:
-        # Objects in session.dirty are not necessarily modified if the set-attribute
-        # is not different than the current one
-        if any(x for x in db_session.dirty if db_session.is_modified(x)):
-            flash("Everything OK, changes committed!")
-        else:
-            flash("No changes were made!", "nochange")
 
-        db_session.commit()
+    for x in db_session.dirty:
+        if db_session.is_modified(x) and not can_change_group(x.group_name):
+            errors.append('Unauthorized group %s edited' % x)
+
+    if errors:
+        return render_template('edit_group.html', errors=errors)
+
+    # Objects in session.dirty are not necessarily modified if the set-attribute
+    # is not different than the current one
+    if any(x for x in db_session.dirty if db_session.is_modified(x)):
+        flash("Everything OK, changes committed!")
+    else:
+        flash("No changes were made!", "nochange")
+
+    db_session.commit()
 
     return redirect(url_for('main_menu'))
