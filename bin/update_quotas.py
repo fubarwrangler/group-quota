@@ -32,7 +32,7 @@ from gq.log import setup_logging
 from email.MIMEText import MIMEText
 from email.utils import formatdate
 
-CONDOR_RECONFIG = 'condor_reconfig'
+CONDOR_RECONFIG = '/usr/sbin/condor_reconfig'
 
 
 class UpdateQuotaGroup(group.QuotaGroup):
@@ -73,8 +73,10 @@ class UpdateQuotaGroup(group.QuotaGroup):
 
     def __str__(self):
 
-        msg = "GROUP_NAMES = %s\n" % ', \\\n'.join(x.full_name for x in self)
-        for g in reversed(list(self)):
+        ordered = list(reversed(list(self)))
+
+        msg = "GROUP_NAMES = %s\n" % ', \\\n'.join(x.full_name for x in ordered)
+        for g in ordered:
             msg += '\n'
             msg += 'GROUP_QUOTA_%s = %d\n' % (g.full_name, g.quota)
             msg += 'GROUP_PRIO_FACTOR_%s = %.1f\n' % (g.full_name, g.prio)
@@ -107,6 +109,7 @@ def overwrite_file(groups, quota_file, backup_file=None):
     log.debug("Writing temporary file: %s", tempname)
     groups.write_file(tmpf)
     tmpf.close()
+    os.chmod(tempname, 0644)
 
     # This may be overkill...but can't hurt -- reread tmpfile and compare w/ db
     new_groups = get_file_groups(tempname)
@@ -149,7 +152,7 @@ reconfigured to use the new quotas indicated on the page above.
     msg['Subject'] = "Group quotas changed"
     msg['Date'] = formatdate(localtime=True)
     try:
-        smtp_server = smtplib.SMTP('rcf.rhic.bnl.gov', 25)
+        smtp_server = smtplib.SMTP('proxy.sdcc.bnl.local', 25)
         smtp_server.sendmail(msg['From'], msg['To'], msg.as_string())
     except:
         log.error('Problem sending mail, no message sent')
