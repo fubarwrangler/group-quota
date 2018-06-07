@@ -152,7 +152,7 @@ reconfigured to use the new quotas indicated on the page above.
     msg['Subject'] = "Group quotas changed"
     msg['Date'] = formatdate(localtime=True)
     try:
-        smtp_server = smtplib.SMTP('proxy.sdcc.bnl.local', 25)
+        smtp_server = smtplib.SMTP('adminmail.rcf.bnl.gov', 25)
         smtp_server.sendmail(msg['From'], msg['To'], msg.as_string())
     except:
         log.error('Problem sending mail, no message sent')
