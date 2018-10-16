@@ -6,7 +6,7 @@
 # (C) 2015 William Strecker-Kellogg <willsk@bnl.gov>
 # ===========================================================================
 from flask import Flask, render_template, flash, redirect, url_for, request, session
-from flask.ext.principal import Principal
+from flask_principal import Principal
 from collections import defaultdict
 
 import logging

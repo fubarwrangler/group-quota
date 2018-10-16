@@ -6,7 +6,7 @@
 # ===========================================================================
 
 from flask import request, session, g
-from flask.ext.principal import Identity, AnonymousIdentity, RoleNeed
+from flask_principal import Identity, AnonymousIdentity, RoleNeed
 
 from ..application import app, principals, BNLT3
 from ..db import db_session

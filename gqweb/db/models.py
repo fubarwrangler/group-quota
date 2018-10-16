@@ -31,6 +31,7 @@ class Group(Base):
     last_update = Column(TIMESTAMP, nullable=False, server_default=func.now())
     last_surplus_update = Column(TIMESTAMP, nullable=True)
 
+
 user_role_table = Table(
     'user_roles', Base.metadata,
     Column('user_id', Integer, ForeignKey('users.id', ondelete='cascade')),

@@ -7,7 +7,7 @@
 # ===========================================================================
 
 from flask import request, session
-from flask.ext.principal import RoleNeed, Permission
+from flask_principal import RoleNeed, Permission
 
 from ..application import app
 

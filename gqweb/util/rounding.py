@@ -19,7 +19,7 @@ def largest_remainder(data, total):
         @data: list of floatint point numbers
         @total: what the final sum should be (== sum(data) mostly)
     """
-    ifloor = lambda x: int(floor(x))
+    def ifloor(x): return int(floor(x))
 
     new_data = map(ifloor, data)
     partial = sum(new_data)

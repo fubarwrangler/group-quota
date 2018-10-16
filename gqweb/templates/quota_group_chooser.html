@@ -31,14 +31,15 @@
     {%- endif -%}
     <span class="quotaeztree text-muted">{{rootgrp.get_children()|sum(attribute='quota')}}</span>
   </div>
+{%- set ns = namespace(level=-1) %}
 {%- for group in groups %}
-  {%- set prev_level = level if not loop.first else -1 %}
-  {%- set level = group.full_name.count('.') %}
-  {%- if level < prev_level %}
-    {%- for i in range(prev_level - level) %}
+  {%- set prev_level = ns.level %}
+  {%- set ns.level = group.full_name.count('.') %}
+  {%- if ns.level < prev_level %}
+    {%- for i in range(prev_level - ns.level) %}
   </div> <!--- UP one lvl -->
     {%- endfor %}
-  {%- elif level > prev_level %}
+  {%- elif ns.level > prev_level %}
   <div class="treediv"> <!--- Down one lvl -->
   {%- endif %}
   {%- if not group.is_leaf and group.children|length > 1 %}
