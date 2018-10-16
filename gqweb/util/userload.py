@@ -9,8 +9,6 @@
 from flask import request, session
 from flask_principal import RoleNeed, Permission
 
-from ..application import app
-
 
 def load_user_header(header='REMOTE_USER'):
     user = request.environ.get(header)
@@ -27,9 +25,6 @@ def can_change_group(gname):
     if not group_acl:
         return True
 
-    app.logger.debug("Test %s : %s", gname, group_acl)
-
-    # FIXME: is this right? I can't think right now
     return any(gname.startswith(x) for x in group_acl)
 
 

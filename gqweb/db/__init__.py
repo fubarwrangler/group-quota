@@ -11,7 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 engine = create_engine(app.config['DATABASE_URI'],
-                       echo=app.config['DEBUG'],
+                       echo=app.config['DB_ECHO'],
                        convert_unicode=True,
                        pool_recycle=app.config['DBPOOL_RECYCLE'])
 

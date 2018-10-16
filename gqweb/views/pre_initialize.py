@@ -11,7 +11,7 @@ from flask_principal import Identity, AnonymousIdentity, RoleNeed
 from ..application import app, principals, BNLT3
 from ..db import db_session
 from ..db.models import User, Role
-from ..util.userload import load_user_debug, load_user_header
+from ..util.userload import load_user_debug, load_user_header, can_change_group
 
 
 @app.before_first_request
@@ -84,7 +84,9 @@ def load_identity():
         # for group in session.get('groups', []):
         #     identity.provides.add(RoleNeed(group))
 
+    # Utilities stored in request context (g)
     g.user = username
     g.roles = roles
+    g.can_change = lambda x: can_change_group(x.full_name)
 
     return identity

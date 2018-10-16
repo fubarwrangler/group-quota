@@ -127,3 +127,7 @@ div#adminbtn {
 .navbar-fixed-bottom {
   min-height:10px;
 }
+
+tr.cantedit {
+    display: none;
+}

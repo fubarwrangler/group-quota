@@ -80,7 +80,7 @@ $(function () {
     <tbody>
     {%- for group in groups %}
     {%- set parent = '.'.join(group.full_name.split('.')[:-1]) %}
-    <tr>
+    <tr class="{% if not g.can_change(group) %}cantedit{% endif %}">
       <td>
         {{parent + ("."|safe if parent else "")}}
         <input type="text" value="{{group.full_name.split('.')[-1]}}" class="form-control sm-box namebox"
@@ -93,7 +93,8 @@ $(function () {
       </td>
       <td>
         <input type="text" name="{{group.full_name + '+priority'}}"
-               class="form-control sm-box" value="{{group.priority|round(1)}}"/>
+               class="form-control sm-box"
+               value="{{group.priority|round(1)}}"/>
       </td>
       <td>
         <input type="text" name="{{group.full_name + '+weight'}}"

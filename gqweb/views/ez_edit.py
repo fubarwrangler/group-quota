@@ -32,9 +32,10 @@ def ezedit_chooser(groupparent):
                    request.form.iteritems())              # 1. For each form key-value pair,
             )
         )
-
-    if not all(can_change_group(x) for x in new_quotas):
-        flash("Disallowed group modified in balancer", category='error')
+    bad_groups = [x for x in new_quotas if not can_change_group(x)]
+    if bad_groups:
+        flash("Disallowed group modified in balancer: %s" % ', '.join(bad_groups),
+              category='error')
         return redirect(url_for('ez_quota_chooser'))
 
     db_groups = Group.query.all()

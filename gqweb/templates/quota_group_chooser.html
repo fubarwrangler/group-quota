@@ -24,7 +24,7 @@
 
   <div class="treediv row"><!--- Down one lvl -->
   <div class="parent">
-    {%- if rootgrp.children|length >= 2 -%}
+    {%- if (rootgrp.children|length > 1 and g.can_change(rootgrp)) -%}
     <a href="{{ url_for('ez_quota_edit', parent='<root>') }}">{{"Tree Root"}}</a>
     {%- else -%}
     Tree Root
@@ -42,7 +42,7 @@
   {%- elif ns.level > prev_level %}
   <div class="treediv"> <!--- Down one lvl -->
   {%- endif %}
-  {%- if not group.is_leaf and group.children|length > 1 %}
+  {%- if not group.is_leaf and group.children|length > 1 and g.can_change(group) %}
   <div class="parent">
     <a href="{{ url_for('ez_quota_edit', parent=group) }}">{{group}}</a>
   {%- else %}

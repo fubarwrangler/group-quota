@@ -47,7 +47,7 @@ def edit_groups_form():
 
     for x in db_session.dirty:
         if db_session.is_modified(x) and not can_change_group(x.group_name):
-            errors.append('Unauthorized group %s edited' % x)
+            errors.append('Unauthorized group %s edited' % x.group_name)
 
     if errors:
         return render_template('edit_group.html', errors=errors)

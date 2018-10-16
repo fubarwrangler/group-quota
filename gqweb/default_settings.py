@@ -2,8 +2,8 @@ import gq.config as config
 import logging
 
 DATABASE_URI = 'mysql://%(user)s:%(passwd)s@%(host)s/%(db)s' % config.db
-TABLE_NAME = 'groups'
 DEBUG = True
+DB_ECHO = 0
 APP_NAME = 'ATLAS'
 
 DBPOOL_RECYCLE = 3600 * 3
