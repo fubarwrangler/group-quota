@@ -35,4 +35,5 @@ setup(
     keywords='htcondor condor group-quota flask',
     packages=find_packages(exclude=['gqweb.*', 'gqweb']),
     package_data={'gq.config': ['*.cfg']},
+    scripts=['bin/gq_condor_group_update', 'bin/gq_balance_load'],
 )
