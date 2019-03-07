@@ -75,7 +75,7 @@ class UpdateQuotaGroup(group.QuotaGroup):
 
         ordered = list(reversed(list(self)))
 
-        msg = "GROUP_NAMES = %s\n" % ', \\\n'.join(x.full_name for x in ordered)
+        msg = "GROUP_NAMES = $(GROUP_NAMES) %s\n" % ', \\\n'.join(x.full_name for x in ordered)
         for g in ordered:
             msg += '\n'
             msg += 'GROUP_QUOTA_%s = %d\n' % (g.full_name, g.quota)
