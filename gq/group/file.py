@@ -52,7 +52,7 @@ def read_lines_continue(fobj):
     in_line = False
     tmp = ''
     for line in (x.strip() for x in fobj if x):
-        if re.match('^\s*#', line):
+        if re.match(r'^\s*#', line):
             continue
 
         if line.endswith('\\'):
@@ -77,10 +77,10 @@ def _read_quotas(fname):
         sys.exit(1)
 
     regexes = {
-        "names":   re.compile('^GROUP_NAMES\s*=\s*(.*)$'),
-        "quota":   re.compile('^GROUP_QUOTA_([\w\.]+)\s*=\s*(\d+)$'),
-        "prio":    re.compile('^GROUP_PRIO_FACTOR_([\w\.]+)\s*=\s*([\d\.]+)$'),
-        "surplus": re.compile('^GROUP_ACCEPT_SURPLUS_([\w\.]+)\s*=\s*(\w+)$'),
+        "names":   re.compile(r'^GROUP_NAMES\s*=\s*(\$\(GROUP_NAMES\))?(.*)$'),
+        "quota":   re.compile(r'^GROUP_QUOTA_([\w\.]+)\s*=\s*(\d+)$'),
+        "prio":    re.compile(r'^GROUP_PRIO_FACTOR_([\w\.]+)\s*=\s*([\d\.]+)$'),
+        "surplus": re.compile(r'^GROUP_ACCEPT_SURPLUS_([\w\.]+)\s*=\s*(\w+)$'),
     }
 
     grps = {}
@@ -91,7 +91,7 @@ def _read_quotas(fname):
             if not regex.match(line):
                 continue
             if kind == "names":
-                group_names = regex.match(line).group(1).replace(' ', '').split(',')
+                group_names = regex.match(line).group(2).replace(' ', '').split(',')
             else:
                 grp, val = regex.match(line).groups()
                 if not grps.get(grp):
