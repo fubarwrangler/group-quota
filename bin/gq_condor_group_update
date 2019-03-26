@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Desc: This script checks, being very paranoid, for differences between the
 #       database holding the atlas group quota information (on database) and the
 #       current condor configuration file passed.  If there are any differences,

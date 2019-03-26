@@ -1,5 +1,6 @@
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
+from glob import glob
 
 setup(
     name='gq',
@@ -35,5 +36,5 @@ setup(
     keywords='htcondor condor group-quota flask',
     packages=find_packages(exclude=['gqweb.*', 'gqweb']),
     package_data={'gq.config': ['*.cfg']},
-    scripts=['bin/gq_condor_group_update', 'bin/gq_balance_load'],
+    scripts=glob('bin/gq_*'),
 )
